@@ -124,3 +124,80 @@ by headless engine runs of 5,000–10,000 worlds per scenario.
   (measured: erasing `move_city` moved marriage 45.3% → 56.7% on an earlier
   engine tune).
 - J shortcut from anywhere; results page reruns on J.
+
+## 2026-07-25 — the multiverse gets merch, a letter, and a second playthrough
+
+Driven by the Kimi Code CLI loop (every 5 min, backlog in `.qa/_backlog_win.md`,
+progress ledger in `.qa/_loop_progress.md`). All CDP-verified, console-clean,
+390×844 overflow-free. Backup chain now at `index-v15-cn.html`.
+
+### Story first, quiz dead (commit 0994655, awaiting Oscar's sign-off to deploy)
+
+- **Fill-in-the-blank narrative input** replaces the persona sliders as the
+  default: "还记得你们上次吵架吗？因为 ___。后来 ___ 先开了口，说了句 ___。
+  那一刻，你心里想的是 ___。" — 25 spoken-word options across four blanks map
+  covertly to the nine engine parameters (engine untouched; the raw sliders
+  live on inside a fold-out "我懂心理学，直接调参数" panel; controls stay the
+  single source of truth).
+- **The reveal**: results page gets a horoscope-toned verdict line
+  ("宇宙批注 · 你们吵架的模式：冷战高手 × 冷战高手。建议备点小纸条……"),
+  nine conflict-style combos × two punchlines each.
+- **Name editing on results**: click a name, retype, hit 重新算 — same salt
+  ladder. If the top outcome flips, a toast confesses:
+  "你以为你改的是名字，其实你改的是宇宙。"
+- **Temperature copy system**: five outcome-pools × six lines, warm teasing
+  for marriage/dating, only gentleness for breakup, neutral for cold war/LD.
+  Marquee + headline pools destructively edited (16 rewritten, 6 deleted —
+  zero 排比/鸡汤/「震撼」left).
+- Loop-agent wreckage repaired along the way: five duplicated `],` syntax
+  errors, a naked `#adv-panel`, an `.out-headline` flex overlap, a null
+  `pickChip`.
+
+### Motion quartet (already live, commit b27de08 era)
+
+- Jump gains a 0.9s chaos prelude — all 1,200 worldlines explode outward
+  (70→30 Hz boom) before diverging; screen-shake finale when the five
+  streams converge. Runtime 4.7s → 5.6s, offscreen architecture untouched.
+- Timeline key events carry icons (💍⚡✈️💔, id- and keyword-matched,
+  LLM-rewrite-safe) with a 1.2× pulse, reduced-motion exempt.
+- Moment dialogues boot like a CRT (0.32s horizontal-line unfold).
+- Universe openings flash a hand-drawn 5×7 dot-matrix `UNIVERSE #…`
+  that dissolves pixel by pixel.
+
+### Keepsakes & doubles — Tripo 3D (sponsor track, visibly used)
+
+- **14 universe keepsakes** (two leaning pebbles, a cat loaf, tangled
+  earphones, a bowl of luosifen…): Tripo text-to-3D → weld/simplify 8%/
+  quantize → 216K–2.4M GLBs (`assets/keepsakes/`, raw 176MB archived in
+  `_gen/`). Static renders in `assets/keepsakes/render/` double as the
+  file:// fallback and the ID-card stamp.
+- **Chibi Tomodachi-style doubles** for Oscar & Mira (756K/684K).
+- model-viewer **UMD** vendored to `assets/lib/` (v4 ships ESM only — dead
+  on file://; v3 UMD double-clicks fine). `keepsakes-gallery.html` (16
+  models, 18MB single file) and `avatars-proto.html` tour the whole set.
+- Integration plan for the acceptance window: `.qa/_keepsake_integration.md`.
+
+### Share & second-play loop
+
+- **Handwritten zero-dependency QR generator** (`qr-proto.html`): byte mode,
+  EC-M, auto version 1-10, RS over GF(256), format+version info — verified
+  scannable by independent OpenCV decode (site URL, 110-char permalink,
+  Chinese text), not by eyeball.
+- **Share landing page**: `#t=` links now arrive as a letter
+  ("有人给你寄了一万个宇宙 · A × B · 拆开看看 / 也算算我们的 →") instead of
+  an instant jump — the judge-facing "play it with YOUR names" loop closes.
+- Counterfactuals & sensitivity demoted to an easter egg ("给工程师和杠精
+  看的部分 →") — fate first, engineering on request (second LLM review,
+  `.qa/review2.md`).
+- Timeline gains a **poignancy layer** (old movie stubs / 3am fever run /
+  the old code word at the reunion) — rare (w≈0.17), late-game only,
+  smoke-tested over 3,000 engine runs.
+
+### Docs
+
+- `DEMO.md` rewritten as a 3-minute run-of-show (fill-in laugh → explosion
+  wow → reveal laugh → 1s rock-universe flash → keepsake hands-on → ID card
+  → "pull out YOUR phone" CTA); fallback counterfactual beat kept for
+  technical judges.
+- `README.md` re-aligned: story input, Tripo pipeline, principles updated
+  ("Absurd ≠ childish" replaces the dead "Never cute").

@@ -1,7 +1,13 @@
 # MultiUs 交接文档
 
 > 给下一位接手的 AI / 开发者。读完这份文档你应该能不等任何人、直接继续干活。
-> 最后更新：2026-07-24 23:50（v10，14 恶搞宇宙 + 宇宙身份证版本已上线）
+> 最后更新：2026-07-25 05:40（v15，三任务+信物资产+分享闭环已入库，**线上仍是 v10，等 Oscar 验收后部署**）
+
+---
+
+## 0. 当前最重要的一句话
+
+**本地 main 已领先线上 13 个 commit（0994655 起），全部验证过但没部署——等 Oscar 验收三任务（填空叙事/名字编辑/温度文案），验收一过：部署 + 信物接入 + 身份证印图 + QR 上结果页，一气做完。** 验收前的集成方案在 `.qa/_keepsake_integration.md`，拿奖 backlog 在 `.qa/_backlog_win.md`，CLI loop 的进度账在 `.qa/_loop_progress.md`。
 
 ---
 
@@ -85,29 +91,42 @@ cd "$DEST" && "$NODE_BIN/npx.cmd" wrangler@latest pages deploy . \
 
 ## 6. 路线图（按优先级）
 
-1. **宇宙信物（Tripo 3D）**——已定方向，未开工。每个宇宙一个 3D 纪念品（石头宇宙=两颗相依鹅卵石、耳机宇宙=缠绕的耳机……），宇宙页内 360° 可拖，印上宇宙身份证。先用石头宇宙试跑：Tripo text-to-3D（或拿 hero 图 image-to-3D）→ GLB → 页面接入（需要 vendor 一个 model-viewer，注意单文件原则可以破例为它 vendor 本地文件）。Tripo 是赞助商， visibly 使用有赛道加分
-2. **`.qa/review.md`（Fable 评审）剩余项**：跳跃动画加「混乱→秩序」前 1 秒爆炸 + 结尾震屏；时间线关键事件图标锚点；moment 对话 CRT 开机效果；开屏加 UNIVERSE #编号像素消散
-3. **评审说该砍的**：英文版已冻结；12 格里前排要放最有戏的（可再调排序权重）
-4. **loop 定时任务**（Automation ID `automation_69de7ef0-65ea-4242-b80c-bae2cb4a7f95`，每 30 分钟自主迭代一轮）在 Kimi Work 侧跑着——如果你不是 Kimi Work 的 agent，忽略它；如果是，别和它改同一块，先看它最近一轮汇报
+1. ~~**宇宙信物（Tripo 3D）**~~ ✅ 素材全齐（2026-07-25，CLI loop）：14 信物 + 2 Q 版主角（`assets/keepsakes/` + `render/`，216K–2.4M），model-viewer UMD 在 `assets/lib/`，全图鉴/双人原型页已验。**剩接入主站 + 印上身份证**（等验收窗口，方案 `.qa/_keepsake_integration.md`；关键坑：file:// 禁 fetch，GLB 只能外链+静态图降级；model-viewer 用 v3 UMD 不是 v4 ESM；Tripo 模型正面在 azimuth 270°）。
+2. ~~**`.qa/review.md`（Fable 评审）剩余项**~~ ✅ 全部完成（爆炸开场/震屏/时间线图标/CRT/UNIVERSE #消散，已上线）。
+3. **二轮评审（`.qa/review2.md`）落袋**：反事实已藏彩蛋 ✅、扎心后劲层 ✅、DEMO 改闪现+扫码 CTA ✅；剩「QR 上结果页/身份证」（生成器已验证 `qr-proto.html`，等窗口）。
+4. **loop 定时任务**：Kimi Work 侧（`automation_69de7ef0…`，30 分钟）+ **Kimi Code CLI 侧（cron，5 分钟，领 `.qa/_backlog_win.md` 的活，北极星=拿奖）**。两边都可能动 index.html——动手前先 `git status` + 看 mtime，别人在改就等窗口；半成品不许碰。
 
 ## 7. 文件地图
 
 ```
 index.html            主文件（中文版，全部功能）
 index-en.html         英文原版（冻结）
-index-vN-cn.html      备份链（N≤10，gitignored）
+index-vN-cn.html      备份链（N≤15，gitignored）
 multius.local.js      本地 LLM 默认配置（gitignored，含 key）
 assets/worlds/        22 张 hero 图（结局场景 10 + 恶搞宇宙 14，1536×864 jpg）
 assets/chars/         LPC 像素小人（oscar/mira + 头像）
+assets/keepsakes/     14 信物 + 2 Q 版主角的 web GLB（216K–2.4M）；render/ 静态渲染图 ×16
+assets/lib/           model-viewer UMD（v3，910K，file:// 可用；v4 ESM 不行）
 tools/lpc_build.py    LPC 捏人管线（vendor/lpc 是素材源，不入 git）
+keepsakes-gallery.html 全图鉴（16 模型内联，18MB 单文件）
+avatars-proto.html    双人 3D 分身原型页
+keepsake-proto.html   单信物原型页（石头）
+qr-proto.html         手写零依赖 QR 生成器（已 OpenCV 实证）
 watch-proto*.html     8bit 对话原型页（已并入主站，仅存档）
 char-preview.html     角色预览页
 adventurex-2026-*.md  黑客松指南全文 + 赛道分析（主题选 D 万花筒，赛道 03+21）
 CHANGELOG.md          版本记录
+DEMO.md               3 分钟演示逐秒脚本（2026-07-25 版）
+VISION.md             产品为什么（Oscar 原话+共识），改文案前先读
+requirements-review.md Oscar 新需求背景（Kimi Work 整理）
 .qa/                  QA 截图/CDP 脚本/LLM 咨询文档/Tripo key（gitignored）
-_gen/                 生图工作目录（gitignored）
+  _backlog_win.md       拿奖 backlog（loop 领活队列，<3 项必须补）
+  _loop_progress.md     CLI loop 进度账（含所有坑：Tripo 参数/CDP/编码等）
+  _keepsake_integration.md 信物+身份证接入方案（验收窗口照做）
+  review.md / review2.md 两轮 LLM 评审（Fable 视角 + sonnet 毒舌）
+_gen/                 生图工作目录 + keepsakes-raw/（176MB 原始 GLB）+ gltf/（压缩工具链）
 ```
 
 ## 8. 给接手者的第一句话
 
-先 `cp index.html index-v11-cn.html`，然后跑一遍线上 https://multius.odin-lab.com 感受当前状态——世界线跳跃、点开石头宇宙看开屏对话、最后生成一张宇宙身份证。你要改的所有东西，最终都要过这三关：文案不像 AI 写的、手机上是顺的、file:// 双击能跑。
+先 `cp index.html index-v16-cn.html`，然后跑一遍线上 https://multius.odin-lab.com 感受当前状态——世界线跳跃、点开石头宇宙看开屏对话、最后生成一张宇宙身份证。注意**线上落后本地 13 个 commit**：本地的新鲜玩意看这三个页面就够了——`keepsakes-gallery.html`（人+信物全图鉴）、`qr-proto.html`（扫码玩第二遍）、DEMO.md（3 分钟怎么演）。你要改的所有东西，最终都要过这三关：文案不像 AI 写的、手机上是顺的、file:// 双击能跑。
