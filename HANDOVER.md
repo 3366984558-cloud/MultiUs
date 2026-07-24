@@ -1,0 +1,113 @@
+# MultiUs 交接文档
+
+> 给下一位接手的 AI / 开发者。读完这份文档你应该能不等任何人、直接继续干活。
+> 最后更新：2026-07-24 23:50（v10，14 恶搞宇宙 + 宇宙身份证版本已上线）
+
+---
+
+## 1. 这是什么
+
+**MultiUs** —— AdventureX 2026 黑客松作品，灵感来自《瞬息全宇宙》（Everything Everywhere All at Once）。
+输入两个人的名字 + 三个人格参数（依恋类型/吵架风格/金钱观），浏览器端蒙特卡洛模拟 **10,000 个平行宇宙**里这段感情的下场（结婚/仍在交往/分手/冷战/异地五种结局），然后可以走进其中任意一个宇宙看它的完整时间线。
+
+定位句（对外叙事用这个）：
+> 「他们模拟是为了帮你找到那个人。我们模拟，是为了让你看懂你们俩。」
+
+- **线上**：https://multius.odin-lab.com （Cloudflare Pages，备用 https://multius.pages.dev）
+- **仓库**：https://github.com/3366984558-cloud/MultiUs （公开，main 分支）
+- **本地**：`D:\km\MultiUs\MultiUs`（注意末尾没有点）
+- **主文件**：`index.html` —— **零依赖单文件，双击 file:// 直接跑，无构建、无 npm、无后端**
+
+## 2. 硬规矩（Oscar 会逐条查）
+
+1. **改 index.html 前必须备份**：`cp index.html index-vN-cn.html`（N 递增，当前已到 v10）。备份不入 git（.gitignore 已排除）
+2. **文案红线**：口语、短句、自嘲、冷幽默；禁止排比、禁止鸡汤说教、禁止「震撼/炸裂/惊艳」；每条文案只为它所在的宇宙/场景成立。无厘头≠低幼，梗要有智商
+3. **绝不提交/上传**：`multius.local.js`（含 LLM key）、`.qa/`（含 Tripo key + 截图）、`vendor/`、`index-v*-cn.html`
+4. **不引入外部依赖**：单文件原则，canvas + CSS 手写。像素角色全部 JS pixel map，不引图片库
+5. **emoji 处理**：按码点切（`for..of` / `Array.from`），**绝不** `.split('')`（UTF-16 代理对会碎）
+6. **hover 效果**必须包在 `@media (hover:hover)` 里；触控目标 ≥44px；手机端（360px+）零横向溢出是验收线
+7. 非破坏性操作直接做，破坏性操作先问
+
+## 3. 当前功能全景（v10）
+
+| 模块 | 说明 |
+|---|---|
+| 首页 | 双名字输入 + 人格滑杆；WTF 跑马灯（26 条宇宙片段滚动）；「按 J 跳跃」 |
+| 跳跃动画 | ~1200 条世界线 canvas 随机游走，五种结局色，收尾五条光带 + 计数 10,000，4.7s；小屏自动降 700 条 |
+| 结局统计页 | 大字抽签标题（每结局 13-14 句池，`{pct}` 填真实占比）+ 五结局条 + 12 格宇宙墙（6 真 + 14 抽 6 恶搞） |
+| 恶搞宇宙 ×14 | 石头/猫/拖鞋/多肉/贩卖机/路灯/冰箱(蛋+酒)/平行套娃/充电宝/蚊子/电梯广告屏/扫地机器人/耳机/螺蛳粉。每个：专属主题色+水波纹换肤、专属结局统计(合计 10000)、10 条专属时间线、pixel map 角色×2、hero 图、分桶语料（开场 24+中段 16 对+收尾 20，单宇宙 68,544 组合） |
+| 开屏对话动画 | 点宇宙先播 640×360 像素场景（亮起三段→idle 微动→打字机对话→水波纹让位时间线），可跳过；规格书在 `.qa/motion_spec.md` + `.qa/motion_spec2.md` |
+| 真宇宙时间线 | 90 事件/227 变体（含 16 条低概率离谱事件调味）；有 LLM key 时现场书写（逐条流式、缓存、可重写、坏返回静默回退） |
+| 双人 moment | 点时间线任意天，两个分身以当下状态对话（LLM per-turn 或引擎 120 条模板） |
+| 宇宙身份证 | 1080×1440 canvas 分享卡（最可能结局/最疯狂瞬间/命运分歧点/水印），toBlob 下载 PNG |
+| 其他 | 手机全适配、中英文案（英文原版 `index-en.html`，已冻结不维护）、Web Audio 音效 |
+
+**随机性体系**：种子 = 名字哈希 + Date.now() + 会话轮次（mulberry32），会话内组合签名去重。LLM 是加分项不是主路径——主办方网络下常连不上，语料库必须独立成立。
+
+## 4. 密钥与外部服务（都在 git 之外）
+
+| 服务 | 位置 | 说明 |
+|---|---|---|
+| LLM（主办方 openai-next） | `multius.local.js`（.gitignore） | endpoint `https://api.openai-next.com/v1`，首选模型 `qwen3-max`（1.8s）；备选 `deepseek-v4-flash`、`claude-sonnet-4-5-20250929`。653 模型但多半残的，**每次用新模型前必须实测**。文档 https://credits.openai-next.com/zh/guide/quickstart |
+| Gemini（Oscar 备用） | key 在 `D:\claude\ONBOARDING.md` §14 | 本机直连 Google 不通（DNS 污染），需代理；`multius.local.js` 注释里有完整备用配置 |
+| Tripo 3D | key 在 `.qa/tripo_key.txt` | base `https://api.tripo3d.com/v2/openapi`（**.com 不是 .ai**，.ai 不通）。余额 3000 分（2026-07-24 查）。**还没接进项目，见 §6 路线图** |
+| Cloudflare | `C:\Users\Oscar\.cloudflare-config`（CF_TOKEN/CF_ACCOUNT/CF_ZONE，source 加载，绝不打印） | Pages 项目 `multius`，已绑 `multius.odin-lab.com` |
+
+**claude-fable-5 在主办方 token 下 503**（计费组没渠道），动效/产品顾问用 `claude-sonnet-4-5-20250929` 代替，已有两轮咨询成果在 `.qa/motion_spec*.md` 和 `.qa/review.md`。
+
+## 5. 工作流（都趟过坑，照抄）
+
+### 部署（Cloudflare Pages）
+```bash
+DEST="/c/Users/Oscar/Documents/kimi/workspace/_deploy-staging/multius"
+rm -rf "$DEST" && mkdir -p "$DEST" && cp -r ./* "$DEST/"
+rm -rf "$DEST/multius.local.js" "$DEST/vendor" "$DEST/_gen" "$DEST/.qa"
+rm -f "$DEST"/index-v*-cn.html "$DEST/.gitignore"
+source /c/Users/Oscar/.cloudflare-config
+export CLOUDFLARE_API_TOKEN="$CF_TOKEN" CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT"
+export NODE_OPTIONS="--dns-result-order=ipv4first"   # 关键！否则 node fetch 连不上 CF
+NODE_BIN=$(dirname "$(which node)")
+cd "$DEST" && "$NODE_BIN/npx.cmd" wrangler@latest pages deploy . \
+  --project-name=multius --branch=main --commit-message="ASCII only" --commit-dirty=true
+```
+- 域名绑定已做好，不用重复绑；`--branch=main` 必须带
+- **禁止** `--project-name=odin-lab`（主站封箱）
+- curl 调 CF API 一律加 `--ssl-no-revoke`
+- 缓存坑：重新部署后等 1-2 分钟或加 `?v=N` 验证
+
+### Git 推送（github.com 常被 DNS 污染）
+先正常 push；不通就走 REST API 绕道：`printf "protocol=https\nhost=github.com\n\n" | git credential fill` 取 token → blob→tree→commit→ref 逐步 POST。注意 API 提交只存 UTC 时间戳，远端 sha 与本地不同但 tree 一致时，`git fetch && git reset --hard origin/main` 无损对齐。
+
+### 验证（无 WebBridge，用 headless Chrome + Node CDP）
+- 现成脚本参考 `.qa/_cdp_v10.mjs`（agent 自建的 CDP 驱动，截图+console 采集+设备模拟）
+- `node --check` 检查三个 script 块；验收底线：console 零报错、手机 390×844 无横向溢出
+- shell 里中文 prompt 必须用文件 `--data-binary @file.json` 发送（命令行内联中文会被 GBK 搞坏，返回答非所问）
+
+## 6. 路线图（按优先级）
+
+1. **宇宙信物（Tripo 3D）**——已定方向，未开工。每个宇宙一个 3D 纪念品（石头宇宙=两颗相依鹅卵石、耳机宇宙=缠绕的耳机……），宇宙页内 360° 可拖，印上宇宙身份证。先用石头宇宙试跑：Tripo text-to-3D（或拿 hero 图 image-to-3D）→ GLB → 页面接入（需要 vendor 一个 model-viewer，注意单文件原则可以破例为它 vendor 本地文件）。Tripo 是赞助商， visibly 使用有赛道加分
+2. **`.qa/review.md`（Fable 评审）剩余项**：跳跃动画加「混乱→秩序」前 1 秒爆炸 + 结尾震屏；时间线关键事件图标锚点；moment 对话 CRT 开机效果；开屏加 UNIVERSE #编号像素消散
+3. **评审说该砍的**：英文版已冻结；12 格里前排要放最有戏的（可再调排序权重）
+4. **loop 定时任务**（Automation ID `automation_69de7ef0-65ea-4242-b80c-bae2cb4a7f95`，每 30 分钟自主迭代一轮）在 Kimi Work 侧跑着——如果你不是 Kimi Work 的 agent，忽略它；如果是，别和它改同一块，先看它最近一轮汇报
+
+## 7. 文件地图
+
+```
+index.html            主文件（中文版，全部功能）
+index-en.html         英文原版（冻结）
+index-vN-cn.html      备份链（N≤10，gitignored）
+multius.local.js      本地 LLM 默认配置（gitignored，含 key）
+assets/worlds/        22 张 hero 图（结局场景 10 + 恶搞宇宙 14，1536×864 jpg）
+assets/chars/         LPC 像素小人（oscar/mira + 头像）
+tools/lpc_build.py    LPC 捏人管线（vendor/lpc 是素材源，不入 git）
+watch-proto*.html     8bit 对话原型页（已并入主站，仅存档）
+char-preview.html     角色预览页
+adventurex-2026-*.md  黑客松指南全文 + 赛道分析（主题选 D 万花筒，赛道 03+21）
+CHANGELOG.md          版本记录
+.qa/                  QA 截图/CDP 脚本/LLM 咨询文档/Tripo key（gitignored）
+_gen/                 生图工作目录（gitignored）
+```
+
+## 8. 给接手者的第一句话
+
+先 `cp index.html index-v11-cn.html`，然后跑一遍线上 https://multius.odin-lab.com 感受当前状态——世界线跳跃、点开石头宇宙看开屏对话、最后生成一张宇宙身份证。你要改的所有东西，最终都要过这三关：文案不像 AI 写的、手机上是顺的、file:// 双击能跑。
