@@ -10,3 +10,6 @@ Thumbs.db
 
 # third-party LPC asset pack (36MB, embedded git repo)
 vendor/
+
+# local LLM default config (contains API key — never commit)
+multius.local.js
