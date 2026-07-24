@@ -1,0 +1,2366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MultiUs — 我们的每一万种可能</title>
+<meta name="description" content="给亲密关系算一万次命。两个数字分身，一万个平行宇宙，每个五年——看一段爱情的所有可能如何分叉、收束，最后变成统计学。">
+<meta property="og:title" content="MultiUs — 我们的每一万种可能">
+<meta property="og:description" content="模拟一段关系的一万个平行未来，看看有多少种走到了最后。">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#050507">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Noto+Serif+SC:wght@400;600&family=Noto+Sans+SC:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"></noscript>
+<style>
+:root{
+  --bg:#050507;
+  --bg2:#0a0a10;
+  --ink:#ece9e2;
+  --dim:#8a877f;
+  --faint:#3a3a42;
+  --pink:#ff3d8a;
+  --cyan:#41f2ff;
+  --gold:#ffd166;
+  --violet:#b48cff;
+  --blue:#7aa7ff;
+  --red:#ff3d5c;
+  --serif:'Instrument Serif', 'Noto Serif SC', Georgia, 'Songti SC', 'SimSun', serif;
+  --sans:'Space Grotesk', 'Noto Sans SC', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --mono:'Space Mono', ui-monospace, 'PingFang SC', 'Microsoft YaHei', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);overflow-x:hidden}
+body{font-weight:300;-webkit-font-smoothing:antialiased;font-synthesis:none}
+::selection{background:var(--pink);color:#000}
+
+/* ---------- global layers ---------- */
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+#grain{position:fixed;inset:-50%;width:200%;height:200%;z-index:60;pointer-events:none;opacity:.055;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 7s steps(10) infinite}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-2%,3%)}40%{transform:translate(3%,-2%)}60%{transform:translate(-3%,-3%)}80%{transform:translate(2%,2%)}100%{transform:translate(0,0)}}
+
+/* ---------- scene system ---------- */
+.scene{position:fixed;inset:0;z-index:1;opacity:0;pointer-events:none;transition:opacity 1.1s ease;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6vh 6vw;overflow-y:auto}
+.scene.active{opacity:1;pointer-events:auto}
+.scene.above{z-index:10}
+
+/* ---------- shared type ---------- */
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:var(--dim)}
+.serif-i{font-family:var(--serif);font-style:italic;font-weight:400}
+.btn{font-family:var(--mono);font-size:13px;letter-spacing:.25em;text-transform:uppercase;
+  background:transparent;color:var(--ink);border:1px solid var(--faint);padding:18px 42px;cursor:pointer;
+  transition:all .4s cubic-bezier(.2,.8,.2,1);position:relative;overflow:hidden}
+.btn:hover{border-color:var(--ink);background:var(--ink);color:#000;letter-spacing:.35em}
+.btn.primary{border-color:var(--pink);color:var(--pink)}
+.btn.primary:hover{background:var(--pink);border-color:var(--pink);color:#000;box-shadow:0 0 60px rgba(255,61,138,.45)}
+.hairline{width:1px;height:56px;background:linear-gradient(to bottom,transparent,var(--faint),transparent);margin:26px 0}
+.fade-up{opacity:0;transform:translateY(28px);transition:opacity 1s ease,transform 1s cubic-bezier(.2,.8,.2,1)}
+.fade-up.on{opacity:1;transform:none}
+
+/* ---------- hero ---------- */
+#scene-hero{text-align:center}
+.hero-title{font-size:clamp(64px,13vw,168px);line-height:.9;letter-spacing:-.02em;font-weight:300}
+.hero-title .u{font-family:var(--serif);font-style:italic;color:var(--pink);text-shadow:0 0 80px rgba(255,61,138,.5)}
+.hero-sub{font-family:var(--serif);font-style:italic;font-size:clamp(18px,2.6vw,28px);color:var(--dim);margin-top:22px}
+.hero-meta{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--faint);margin-top:14px;text-transform:uppercase}
+.hero-cta{margin-top:52px}
+.hero-quote{position:absolute;bottom:5vh;left:0;right:0;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase}
+.hero-quote em{font-family:var(--serif);font-size:14px;letter-spacing:.05em;text-transform:none;color:var(--dim)}
+
+/* ---------- twins input ---------- */
+#scene-twins{justify-content:flex-start;padding-top:9vh}
+.twins-head{text-align:center;margin-bottom:5vh}
+.twins-head h2{font-family:var(--serif);font-style:italic;font-size:clamp(28px,4vw,44px);font-weight:400;margin-top:14px}
+.twins-grid{display:grid;grid-template-columns:1fr 64px 1fr;gap:0;width:min(1060px,92vw);align-items:stretch}
+.twin-x{display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-size:34px;color:var(--faint)}
+.twin-card{border:1px solid var(--faint);background:rgba(255,255,255,.015);padding:34px 32px;position:relative;transition:border-color .5s}
+.twin-card:hover{border-color:var(--dim)}
+.twin-card .who{position:absolute;top:-9px;left:24px;background:var(--bg);padding:0 12px;font-family:var(--mono);font-size:10px;letter-spacing:.35em;color:var(--dim);text-transform:uppercase}
+.twin-name{width:100%;background:transparent;border:none;border-bottom:1px solid var(--faint);color:var(--ink);
+  font-family:var(--serif);font-style:italic;font-size:30px;padding:6px 0 12px;outline:none;transition:border-color .4s}
+.twin-name:focus{border-color:var(--pink)}
+.field{margin-top:22px}
+.field label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.field label output{color:var(--cyan);letter-spacing:.1em}
+select,input[type=range]{width:100%}
+select{background:var(--bg2);border:1px solid var(--faint);color:var(--ink);font-family:var(--sans);font-size:14px;padding:10px 12px;outline:none;cursor:pointer;transition:border-color .3s}
+select:focus{border-color:var(--cyan)}
+input[type=range]{-webkit-appearance:none;appearance:none;height:1px;background:var(--faint);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ink);border:3px solid var(--bg);box-shadow:0 0 0 1px var(--ink);transition:transform .2s, box-shadow .2s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);box-shadow:0 0 0 1px var(--cyan),0 0 18px rgba(65,242,255,.6)}
+textarea{width:100%;background:transparent;border:1px dashed var(--faint);color:var(--dim);font-family:var(--mono);font-size:12px;padding:12px;min-height:64px;resize:vertical;outline:none;line-height:1.7}
+textarea:focus{border-color:var(--dim);color:var(--ink)}
+.twins-actions{text-align:center;margin:5vh 0 8vh}
+.twins-actions .hint{font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase;margin-top:16px}
+
+/* ---------- twin generation ritual ---------- */
+#scene-twinjson{text-align:center}
+.twinjson-wrap{display:grid;grid-template-columns:1fr 1fr;gap:28px;width:min(880px,90vw);margin-top:34px}
+.json-card{border:1px solid var(--faint);background:#07070c;text-align:left;padding:26px 28px;min-height:300px;position:relative;overflow:hidden}
+.json-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(65,242,255,.06),transparent 70%)}
+.json-card h4{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--cyan);text-transform:uppercase;margin-bottom:16px}
+.json-card pre{font-family:var(--mono);font-size:12.5px;line-height:1.9;color:var(--dim);white-space:pre-wrap}
+.json-card pre .k{color:#9a97b0}.json-card pre .n{color:var(--cyan)}.json-card pre .s{color:var(--gold)}
+.coherence{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase;margin-top:30px;opacity:0;transition:opacity 1s}
+.coherence.on{opacity:1}
+.coherence b{color:var(--cyan);font-weight:400}
+
+/* ---------- simulation / jump ---------- */
+#scene-jump{padding:0;background:#000}
+#jumpCanvas{position:absolute;inset:0;width:100%;height:100%}
+.jump-hud{position:absolute;inset:0;pointer-events:none;z-index:5}
+.jump-status{position:absolute;top:5vh;left:0;right:0;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.4em;color:var(--dim);text-transform:uppercase}
+.jump-counter{position:absolute;bottom:6vh;left:0;right:0;text-align:center}
+.jump-counter .num{font-family:var(--serif);font-style:italic;font-size:clamp(40px,7vw,84px);color:var(--ink);text-shadow:0 0 40px rgba(255,255,255,.3)}
+.jump-counter .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.35em;color:var(--dim);text-transform:uppercase;margin-top:4px}
+.jump-legend{position:absolute;top:4.5vh;left:5vw;display:flex;flex-direction:column;gap:8px;opacity:0;transition:opacity 1s}
+.jump-legend.on{opacity:1}
+.jump-legend .li{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+.jump-legend .dot{width:8px;height:8px;border-radius:50%}
+.jump-legend .cnt{color:var(--ink);min-width:48px;text-align:right}
+.skip{position:absolute;bottom:5vh;right:5vw;z-index:6;background:none;border:none;color:var(--faint);font-family:var(--mono);font-size:10px;letter-spacing:.3em;text-transform:uppercase;cursor:pointer;pointer-events:auto;transition:color .3s}
+.skip:hover{color:var(--ink)}
+
+/* ---------- results ---------- */
+#scene-results{justify-content:flex-start;padding-top:10vh;padding-bottom:12vh}
+.res-head{text-align:center;max-width:900px}
+.res-headline{font-family:var(--serif);font-size:clamp(34px,5.4vw,68px);line-height:1.15;font-weight:400;margin-top:22px}
+.res-headline em{font-style:italic}
+.res-headline .hl{background:linear-gradient(transparent 62%,rgba(255,61,138,.35) 62%)}
+.res-sub{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase;margin-top:20px}
+.outcomes{display:flex;flex-direction:column;gap:18px;width:min(680px,88vw);margin:7vh auto 0}
+.out-row{display:grid;grid-template-columns:150px 1fr 64px;align-items:center;gap:18px}
+.out-row .nm{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);text-align:right}
+.out-row .bar{height:2px;background:var(--faint);position:relative;overflow:visible}
+.out-row .fill{position:absolute;left:0;top:-1px;height:4px;width:0;transition:width 1.6s cubic-bezier(.2,.8,.2,1)}
+.out-row .pc{font-family:var(--mono);font-size:13px;color:var(--ink)}
+
+/* timeline cards */
+.worlds{width:min(1080px,92vw);margin:9vh auto 0}
+.worlds-tabs{display:flex;gap:34px;justify-content:center;margin-bottom:44px}
+.wtab{background:none;border:none;color:var(--dim);font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;cursor:pointer;padding-bottom:8px;border-bottom:1px solid transparent;transition:all .4s}
+.wtab:hover{color:var(--ink)}
+.wtab.sel{color:var(--ink);border-color:var(--pink)}
+.world-card{border:1px solid var(--faint);background:rgba(255,255,255,.012);padding:46px 48px;position:relative}
+.world-badge{position:absolute;top:-10px;left:36px;background:var(--bg);padding:0 14px;font-family:var(--mono);font-size:10px;letter-spacing:.35em;text-transform:uppercase}
+.world-meta{display:flex;flex-wrap:wrap;gap:8px 34px;font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--dim);text-transform:uppercase;margin-bottom:34px}
+.world-meta b{color:var(--ink);font-weight:400}
+.world-end{font-family:var(--serif);font-style:italic;font-size:clamp(22px,3vw,32px);line-height:1.35;margin-bottom:40px;max-width:640px}
+.wstats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:40px}
+.wstat{border-left:1px solid var(--faint);padding-left:16px}
+.wstat .v{font-family:var(--serif);font-size:30px}
+.wstat .l{font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:var(--dim);text-transform:uppercase;margin-top:4px}
+.wlog{border-top:1px solid var(--faint);padding-top:8px}
+.wlog-row{display:grid;grid-template-columns:132px 1fr;gap:20px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:baseline}
+.wlog-row .d{font-family:var(--mono);font-size:10px;letter-spacing:.15em;color:var(--faint);text-transform:uppercase;white-space:nowrap}
+.wlog-row .e{font-size:15px;color:#c9c6bd;line-height:1.6}
+.wlog-row .e i{font-family:var(--serif);color:var(--dim)}
+.wlog-row.finale .e{color:var(--ink)}
+
+/* critical decisions */
+.decisions{width:min(880px,92vw);margin:10vh auto 0}
+.decisions h3{font-family:var(--serif);font-style:italic;font-weight:400;font-size:clamp(26px,3.6vw,40px);text-align:center}
+.decisions .sub{text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase;margin-top:14px}
+.dec-card{margin-top:44px;border:1px solid var(--faint);padding:40px 44px;background:rgba(255,255,255,.012)}
+.dec-title{font-family:var(--serif);font-size:clamp(20px,2.6vw,28px);line-height:1.35}
+.dec-title i{color:var(--dim)}
+.dec-day{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--pink);text-transform:uppercase;margin-bottom:14px}
+.dec-split{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:30px}
+.dec-side .lab{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;margin-bottom:10px}
+.dec-side .big{font-family:var(--serif);font-size:44px;line-height:1}
+.dec-side .bar{height:2px;background:var(--faint);margin-top:14px;position:relative}
+.dec-side .fill{position:absolute;left:0;top:-1px;height:4px;width:0;transition:width 1.6s cubic-bezier(.2,.8,.2,1)}
+.dec-note{margin-top:28px;font-family:var(--serif);font-style:italic;font-size:17px;color:var(--dim);line-height:1.6}
+.cf-btn{margin-top:22px;padding:12px 24px;font-size:10px;border-color:var(--faint);color:var(--dim)}
+.cf-btn:hover{color:#000}
+.cf-res{margin-top:22px;font-family:var(--mono);font-size:11px;letter-spacing:.15em;line-height:2;color:var(--dim)}
+.cf-res b{color:var(--gold);font-weight:400}
+.cf-res i{font-family:var(--serif);font-size:15px;letter-spacing:.02em;color:var(--dim)}
+.res-actions{display:flex;gap:22px;justify-content:center;margin:10vh 0 4vh;flex-wrap:wrap}
+.colophon{text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase;margin-bottom:6vh}
+.colophon em{font-family:var(--serif);font-size:13px;letter-spacing:.05em;text-transform:none;color:var(--dim)}
+
+/* ---------- the multiverse wall ---------- */
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px;margin-top:44px}
+.wtile{position:relative;aspect-ratio:3/2;border:1px solid var(--faint);overflow:hidden;cursor:pointer;
+  opacity:0;transform:translateY(26px) scale(.96);transition:opacity .8s ease,transform .8s ease,border-color .4s,box-shadow .4s;
+  background-size:cover;background-position:center}
+.wtile.on{opacity:1;transform:none}
+.wtile:hover{border-color:var(--dim);box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.wtile .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,5,7,.05) 30%,rgba(5,5,7,.88) 92%);transition:background .5s}
+.wtile:hover .veil{background:linear-gradient(180deg,rgba(5,5,7,0) 20%,rgba(5,5,7,.82) 92%)}
+.wtile .cap{position:absolute;left:14px;right:14px;bottom:12px}
+.wtile .wid{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:5px}
+.wtile .fate{font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.35;color:var(--ink);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.wtile .jump{position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:9px;letter-spacing:.2em;
+  color:var(--ink);text-transform:uppercase;opacity:0;transition:opacity .4s}
+.wtile:hover .jump{opacity:.9}
+/* ---------- world overlay (jump into one universe) ---------- */
+#world-ovl{display:none;position:fixed;inset:0;background:var(--bg);z-index:70;overflow-y:auto}
+#world-ovl .whero{position:relative;height:52vh;min-height:300px;background-size:cover;background-position:center;
+  animation:kenburns 24s ease-in-out infinite alternate}
+@keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.09)}}
+#world-ovl .whero .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,5,7,.25) 0%,rgba(5,5,7,.05) 40%,var(--bg) 100%)}
+#world-ovl .wbody{max-width:720px;margin:-14vh auto 0;position:relative;padding:0 24px 12vh}
+
+/* ---------- moment overlay (watch the two agents talk) ---------- */
+.wlog-row.has-moment{cursor:pointer;transition:opacity .3s}
+.wlog-row.has-moment:hover{opacity:.65}
+.wlog-row.has-moment .e::after{content:' · 旁观';font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}
+.mo-line{margin:18px 0;opacity:0;transform:translateY(10px);transition:opacity .6s,transform .6s}
+.mo-line.on{opacity:1;transform:none}
+.mo-line .who{font-family:var(--mono);font-size:10px;letter-spacing:.25em;text-transform:uppercase;margin-bottom:6px}
+.mo-line .say{font-family:var(--serif);font-size:clamp(17px,2vw,21px);line-height:1.55;color:var(--ink);max-width:520px}
+.mo-line.right{text-align:right}
+.mo-line.right .say{margin-left:auto}
+.mo-typing{font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase;margin:18px 0}
+/* ---------- LLM settings ---------- */
+#llm-fab{position:fixed;left:18px;bottom:14px;z-index:60;background:none;border:none;cursor:pointer;
+  font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase;transition:color .3s}
+#llm-fab:hover{color:var(--dim)}
+#llm-fab.live{color:var(--gold)}
+.llm-field{margin:18px 0}
+.llm-field label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase;margin-bottom:8px}
+.llm-field input{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--faint);color:var(--ink);
+  font-family:var(--mono);font-size:12px;padding:10px 12px;outline:none}
+.llm-field input:focus{border-color:var(--dim)}
+
+@media (max-width:860px){
+  .twins-grid{grid-template-columns:1fr}
+  .twin-x{padding:18px 0}
+  .twinjson-wrap{grid-template-columns:1fr}
+  .wstats{grid-template-columns:repeat(2,1fr)}
+  .dec-split{grid-template-columns:1fr}
+  .world-card{padding:30px 24px}
+  .out-row{grid-template-columns:110px 1fr 56px}
+  .worlds-tabs{flex-wrap:wrap;gap:14px 22px;margin-bottom:34px}
+  .wtab{font-size:9px;letter-spacing:.18em}
+  #jump-ticker{max-width:72vw}
+}
+.wi-row{grid-template-columns:280px 1fr 70px;margin:14px 0}
+@media (max-width:860px){
+  .wi-row{grid-template-columns:1fr 64px}
+  .wi-row .nm{grid-column:1/-1;text-align:left!important;margin-bottom:6px}
+}
+
+/* ---------- view transition ripple ---------- */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+
+/* ---------- hero ribbon: 宇宙emoji走马灯 ---------- */
+.ribbon{overflow:hidden;width:min(760px,88vw);margin:40px auto 0;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
+.ribbon-track{display:flex;gap:30px;font-size:30px;width:max-content;animation:ribbon 30s linear infinite}
+@keyframes ribbon{to{transform:translateX(-50%)}}
+
+/* ---------- wall v2: 图为王 ---------- */
+.wall{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.wtile{aspect-ratio:4/3}
+.wtile .art{position:absolute;inset:0;background-size:cover;background-position:center;
+  display:flex;align-items:center;justify-content:center}
+.wtile .moji{font-size:76px;line-height:1;filter:drop-shadow(0 6px 18px rgba(0,0,0,.55))}
+.wtile .gmoji{font-size:11px;letter-spacing:0;margin-right:6px;vertical-align:-1px;text-transform:none}
+
+/* ---------- world overlay: 现场书写（LLM 时间线） ---------- */
+.wlog-row.pre{opacity:0;transform:translateY(10px)}
+.wlog-row.pre.on{opacity:1;transform:none;transition:opacity .5s,transform .5s}
+.wo-writing{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--dim);padding:22px 0;animation:woPulse 1.3s ease-in-out infinite}
+@keyframes woPulse{0%,100%{opacity:.35}50%{opacity:1}}
+.wo-rewrite{background:none;border:1px solid var(--faint);color:var(--dim);font-family:var(--mono);font-size:9px;letter-spacing:.25em;text-transform:uppercase;padding:6px 14px;cursor:pointer;transition:border-color .3s,color .3s;margin-left:18px}
+.wo-rewrite:hover{border-color:var(--pink);color:var(--ink)}
+.hero-moji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:min(36vh,280px);line-height:1}
+</style>
+</head>
+<body>
+<noscript>
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px;background:#050507;color:#ece9e2;font-family:Georgia,serif">
+    <div>
+      <div style="font-style:italic;font-size:32px;margin-bottom:18px">MultiUs 需要 JavaScript 才能撕开裂缝。</div>
+      <div style="font-size:14px;color:#8a877f">一万个宇宙就在另一边等着。打开 JavaScript，再回来。</div>
+    </div>
+  </div>
+</noscript>
+<canvas id="stars"></canvas>
+<div id="grain"></div>
+
+
+<!-- ============ SCENE 0 · HERO ============ -->
+<section class="scene active" id="scene-hero">
+  <div class="kicker fade-up">在某个宇宙，你答应了。在另一个，你没有。</div>
+  <h1 class="hero-title fade-up">MULT<span class="u">i</span>US</h1>
+  <div class="hero-sub fade-up">我们的每一万种可能。</div>
+  <div class="hero-meta fade-up">一万个宇宙 &nbsp;·&nbsp; 每个五年 &nbsp;·&nbsp; 只问一个问题</div>
+  <div class="ribbon fade-up"><div class="ribbon-track" id="ribbon-track"></div></div>
+  <div class="hero-cta fade-up">
+    <button class="btn primary" onclick="go('scene-twins')">开始跳跃</button>
+  </div>
+  <div class="hero-quote"><em>“我们不预测爱情，只模拟可能性。”</em><br><span style="letter-spacing:.3em;font-size:9px">按 J 跳跃 · 按 A 自动演示</span></div>
+</section>
+
+<!-- ============ SCENE 1 · TWINS INPUT ============ -->
+<section class="scene" id="scene-twins">
+  <div class="twins-head">
+    <div class="kicker">第一步 · 你们俩</div>
+    <h2>两个人，简化到只剩下要紧的东西。</h2>
+  </div>
+  <div class="twins-grid">
+    <div class="twin-card" id="card-a">
+      <div class="who">第一个人</div>
+      <input class="twin-name" id="name-a" value="Oscar" maxlength="16" spellcheck="false">
+      <div class="field"><label>开放度 <output id="o-openness-a">81</output></label>
+        <input type="range" id="openness-a" min="0" max="100" value="81"></div>
+      <div class="field"><label>事业权重 <output id="o-career-a">93</output></label>
+        <input type="range" id="career-a" min="0" max="100" value="93"></div>
+      <div class="field"><label>家庭权重 <output id="o-family-a">44</output></label>
+        <input type="range" id="family-a" min="0" max="100" value="44"></div>
+      <div class="field"><label>吵架风格</label>
+        <select id="conflict-a">
+          <option value="avoid">会冷下来，需要空间。</option>
+          <option value="confront">当场说清楚，不隔夜。</option>
+          <option value="repair">吵得凶，好得也快。</option>
+        </select></div>
+      <div class="field"><label>依恋类型</label>
+        <select id="attach-a">
+          <option value="anxious">焦虑型</option>
+          <option value="secure">安全型</option>
+          <option value="avoidant">回避型</option>
+        </select></div>
+      <div class="field"><label>金钱观</label>
+        <select id="money-a">
+          <option value="save">为还没到的将来存钱</option>
+          <option value="spend">把钱花在当下的日子</option>
+        </select></div>
+      <div class="field"><label>TA 说过的话（选填）</label>
+        <textarea id="chat-a" placeholder="贴几句你们的聊天记录。只影响分身的语气，不影响计算。"></textarea></div>
+    </div>
+    <div class="twin-x">×</div>
+    <div class="twin-card" id="card-b">
+      <div class="who">第二个人</div>
+      <input class="twin-name" id="name-b" value="Mira" maxlength="16" spellcheck="false">
+      <div class="field"><label>开放度 <output id="o-openness-b">72</output></label>
+        <input type="range" id="openness-b" min="0" max="100" value="72"></div>
+      <div class="field"><label>事业权重 <output id="o-career-b">58</output></label>
+        <input type="range" id="career-b" min="0" max="100" value="58"></div>
+      <div class="field"><label>家庭权重 <output id="o-family-b">86</output></label>
+        <input type="range" id="family-b" min="0" max="100" value="86"></div>
+      <div class="field"><label>吵架风格</label>
+        <select id="conflict-b">
+          <option value="confront">当场说清楚，不隔夜。</option>
+          <option value="avoid">会冷下来，需要空间。</option>
+          <option value="repair">吵得凶，好得也快。</option>
+        </select></div>
+      <div class="field"><label>依恋类型</label>
+        <select id="attach-b">
+          <option value="secure">安全型</option>
+          <option value="anxious">焦虑型</option>
+          <option value="avoidant">回避型</option>
+        </select></div>
+      <div class="field"><label>金钱观</label>
+        <select id="money-b">
+          <option value="spend">把钱花在当下的日子</option>
+          <option value="save">为还没到的将来存钱</option>
+        </select></div>
+      <div class="field"><label>TA 说过的话（选填）</label>
+        <textarea id="chat-b" placeholder=""></textarea></div>
+    </div>
+  </div>
+  <div class="twins-actions">
+    <button class="btn primary" id="btn-generate" onclick="generateTwins()">生成数字分身</button>
+    <div class="hint">什么都不会上传。分身只在你的浏览器里活这一遭。</div>
+  </div>
+</section>
+
+<!-- ============ SCENE 2 · TWIN JSON RITUAL ============ -->
+<section class="scene" id="scene-twinjson">
+  <div class="kicker">第二步 · 变得可读</div>
+  <h2 class="serif-i" style="font-size:clamp(26px,3.6vw,40px);margin-top:14px">两段人生，压缩成几个数字。</h2>
+  <div class="twinjson-wrap">
+    <div class="json-card"><h4 id="jhead-a">分身 A</h4><pre id="json-a"></pre></div>
+    <div class="json-card"><h4 id="jhead-b">分身 B</h4><pre id="json-b"></pre></div>
+  </div>
+  <div class="coherence" id="coherence">你们俩的可读度 <b id="coh-num">—</b> · 够开始一场跳跃了</div>
+  <div style="margin-top:40px;opacity:0;transition:opacity 1s" id="run-wrap">
+    <button class="btn primary" onclick="startJump()">去活一万种人生</button>
+  </div>
+</section>
+
+<!-- ============ SCENE 3 · THE JUMP ============ -->
+<section class="scene" id="scene-jump">
+  <canvas id="jumpCanvas"></canvas>
+  <div class="jump-hud">
+    <div class="jump-status" id="jump-status">寻找裂缝</div>
+    <div class="jump-counter" id="jump-counter" style="opacity:0">
+      <div class="num" id="jump-num">0</div>
+      <div class="lbl">个宇宙在跑</div>
+    </div>
+    <div class="jump-legend" id="jump-legend"></div>
+  </div>
+  <div id="jump-ticker" style="position:fixed;left:4vw;bottom:5vh;max-width:44vw;opacity:0;transition:opacity .6s;pointer-events:none;z-index:5">
+    <div id="jt-meta" style="font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--faint);margin-bottom:8px"></div>
+    <div id="jt-text" style="font-family:var(--serif);font-style:italic;font-size:clamp(15px,1.7vw,21px);color:var(--dim);line-height:1.5"></div>
+  </div>
+  <button class="skip" onclick="finishJump(true)">跳过跳跃 →</button>
+  <button class="skip" style="top:5vh;bottom:auto" onclick="sndToggle(this)">声音 · 开</button>
+</section>
+
+<!-- ============ SCENE 4 · RESULTS ============ -->
+<section class="scene" id="scene-results">
+  <div class="res-head">
+    <div class="kicker">一万种人生，过完了</div>
+    <div class="res-headline" id="res-headline"></div>
+    <div class="res-sub" id="res-sub"></div>
+  </div>
+  <div class="outcomes" id="outcomes"></div>
+
+  <div class="decisions" style="margin-top:70px;max-width:none">
+    <h3>走进任何一个宇宙。</h3>
+    <div class="sub">一万个里的这些 · 点一格进去看看</div>
+    <div class="wall" id="wall"></div>
+  </div>
+
+  <div class="decisions" id="avgline" style="margin-top:70px">
+    <h3>平均的五年，一条线讲完。</h3>
+    <div class="sub">关系健康度 · 所有宇宙的平均值</div>
+    <div id="avgline-svg" style="margin-top:30px"></div>
+  </div>
+
+  <div class="worlds">
+    <div class="worlds-tabs">
+      <button class="wtab sel" data-w="best" onclick="showWorld('best')">最好的宇宙</button>
+      <button class="wtab" data-w="avg" onclick="showWorld('avg')">最普通的宇宙</button>
+      <button class="wtab" data-w="worst" onclick="showWorld('worst')">最糟的宇宙</button>
+      <button class="wtab" data-w="wild" onclick="showWorld('wild')">最疯的宇宙</button>
+    </div>
+    <div class="world-card" id="world-card"></div>
+  </div>
+
+  <div class="decisions">
+    <h3>宇宙在哪里分叉。</h3>
+    <div class="sub">决定了最多未来的几个瞬间</div>
+    <div id="dec-list"></div>
+  </div>
+
+  <div class="decisions" id="sens">
+    <h3>什么才真正改变你们的未来。</h3>
+    <div class="sub">同样的一万个宇宙 · 每次只改一个条件</div>
+    <div id="sens-body" style="margin-top:40px;text-align:center">
+      <button class="btn" onclick="runWhatIfs(this)">算算看</button>
+    </div>
+  </div>
+
+  <div class="res-actions">
+    <button class="btn" onclick="rerun()">再算一次</button>
+    <button class="btn" onclick="go('scene-twins')">回去改参数</button>
+    <button class="btn" onclick="copyLink(this)">复制这个多元宇宙</button>
+  </div>
+  <div class="colophon"><em>在每个你们找到彼此的宇宙里，这样的事迟早都会发生。</em><br><br>MultiUs · 给亲密关系算一万次命</div>
+</section>
+
+<!-- ============ MOMENT OVERLAY · the two agents, talking ============ -->
+<div id="moment-ovl" style="display:none;position:fixed;inset:0;background:color-mix(in srgb, var(--bg) 94%, transparent);z-index:80;overflow-y:auto;padding:9vh 6vw">
+  <div style="max-width:660px;margin:0 auto">
+    <div id="mo-meta" style="font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase"></div>
+    <div id="mo-event" style="font-family:var(--serif);font-style:italic;font-size:clamp(20px,2.6vw,27px);line-height:1.45;color:var(--ink);margin-top:16px"></div>
+    <div id="mo-state" style="font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--faint);margin-top:18px;text-transform:uppercase"></div>
+    <div id="mo-lines" style="margin-top:44px"></div>
+    <div style="margin-top:48px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
+      <span id="mo-src" style="font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase"></span>
+      <button class="btn" onclick="closeMoment()">回到这个宇宙</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WORLD OVERLAY · step into one universe ============ -->
+<div id="world-ovl">
+  <div class="whero" id="wo-hero"><div class="veil"></div></div>
+  <div class="wbody">
+    <div id="wo-meta" style="font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase"></div>
+    <div id="wo-end" style="font-family:var(--serif);font-style:italic;font-size:clamp(26px,3.4vw,40px);line-height:1.3;margin:18px 0 40px"></div>
+    <div id="wo-log"></div>
+    <div style="margin-top:48px;text-align:center">
+      <button class="btn" onclick="closeWorld(event)">回到多元宇宙</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ LLM SETTINGS ============ -->
+<button id="llm-fab" onclick="openLLM()">LLM · 关</button>
+<div id="llm-ovl" style="display:none;position:fixed;inset:0;background:color-mix(in srgb, var(--bg) 94%, transparent);z-index:90;overflow-y:auto;padding:12vh 6vw">
+  <div style="max-width:460px;margin:0 auto">
+    <div style="font-family:var(--serif);font-style:italic;font-size:26px;margin-bottom:8px">给分身装一个大脑。</div>
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;line-height:2">
+      任何兼容 OpenAI 的接口都行：Gemini、OpenAI、DeepSeek、本地 Ollama——只要会说 /chat/completions。
+      密钥只存在这个浏览器里（localStorage），哪儿也不去。
+    </div>
+    <div class="llm-field"><label>接口地址</label>
+      <input id="llm-endpoint" placeholder="https://generativelanguage.googleapis.com/v1beta/openai" spellcheck="false"></div>
+    <div class="llm-field"><label>模型</label>
+      <input id="llm-model" placeholder="gemini-2.5-flash" spellcheck="false"></div>
+    <div class="llm-field"><label>API 密钥</label>
+      <input id="llm-key" type="password" placeholder="••••••••" spellcheck="false"></div>
+    <div style="display:flex;gap:14px;margin-top:30px;align-items:center;flex-wrap:wrap">
+      <button class="btn" onclick="saveLLM()">保存</button>
+      <button class="btn" onclick="testLLM(this)">试一下连通</button>
+      <button class="btn" onclick="closeLLM()">关闭</button>
+    </div>
+    <div id="llm-status" style="font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--faint);margin-top:22px;text-transform:uppercase"></div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   MultiUs — Monte Carlo for human relationships
+   Everything runs client-side. No backend, no storage.
+   ================================================================ */
+'use strict';
+
+/* ---------- seeded RNG (every world is deterministic) ---------- */
+function mulberry32(seed){
+  let a = seed >>> 0;
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* ---------- scene router ---------- */
+let CURRENT_SCENE = 'scene-hero';
+function go(id){
+  document.getElementById(CURRENT_SCENE).classList.remove('active');
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.scrollTop = 0;
+  CURRENT_SCENE = id;
+  if(id === 'scene-twins') setTimeout(()=>document.querySelectorAll('#scene-twins .twins-head').forEach(e=>e.classList.add('on')), 50);
+}
+
+/* ---------- starfield background ---------- */
+(function starfield(){
+  const cv = document.getElementById('stars'), cx = cv.getContext('2d');
+  let W, H, stars = [];
+  function size(){
+    W = cv.width = innerWidth; H = cv.height = innerHeight;
+    stars = Array.from({length: Math.min(220, W*H/9000)}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      r: Math.random()*1.2 + .2,
+      p: Math.random()*Math.PI*2,
+      s: .3 + Math.random()*.9
+    }));
+  }
+  size(); addEventListener('resize', size);
+  (function tick(t){
+    cx.clearRect(0,0,W,H);
+    for(const s of stars){
+      const a = .18 + .5*Math.abs(Math.sin(t*.0004*s.s + s.p));
+      cx.globalAlpha = a;
+      cx.fillStyle = '#cfd2ff';
+      cx.fillRect(s.x, s.y, s.r, s.r);
+    }
+    cx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  })(0);
+})();
+
+/* ---------- slider outputs ---------- */
+['a','b'].forEach(s => {
+  ['openness','career','family'].forEach(k => {
+    const el = document.getElementById(`${k}-${s}`);
+    el.addEventListener('input', () => document.getElementById(`o-${k}-${s}`).textContent = el.value);
+  });
+});
+
+/* ---------- twins ---------- */
+const Twins = { a:null, b:null };
+function readTwin(s){
+  const chat = document.getElementById(`chat-${s}`).value.trim();
+  return {
+    name: document.getElementById(`name-${s}`).value.trim() || (s==='a'?'A':'B'),
+    openness: +document.getElementById(`openness-${s}`).value / 100,
+    career_priority: +document.getElementById(`career-${s}`).value / 100,
+    family_priority: +document.getElementById(`family-${s}`).value / 100,
+    conflict_style: document.getElementById(`conflict-${s}`).value,
+    attachment: document.getElementById(`attach-${s}`).value,
+    money_value: document.getElementById(`money-${s}`).value,
+    chatSignals: chat ? Math.max(3, Math.round(chat.length / 14)) : 0
+  };
+}
+
+function twinJSON(t){
+  return {
+    name: t.name,
+    openness: +t.openness.toFixed(2),
+    agreeableness: +(0.35 + t.openness*0.3 + (t.attachment==='secure'?0.2:0)).toFixed(2),
+    conflict_style: t.conflict_style,
+    money_value: t.money_value,
+    career_priority: +t.career_priority.toFixed(2),
+    family_priority: +t.family_priority.toFixed(2),
+    attachment: t.attachment
+  };
+}
+
+function generateTwins(){
+  Twins.a = readTwin('a'); Twins.b = readTwin('b');
+  go('scene-twinjson');
+  document.getElementById('jhead-a').textContent = '分身 A · ' + Twins.a.name.toUpperCase();
+  document.getElementById('jhead-b').textContent = '分身 B · ' + Twins.b.name.toUpperCase();
+  typeJSON('json-a', twinJSON(Twins.a), Twins.a.chatSignals);
+  typeJSON('json-b', twinJSON(Twins.b), Twins.b.chatSignals);
+  const coh = 88 + Math.floor(Math.random()*9);
+  setTimeout(()=>{
+    const c = document.getElementById('coherence');
+    document.getElementById('coh-num').textContent = coh + '%';
+    c.classList.add('on');
+    document.getElementById('run-wrap').style.opacity = 1;
+  }, 2100);
+}
+
+function typeJSON(elId, obj, chatSignals){
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  const lines = [];
+  lines.push('{');
+  const keys = Object.keys(obj);
+  keys.forEach((k,i) => {
+    const v = obj[k];
+    const val = typeof v === 'string' ? `<span class="s">"${v}"</span>` : `<span class="n">${v}</span>`;
+    lines.push(`  <span class="k">"${k}"</span>: ${val}${i<keys.length-1?',':''}`);
+  });
+  lines.push('}');
+  if(chatSignals) lines.push(`\n<span class="k">// 已叠入 ${chatSignals} 条聊天信号</span>`);
+  let i = 0;
+  (function next(){
+    if(i >= lines.length) return;
+    el.innerHTML = lines.slice(0, ++i).join('\n') + '<span style="color:#41f2ff">▌</span>';
+    setTimeout(next, 90 + Math.random()*110);
+  })();
+}
+</script>
+
+<script>
+/* ================================================================
+   THE ENGINE
+   ================================================================ */
+const YEARS = 5, DAYS = YEARS * 365, TICK = 5, N_WORLDS = 10000, N_DRAW = 800;
+
+const OUTCOMES = {
+  marriage:      { label:'结婚',     color:'#ffd166' },
+  still_dating:  { label:'仍在交往',   color:'#41f2ff' },
+  long_distance: { label:'异地',     color:'#b48cff' },
+  cold_war:      { label:'冷战',     color:'#7aa7ff' },
+  breakup:       { label:'分手',     color:'#ff3d5c' },
+};
+
+/* ---------- event library ---------- */
+/* apply(s, T, rng) mutates state s. text(A,B,rng) writes the worldline log. */
+const EVENTS = [
+  { id:'trip', w:1.0, min:20,
+    cond: () => true,
+    apply: (s,T,r) => { s.affection += 6+r()*5; s.stress -= 6; s.communication += 3; },
+    text: (A,B) => pick([
+      `一趟谁也没认真计划的旅行。结果玩得挺好。`,
+      `${A} 订错了日期。${B} 笑了半天。后来这成了他们讲给别人的段子。`,
+      `出门三天。他们想起了当初为什么喜欢对方。`
+    ]) },
+  { id:'promotion', w:0.8, min:60,
+    cond: (s,T) => Math.max(T.a.career_priority, T.b.career_priority) > 0.5,
+    apply: (s,T,r) => { const who = T.a.career_priority > T.b.career_priority ? 'a' : 'b';
+      s.career += 10; s.stress += 8; s.affection -= 4; s.finance += 6; s._who = who; },
+    text: (A,B,r,s) => (s && s._who === 'b' ? `${B} 升了职。班越加越长，饭越吃越短。` : `${A} 升了职。班越加越长，饭越吃越短。`) },
+  { id:'lose_job', w:0.45, min:90,
+    cond: () => true,
+    apply: (s,T,r) => { s.finance -= 16; s.stress += 14; s.career -= 12;
+      s.trust += (T.a.attachment==='secure'||T.b.attachment==='secure') ? 4 : -4; s._who = r()<.5?'a':'b'; },
+    text: (A,B,r,s) => (s && s._who === 'b' ? `${B} 丢了工作。${A} 说的都是对的。但饭桌上还是多了点什么。` : `${A} 丢了工作。${B} 说的都是对的。但饭桌上还是多了点什么。`) },
+  { id:'move_city', w:0.7, min:120, key:true,
+    cond: (s,T) => !s.ld && Math.abs(T.a.career_priority - T.b.career_priority) > 0.2,
+    apply: (s,T,r) => {
+      const cg = Math.abs(T.a.career_priority - T.b.career_priority);
+      if(r() < (0.10 + s.commitment/300) * (cg > 0.5 ? 0.5 : 1)){ s.stress += 6; s._declined = true; return; }
+      s.stress += 12; s.communication -= 8; s.affection -= 5; s.ld = true; s.ldDay = 0;
+      s._who = T.a.career_priority >= T.b.career_priority ? 'a' : 'b'; },
+    text: (A,B,r,s) => {
+      if(s && s._declined) return `机会来了。他们聊到凌晨两点，然后拒了。有些宇宙，是被“不”字定义的。`;
+      return (s && s._who === 'b' ? `另一座城市给 ${B} 发来一份 offer。很好的那种，好到没法说不。` : `另一座城市给 ${A} 发来一份 offer。很好的那种，好到没法说不。`); } },
+  { id:'meet_parents', w:0.9, min:100, key:true,
+    cond: (s) => s.affection > 45,
+    apply: (s,T,r) => { const fam = (T.a.family_priority + T.b.family_priority) / 2;
+      if(r() < fam){ s.commitment += 8; s.family += 8; s.stress += 4; s._ok = true; }
+      else { s.stress += 10; s.commitment -= 4; s.family -= 8; s._ok = false; } },
+    text: (A,B,r,s) => (s && s._ok === false ? `见了家长。回程车上，他们俩各自描述的版本都不是真的。` : `见了家长。挺顺利的，基本上。回程很安静，是好的那种安静。`) },
+  { id:'jealousy', w:0.65, min:40, key:true,
+    cond: () => true,
+    apply: (s,T,r) => { const anx = (T.a.attachment==='anxious'?1:0) + (T.b.attachment==='anxious'?1:0);
+      s.trust -= 5 + anx*4; s.stress += 6 + anx*4;
+      if(T.a.conflict_style==='avoid' || T.b.conflict_style==='avoid') s.communication -= 6;
+      else s.communication -= 2; },
+    text: (A,B) => pick([
+      `凌晨一点看到一条消息。本来不该在意的。但在意了。`,
+      `一个过去的人，突然回到了手机里。谁都没做错什么。但重点不在这儿。`,
+      `${A} 对着手机笑得久了点。${B} 注意到了。`
+    ]) },
+  { id:'money_fight', w:0.6, min:80,
+    cond: (s,T) => T.a.money_value !== T.b.money_value,
+    apply: (s,T,r) => { s.stress += 9; s.communication -= 5; s.finance -= 4; },
+    text: (A,B) => pick([
+      `账单上的一个数字，变成了一场谁都不想要的谈话。`,
+      `${A} 管那叫存钱，${B} 管那叫不过日子。两个人都有点道理。`,
+      `那场架吵的不是钱。吵的就是钱。`
+    ]) },
+  { id:'vacation_fight', w:0.5, min:30,
+    cond: () => true,
+    apply: (s,T,r) => { const rep = (T.a.conflict_style==='repair' || T.b.conflict_style==='repair');
+      s.stress += 7; s.affection -= 3;
+      if(rep){ s.communication += 5; s.trust += 3; } },
+    text: (A,B) => pick([
+      `在一座专程来找开心的城市，在酒店房间里吵了一架。`,
+      `走错路，说错话，一整个下午什么都不对。`,
+      `他们为路线吵了一架。显然不是因为路线。`
+    ]) },
+  { id:'birthday', w:0.9, min:15,
+    cond: () => true,
+    apply: (s,T,r) => { s.affection += 4 + r()*4; s.commitment += 2; },
+    text: (A,B) => pick([
+      `一个过得认真的生日。不贵，是认真。`,
+      `${A} 还记得 ${B} 几个月前随口提过的一件小事。`,
+      `零点的蛋糕。是好的那种俗套。`
+    ]) },
+  { id:'health', w:0.35, min:150,
+    cond: () => true,
+    apply: (s,T,r) => { s.stress += 13; s.affection += 5; s.trust += 4; s.commitment += 5; s._who = r()<.5?'a':'b'; },
+    text: (A,B,r,s) => (s && s._who === 'b' ? `${B} 虚惊一场。最后没事。但候诊室里的等待，改变了一些东西。` : `${A} 虚惊一场。最后没事。但候诊室里的等待，改变了一些东西。`) },
+  { id:'friends_doubt', w:0.5, min:50,
+    cond: () => true,
+    apply: (s,T,r) => { s.stress += 5; s.trust -= 3; s.affection -= 2; },
+    text: (A,B) => pick([
+      `饭局上，有个朋友把不该说的话说出了口。那句话跟着他们回了家。`,
+      `“你想清楚了吗？”——一个他们都敬重的人，在最错的时机问的。`,
+      `婚礼上每个人都替他们高兴。几乎每个人。`
+    ]) },
+  { id:'quiet_month', w:0.8, min:30,
+    cond: () => true,
+    apply: (s,T,r) => { s.communication += 4; s.stress -= 8; s.affection += 2; },
+    text: (A,B) => pick([
+      `安安静静的一个月。没人会发出来，但人人都需要的那种。`,
+      `什么也没发生。是这阵子最好的一个月。`,
+      `慢慢的早晨，长长的散步，没有剧情。`
+    ]) },
+  { id:'big_talk', w:0.6, min:200,
+    cond: (s) => s.commitment > 50,
+    apply: (s,T,r) => { const gap = Math.abs(T.a.family_priority - T.b.family_priority);
+      if(gap > 0.35){ s.stress += 8; s.commitment -= 2; s.communication -= 3; s._ok = false; }
+      else { s.commitment += 10; s.trust += 5; s._ok = true; } },
+    text: (A,B,r,s) => (s && s._ok === false ? `那场关于以后的谈话。他们想象的不是同一个未来——而且现在，彼此都知道了。` : `那场关于以后的谈话。孩子、城市、钱，全聊了。他们想要的日子大致一样。大致，就够了。`) },
+  { id:'pregnancy', w:0.3, min:300,
+    cond: (s,T) => s.commitment > 60 && (T.a.family_priority + T.b.family_priority)/2 > 0.5,
+    apply: (s,T,r) => { s.stress += 15; s.commitment += 12; s.family += 10; s.finance -= 8; s.trust += 4; },
+    text: (A,B) => pick([
+      `验孕棒上两条杠。从这一刻往后，是另一种人生。`,
+      `消息比计划先到了。通常都是这样的。`
+    ]) },
+  { id:'repair_night', w:0.7, min:25,
+    cond: (s) => s.stress > 35,
+    apply: (s,T,r) => { const skill = (T.a.conflict_style==='avoid'&&T.b.conflict_style==='avoid') ? 0.4 : 1;
+      s.stress -= 10*skill; s.communication += 6*skill; s.trust += 4*skill; s.affection += 3*skill; s._ok = skill >= 1; },
+    text: (A,B,r,s) => (s && s._ok === false ? `本来打算聊开的。结果看了一晚上剧。那件事，继续埋在地板下面。` : `凌晨三点，厨房灯亮着，那场躲了好几个星期的谈话。接住了。`) },
+  { id:'proposal', w:0.5, min:400, key:true,
+    cond: (s) => s.commitment > 68 && s.trust > 48 && !s.proposed,
+    apply: (s,T,r) => { s.proposed = true;
+      if(s.stress < 60 && s.affection > 52){ s.marryPending = 40 + r()*120; s.commitment = 95; s._ok = true; }
+      else { s.trust -= 14; s.stress += 16; s.communication -= 8; s.commitment -= 10; s._ok = false; } },
+    text: (A,B,r,s) => (s && s._ok === false ? `戒指在错的时间拿了出来。答案在空气里悬得太久。有些话，收不回去。` : `那句话问出了口。回答没有一丝犹豫。`) },
+  { id:'adopt_pet', w:0.5, min:100,
+    cond: (s) => s.affection > 50,
+    apply: (s,T,r) => { s.affection += 6; s.commitment += 5; s.stress += 3; s.family += 3; },
+    text: (A,B) => pick([
+      `一只小动物搬了进来。没人睡得好。没人有意见。`,
+      `给它起了个蠢名字。不出一个月，他们叫它比叫对方还多。`
+    ]) },
+  { id:'anniversary', w:0.9, min:340,
+    cond: () => true,
+    apply: (s,T,r) => { if(s.stress < 55){ s.affection += 5; s.commitment += 4; s._ok = true; } else { s.stress += 5; s._ok = false; } },
+    text: (A,B,r,s) => (s && s._ok === false ? `纪念日只在微信里提了一嘴。订餐厅的想法，死在了对话框里。` : `纪念日晚餐。还是老地方。要的就是老地方。`) },
+  { id:'burnout', w:0.55, min:150,
+    cond: (s,T) => Math.max(T.a.career_priority, T.b.career_priority) > 0.6,
+    apply: (s,T,r) => { s.stress += 11; s.communication -= 5; s.affection -= 4; s.career -= 5;
+      s._who = T.a.career_priority > T.b.career_priority ? 'a' : 'b'; },
+    text: (A,B,r,s) => (s && s._who === 'b' ? `${B} 熬垮了。“我没事”这句话，到第三周就没人信了。` : `${A} 熬垮了。“我没事”这句话，到第三周就没人信了。`) },
+  { id:'windfall', w:0.3, min:60,
+    cond: () => true,
+    apply: (s,T,r) => { s.finance += 14; s.stress -= 6;
+      if(T.a.money_value !== T.b.money_value){ s.communication -= 3; s._ok = false; } else s._ok = true; },
+    text: (A,B,r,s) => (s && s._ok === false ? `一笔奖金到账。怎么花，变成了一场价值观公投。` : `一笔小横财。难得一次，钱让事情变简单了。`) },
+  { id:'inlaw', w:0.5, min:200,
+    cond: (s,T) => (T.a.family_priority + T.b.family_priority)/2 > 0.4,
+    apply: (s,T,r) => { s.stress += 8; s.family -= 4; s.communication -= 3; },
+    text: (A,B) => pick([
+      `一位家长搬进来“住一周”。这一周，出了续集。`,
+      `和长辈的周日通话。每个周日。每一个周日。`
+    ]) },
+  { id:'therapy', w:0.4, min:250, cd:240,
+    cond: (s) => s.stress > 55 || s.communication < 38,
+    apply: (s,T,r) => { const sk = (T.a.conflict_style==='avoid' || T.b.conflict_style==='avoid') ? 0.6 : 1;
+      s.communication += 9*sk; s.stress -= 10*sk; s.trust += 5*sk; },
+    text: (A,B) => pick([
+      `去做伴侣咨询。作业很尬。但有用。`,
+      `一个拿笔记本的陌生人，教他们把心里的话说出来。早一年去就好了。`
+    ]) },
+  { id:'rekindle', w:0.45, min:400, cd:240,
+    cond: (s) => s.affection < 45 && s.commitment > 50,
+    apply: (s,T,r) => { s.affection += 10; s.trust += 4; s.stress -= 6; },
+    text: (A,B) => pick([
+      `其中一个，订了早期照片里的那趟旅行。有什么东西重新启动了。`,
+      `超市里放起一首歌。他们在货架之间跳了支舞。路人假装没看见。`
+    ]) },
+];
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function pickR(arr, r){ return arr[Math.floor(r()*arr.length)]; }
+
+/* ---------- one world ---------- */
+function simulateWorld(seed, T, keepLog, ban){
+  const r = mulberry32(seed);
+  const s = {
+    trust: 52 + r()*22, affection: 58 + r()*26, communication: 48 + r()*22,
+    stress: 12 + r()*16, commitment: 38 + r()*22,
+    career: 50 + ((T.a.career_priority + T.b.career_priority)/2)*40,
+    finance: 55 + r()*15, family: 50 + r()*15,
+    ld:false, ldDay:0, proposed:false, marryPending:null
+  };
+  const log = [];
+  const traj = [];
+  let outcome = null, endDay = DAYS, coldDays = 0;
+  let nextEvent = 15 + r()*30;
+  const cooldown = {};
+
+  for(let day = 0; day <= DAYS; day += TICK){
+    /* drift */
+    const anx = (T.a.attachment==='anxious'?1:0) + (T.b.attachment==='anxious'?1:0);
+    const avd = (T.a.conflict_style==='avoid'?1:0) + (T.b.conflict_style==='avoid'?1:0);
+    const avoA = (T.a.attachment==='avoidant'?1:0) + (T.b.attachment==='avoidant'?1:0);
+    const cg = Math.abs(T.a.career_priority - T.b.career_priority);
+    const sFloor = 20 + anx*4 + avd*3 + avoA*6; /* chronic tension has a floor */
+    s.stress += (sFloor - s.stress) * 0.026 * (s.communication/60) * (avd? 0.55 : 1) * (avoA? 0.75 : 1);
+    s.affection += (s.trust*0.85 - s.affection) * 0.006 + (r()-0.5)*(2 + anx*1.6);
+    s.trust += s.communication > 58 ? 0.08 : -0.10;
+    s.commitment += (s.affection > 60 ? 0.12 : -0.06) * (1 + day/900);
+    s.communication += (55 - s.communication) * 0.004;
+    if(anx && s.communication < 45) s.stress += 0.35;
+    if(s.ld){ s.ldDay += TICK; s.stress += 0.22; s.affection -= 0.04;
+      if(r() < (0.02 + Math.max(0, s.communication - 45)/500) * (cg > 0.5 ? 0.5 : 1)){
+        s.ld = false; s.communication += 4;
+        if(keepLog) log.push({day, id:'ld_end', text:`其中一个放弃了些什么，搬了过来。没人说出“牺牲”这个词。但两个人都听见了。`,
+          snap:{trust:s.trust, affection:s.affection, communication:s.communication,
+                stress:s.stress, commitment:s.commitment, ld:false}});
+      }
+    }
+    if(s.marryPending !== null){
+      s.marryPending -= TICK;
+      if(s.marryPending <= 0){
+        if(r() < 0.92){ outcome = 'marriage'; endDay = day; break; }
+        s.marryPending = null; /* the wedding kept getting postponed */
+        s.commitment = 55; s.postponed = true;
+      }
+    }
+
+    /* events */
+    if(day >= nextEvent){
+      nextEvent = day + 25 + r()*55;
+      const cands = EVENTS.filter(e => day >= e.min && e.cond(s, T) && (!ban || !ban.has(e.id)) && (!cooldown[e.id] || day - cooldown[e.id] > (e.cd || 120)));
+      if(cands.length){
+        let tw = 0; for(const e of cands) tw += e.w;
+        let x = r()*tw, ev = cands[0];
+        for(const e of cands){ x -= e.w; if(x <= 0){ ev = e; break; } }
+        cooldown[ev.id] = day;
+        ev.apply(s, T, r);
+        if(keepLog){
+          const t = ev.text(T.a.name, T.b.name, r, s);
+          log.push({day, id:ev.id, text:t,
+            snap:{trust:s.trust, affection:s.affection, communication:s.communication,
+                  stress:s.stress, commitment:s.commitment, ld:!!s.ld}});
+        }
+      }
+    }
+
+    /* clamp */
+    for(const k of ['trust','affection','communication','stress','commitment','career','finance','family'])
+      s[k] = Math.max(0, Math.min(100, s[k]));
+
+    /* endings */
+    coldDays = s.stress > 76 ? coldDays + TICK : 0;
+    if(s.trust < 16 || s.affection < 10 || (s.stress > 82 && s.trust < 30)){ outcome = 'breakup'; endDay = day; break; }
+    if(coldDays > 140){ outcome = 'cold_war'; endDay = day; break; }
+    if(s.ld && s.ldDay > 360){ outcome = 'long_distance'; endDay = day; break; }
+
+    if(day % 10 === 0) traj.push(health(s));
+  }
+
+  if(!outcome){
+    /* even the best worlds carry irreducible randomness — nobody is promised */
+    if(s.commitment > 70 && s.trust > 50 && s.stress < 64 && !s.postponed && r() < 0.85) outcome = 'marriage';
+    else if(s.stress > 78) outcome = 'cold_war';
+    else if(s.ld) outcome = 'long_distance';
+    else outcome = 'still_dating';
+    endDay = DAYS;
+  }
+  /* pad trajectory to full length */
+  const full = Math.floor(DAYS/10) + 1;
+  while(traj.length < full) traj.push(traj[traj.length-1]);
+
+  return { seed, outcome, endDay, final:{...s}, log, traj };
+}
+
+function health(s){
+  return Math.max(0, Math.min(100,
+    0.34*s.trust + 0.34*s.affection + 0.22*s.communication + 0.30*(100-s.stress) + 0.10*s.commitment - 30
+  ));
+}
+
+/* ---------- run the multiverse ---------- */
+let SIM = null;
+function runSimulation(){
+  const T = Twins;
+  const worlds = [];
+  const stats = { marriage:0, breakup:0, cold_war:0, long_distance:0, still_dating:0 };
+  const eventById = {};
+  for(const e of EVENTS) eventById[e.id] = { yes:[], no:[] };
+
+  for(let i = 0; i < N_WORLDS; i++){
+    const w = simulateWorld(1000 + runSalt*104729 + i*7919, T, i < N_DRAW);
+    worlds.push(i < N_DRAW ? w : { outcome:w.outcome, endDay:w.endDay, events:w.log });
+    stats[w.outcome]++;
+    /* critical-decision bookkeeping (drawn worlds only — they keep logs) */
+    if(i < N_DRAW){
+      const seen = new Set(w.log.map(l => l.id));
+      for(const e of EVENTS) if(e.key) (seen.has(e.id) ? eventById[e.id].yes : eventById[e.id].no).push(w.outcome);
+    }
+  }
+
+  /* representative worlds */
+  const drawn = worlds.slice(0, N_DRAW);
+  const score = w => w.outcome === 'marriage' ? 1 : 0;
+  const married = drawn.filter(w => w.outcome === 'marriage');
+  const broken = drawn.filter(w => w.outcome === 'breakup' || w.outcome === 'cold_war');
+  const best = married.length ? married[Math.floor(married.length/2)] : drawn.reduce((a,b)=> b.endDay>a.endDay?b:a);
+  const worst = broken.length ? broken.reduce((a,b)=> b.endDay<a.endDay?b:a) : drawn.reduce((a,b)=> b.endDay<a.endDay?b:a);
+  const sortedByHealth = [...drawn].sort((a,b) => avg(a.traj) - avg(b.traj));
+  const avgWorld = sortedByHealth[Math.floor(sortedByHealth.length/2)];
+
+  /* the wildest world — biggest swing between hope and ruin */
+  const used = new Set([best.seed, worst.seed, avgWorld.seed]);
+  let wild = null, wildRange = -1;
+  for(const w of drawn){
+    if(used.has(w.seed)) continue;
+    const range = Math.max(...w.traj) - Math.min(...w.traj);
+    if(range > wildRange){ wildRange = range; wild = w; }
+  }
+
+  SIM = { worlds: drawn, stats, best, worst, avg: avgWorld, wild, eventById, twins: JSON.parse(JSON.stringify(T)) };
+}
+function avg(a){ return a.reduce((x,y)=>x+y,0)/a.length; }
+</script>
+
+<script>
+/* ================================================================
+   THE JUMP — EEAAO-style worldline divergence
+   ================================================================ */
+let runSalt = 0;
+const jump = { raf:null, done:false };
+
+function startJump(){
+  go('scene-jump');
+  runSalt++;
+  runSimulation();
+  playJump();
+}
+
+function playJump(){
+  const cv = document.getElementById('jumpCanvas');
+  const cx = cv.getContext('2d');
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  const W = cv.width = innerWidth * dpr, H = cv.height = innerHeight * dpr;
+  cv.style.width = innerWidth+'px'; cv.style.height = innerHeight+'px';
+
+  const statusEl = document.getElementById('jump-status');
+  const counterEl = document.getElementById('jump-counter');
+  const numEl = document.getElementById('jump-num');
+  const legendEl = document.getElementById('jump-legend');
+  legendEl.classList.remove('on'); legendEl.innerHTML = '';
+  document.getElementById('jump-ticker').style.opacity = 0;
+  counterEl.style.opacity = 1;
+  numEl.textContent = '0';
+  jump.done = false;
+
+  /* 用户开了减弱动态效果：不演，直接落结果 */
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches){ finishJump(true); return; }
+
+  /* ================================================================
+     世界线：一条线 = 一个宇宙里那两个人的五年。
+     双层 canvas——
+     · 身体层（jumpCanvas）永不清屏，每帧只叠各条线新长出来的那一小段，
+       一千多条采样线 + 微光叠加 ≈ 一万条的密度，成本却是 O(采样数)
+     · 头部层（jump.heads）每帧清空，只画一千多个发亮的线头
+     ================================================================ */
+  const keys = Object.keys(OUTCOMES);
+  const counts = keys.map(k => SIM.stats[k]);
+  const jr = mulberry32(0x1d1f1e + runSalt * 7919);
+
+  if(jump.heads) jump.heads.remove();
+  const hcv = document.createElement('canvas');
+  hcv.width = W; hcv.height = H;
+  hcv.style.cssText = 'position:absolute;inset:0;width:'+innerWidth+'px;height:'+innerHeight+'px;pointer-events:none;z-index:1';
+  cv.parentElement.insertBefore(hcv, cv.nextSibling);
+  jump.heads = hcv;
+  const hx = hcv.getContext('2d');
+
+  /* 五条结局光带：画面右侧竖排，厚度按占比分 */
+  const x0 = -8 * dpr, xEnd = W * 0.84;
+  const NX = 96, stepX = (xEnd - x0) / (NX - 1);
+  const bandSpan = H * 0.52, bandTop0 = H * 0.47 - bandSpan / 2, gap = 12 * dpr;
+  const avail = bandSpan - gap * (keys.length - 1);
+  const bands = {}; let by = bandTop0;
+  keys.forEach((k, j) => {
+    const h = Math.max(6 * dpr, avail * counts[j] / N_WORLDS);
+    bands[k] = { top: by, h, cy: by + h / 2 };
+    by += h + gap;
+  });
+
+  /* 采样线数：一屏约 1200 条，每条抵八九个宇宙 */
+  const NL = Math.max(850, Math.min(1400, Math.round(innerWidth * innerHeight / 3000)));
+  const revealStep = Math.floor(NX * 0.55);
+  const bandStep = Math.floor(NX * 0.80);
+  const WHITE = [236, 231, 222];
+  const outRGB = {}; keys.forEach(k => outRGB[k] = hexRGB(OUTCOMES[k].color));
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const easeInOut01 = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
+
+  const lines = [];
+  for(let i = 0; i < NL; i++){
+    /* 按结局占比发牌 */
+    const x = jr() * N_WORLDS;
+    let k = keys.length - 1, acc = 0;
+    for(let j = 0; j < keys.length; j++){ acc += counts[j]; if(x <= acc){ k = j; break; } }
+    const kk = keys[k];
+
+    /* 走法：随机游走 + 两个拐弯（人生的起伏）；显色后缓缓靠拢，末段才被光带收编 */
+    const ys = new Float32Array(NX);
+    let y = H * (0.12 + jr() * 0.76);
+    let drift = (jr() - .5) * 2.4 * dpr;
+    const bend1 = Math.floor(NX * (0.15 + jr() * 0.3));
+    const bend2 = Math.floor(NX * (0.45 + jr() * 0.3));
+    const targetY = bands[kk].top + jr() * bands[kk].h;
+    for(let s = 0; s < NX; s++){
+      if(s === bend1 || s === bend2) drift = (jr() - .5) * 3.2 * dpr;
+      y += drift + (jr() - .5) * 1.7 * dpr + (H * 0.47 - y) * 0.004;
+      if(s > bandStep){
+        const g = easeInOut01((s - bandStep) / (NX - 1 - bandStep));
+        y = y * (1 - g * .9) + targetY * (g * .9);
+      }else if(s > revealStep){
+        y += (targetY - y) * 0.045;
+      }
+      ys[s] = y;
+    }
+
+    lines.push({
+      k: kk, ys,
+      delay: jr() * 650,
+      dur: 2300 + jr() * 1100,
+      rev: revealStep + Math.floor((jr() - .5) * 8),   /* 显色先后略有差 */
+      end: kk === 'breakup' && jr() < .7               /* 分手：七成中途断掉 */
+        ? Math.floor(NX * (0.58 + jr() * 0.24)) : NX - 1,
+      fork: kk === 'long_distance'                     /* 异地：后段岔成两条 */
+        ? (jr() < .5 ? -1 : 1) * (20 + jr() * 14) * dpr : 0,
+      dim: kk === 'cold_war',                          /* 冷战：越来越淡 */
+      lx: null, ly: 0, fx: null, fy: 0,
+      dead: false, spark: -1
+    });
+  }
+  /* 结婚：两两配对——各走各的五年，最后并到同一个点 */
+  const mar = lines.filter(l => l.k === 'marriage');
+  for(let i = 0; i + 1 < mar.length; i += 2){
+    const a = mar[i], b = mar[i + 1];
+    const ty = (a.ys[NX-1] + b.ys[NX-1]) / 2;
+    a.ys[NX-1] = b.ys[NX-1] = ty;
+    for(let s = Math.min(a.rev, b.rev); s < NX; s++){
+      const g = (s - Math.min(a.rev, b.rev)) / (NX - 1 - Math.min(a.rev, b.rev));
+      const pull = Math.sin(g * Math.PI * .5) * .55;   /* 越到后段靠得越拢 */
+      const mid = (a.ys[s] + b.ys[s]) / 2;
+      a.ys[s] += (mid - a.ys[s]) * pull;
+      b.ys[s] += (mid - b.ys[s]) * pull;
+    }
+  }
+
+  const T_STATUS2 = 2100, T_GATHER = 2950, T_SND2 = 2500, T_COUNT = 3000;
+  const TOTAL = 4700;
+  const t0 = performance.now();
+  let chimed = false, legendOn = false;
+  Snd.jump();
+  clearTimeout(jump.safety);
+  jump.safety = setTimeout(() => finishJump(true), TOTAL + 5000);
+
+  /* 同帧同色的线段并成一条 path，一帧最多几十次 stroke */
+  const buckets = new Map();
+  function seg(col, alpha, x1, y1, x2, y2){
+    const aQ = Math.round(alpha * 10) / 10;
+    if(aQ <= 0.03) return;
+    const key = col + '|' + aQ;
+    let b = buckets.get(key);
+    if(!b){ b = []; buckets.set(key, b); }
+    b.push(x1, y1, x2, y2);
+  }
+
+  function frame(now){
+    if(jump.done) return;
+    const t = now - t0;
+    if(t >= T_SND2 && !chimed){ chimed = true; Snd.converge(); }
+
+    statusEl.textContent =
+      t < 600 ? '一万个宇宙同时开跑'
+      : t < T_STATUS2 ? '每条线，都是他们的一种五年'
+      : t < T_GATHER ? '后半程，结局开始显色'
+      : '向各自的结局归拢';
+    numEl.textContent = Math.round(N_WORLDS * easeOut(Math.min(1, t / T_COUNT))).toLocaleString();
+
+    cx.globalCompositeOperation = 'lighter';
+
+    /* 光带微光：收束段一点点积出来，亮度和占比成正比；
+       水平方向做渐变，免得出硬边矩形 */
+    if(t > T_GATHER - 200){
+      const ramp = Math.min(1, (t - T_GATHER + 200) / 1500);
+      keys.forEach(k => {
+        const b = bands[k], c = outRGB[k];
+        const gx0 = xEnd - W * 0.30, gx1 = xEnd + W * 0.02;
+        const grd = cx.createLinearGradient(gx0, 0, gx1, 0);
+        const pk = 0.004 * ramp;
+        grd.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},0)`);
+        grd.addColorStop(0.7, `rgba(${c[0]},${c[1]},${c[2]},${pk})`);
+        grd.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},${pk * 1.3})`);
+        cx.fillStyle = grd;
+        cx.fillRect(gx0, b.top, gx1 - gx0, b.h);
+      });
+    }
+
+    /* 身体：只画新长出来的那段 */
+    buckets.clear();
+    cx.lineWidth = Math.max(1, 0.8 * dpr);
+    hx.clearRect(0, 0, W, H);
+    hx.globalCompositeOperation = 'lighter';
+
+    const headByColor = {};
+    for(const p of lines){
+      if(p.dead){
+        /* 断线的线头：一颗很快熄掉的火星 */
+        if(p.spark >= 0 && t - p.spark < 450){
+          const g = (t - p.spark) / 450;
+          const c = outRGB[p.k];
+          hx.globalAlpha = (1 - g) * .9;
+          hx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
+          hx.beginPath(); hx.arc(p.lx, p.ly, (1.2 + g * 2.5) * dpr, 0, 7); hx.fill();
+        }
+        continue;
+      }
+      const g = (t - p.delay) / p.dur;
+      if(g <= 0) continue;
+      const headF = Math.min(g, 1) * (NX - 1);
+      const si = Math.min(Math.floor(headF), p.end);
+      const xx = x0 + si * stepX;
+      const yy = p.ys[si];
+
+      /* 跑过自己的显色点之后，新长出的线段才染上结局色 */
+      const revealed = si >= p.rev;
+      let a = revealed ? .62 : .34;
+      if(p.dim && revealed)
+        a = .62 - .5 * easeInOut01(Math.min(1, (si - p.rev) / (NX - 1 - p.rev)));
+      const col = revealed ? outRGB[p.k] : WHITE;
+      const colStr = `rgb(${col[0]},${col[1]},${col[2]})`;
+
+      if(p.lx !== null && si > 0) seg(colStr, a, p.lx, p.ly, xx, yy);
+
+      /* 异地：显色后岔出第二条，一条去一座城 */
+      if(p.fork && revealed){
+        const fg = easeInOut01(Math.min(1, (si - p.rev) / (NX - 1 - p.rev)));
+        const fy2 = yy + p.fork * fg;
+        if(p.fx !== null) seg(colStr, a * .8, p.fx, p.fy, xx, fy2);
+        p.fx = xx; p.fy = fy2;
+      }
+      p.lx = xx; p.ly = yy;
+
+      (headByColor[p.k] || (headByColor[p.k] = [])).push(xx, yy, revealed ? 1 : 0);
+
+      const broke = p.end < NX - 1 && headF >= p.end;
+      const arrived = p.end >= NX - 1 && g >= 1;
+      if(broke || arrived){ p.dead = true; p.spark = broke ? t : -1; }
+    }
+
+    for(const [key, arr] of buckets){
+      const ci = key.lastIndexOf('|');
+      cx.strokeStyle = key.slice(0, ci);
+      cx.globalAlpha = parseFloat(key.slice(ci + 1));
+      cx.beginPath();
+      for(let i = 0; i < arr.length; i += 4){
+        cx.moveTo(arr[i], arr[i + 1]); cx.lineTo(arr[i + 2], arr[i + 3]);
+      }
+      cx.stroke();
+    }
+    cx.globalAlpha = 1;
+
+    /* 线头：显色的染结局色，没显色的还是同一粒微光。
+       注意：arc 前必须 moveTo，否则同一 path 里的圆点会被直线两两相连 */
+    const wHeads = [];
+    hx.globalAlpha = .62;
+    for(const k in headByColor){
+      const c = outRGB[k];
+      hx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
+      hx.beginPath();
+      const arr = headByColor[k];
+      for(let i = 0; i < arr.length; i += 3){
+        if(arr[i + 2]){ hx.moveTo(arr[i] + 1.15 * dpr, arr[i + 1]); hx.arc(arr[i], arr[i + 1], 1.15 * dpr, 0, 7); }
+        else wHeads.push(arr[i], arr[i + 1]);
+      }
+      hx.fill();
+    }
+    hx.fillStyle = 'rgb(236,231,222)';
+    hx.beginPath();
+    for(let i = 0; i < wHeads.length; i += 2){
+      hx.moveTo(wHeads[i] + 1.05 * dpr, wHeads[i + 1]);
+      hx.arc(wHeads[i], wHeads[i + 1], 1.05 * dpr, 0, 7);
+    }
+    hx.fill();
+    hx.globalAlpha = 1;
+
+    /* 收尾：图例亮起，五种结局各就各位 */
+    if(t >= T_GATHER && !legendOn){
+      legendOn = true;
+      legendEl.innerHTML = keys.map(k =>
+        `<div class="li"><span class="dot" style="background:${OUTCOMES[k].color};box-shadow:0 0 10px ${OUTCOMES[k].color}"></span>${OUTCOMES[k].label}<span class="cnt" data-k="${k}">0</span></div>`
+      ).join('');
+      legendEl.classList.add('on');
+    }
+    if(legendOn){
+      const lg = easeOut(Math.min(1, (t - T_GATHER) / 800));
+      legendEl.querySelectorAll('.cnt').forEach(el => {
+        el.textContent = Math.round(SIM.stats[el.dataset.k] * lg).toLocaleString();
+      });
+    }
+
+    if(t >= TOTAL){ finishJump(); return; }
+    jump.raf = requestAnimationFrame(frame);
+  }
+  jump.raf = requestAnimationFrame(frame);
+}
+
+function glitch(cx, W, H, amp, t){
+  for(let i = 0; i < 8; i++){
+    const y = Math.random()*H, h = (2 + Math.random()*8);
+    const dx = (Math.random()-.5) * amp * 6;
+    try{ cx.drawImage(cx.canvas, 0, y, W, h, dx, y, W, h); }catch(e){}
+  }
+  cx.globalCompositeOperation = 'lighter';
+  cx.fillStyle = `rgba(255,61,138,${0.04 + Math.random()*.05})`;
+  cx.fillRect(0, Math.random()*H, W, 2);
+  cx.fillStyle = `rgba(65,242,255,${0.04 + Math.random()*.05})`;
+  cx.fillRect(0, Math.random()*H, W, 2);
+  cx.globalCompositeOperation = 'source-over';
+}
+
+function hexRGB(hex){
+  return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
+}
+
+function finishJump(skipped){
+  if(jump.done) return;
+  jump.done = true;
+  clearTimeout(jump.safety);
+  clearInterval(jump.tick);
+  cancelAnimationFrame(jump.raf);
+  if(jump.heads){ jump.heads.remove(); jump.heads = null; }
+  document.getElementById('jump-ticker').style.opacity = 0;
+  Snd.end();
+  renderResults();
+  go('scene-results');
+  requestAnimationFrame(() => revealResults());
+}
+
+/* ================================================================
+   RESULTS
+   ================================================================ */
+const OUT_PHRASE = {
+  marriage: '结了婚',
+  breakup: '没能走到最后',
+  cold_war: '熬成了沉默',
+  long_distance: '留在了两座城市',
+  still_dating: '还在谈着，不上不下',
+};
+const OUT_ENDLINE = {
+  marriage: (A,B) => `第四年往后的某一天，${A} 和 ${B} 不再数日子了。已经没有什么需要数着过的了。`,
+  breakup: (A,B) => `不是崩塌，是磨损。直到某天 ${A} 意识到，上一次好好说话，已经是几个月前。`,
+  cold_war: (A,B) => `没人走。也没人说话。那间屋子，越来越擅长安静。`,
+  long_distance: (A,B) => `两座城市，两个时区。通话越来越短，沉默越来越长。`,
+  still_dating: (A,B) => `五年了，依然很好——只是那个关于以后的问题还坐在屋里，耐心地等。`,
+};
+function worldId(seed){ return '宇宙 #' + String(seed % 10000).padStart(4,'0'); }
+function fmtDay(d){
+  const mo = Math.max(1, Math.round(d/30.4));
+  return d >= 365 ? `第 ${d} 天 · 第 ${(d/365).toFixed(1)} 年` : `第 ${d} 天 · 第 ${mo} 个月`;
+}
+
+function renderResults(){
+  const S = SIM;
+  const A = S.twins.a.name, B = S.twins.b.name;
+  const total = N_WORLDS;
+  const sorted = Object.keys(S.stats).sort((a,b) => S.stats[b]-S.stats[a]);
+  const top = sorted[0], topPct = Math.round(S.stats[top]/total*100);
+
+  document.getElementById('res-headline').innerHTML =
+    `在 <span class="hl">${topPct}%</span> 的未来里，<em>你们${OUT_PHRASE[top]}。</em>`;
+  document.getElementById('res-sub').textContent =
+    `${total.toLocaleString()} 个宇宙 · 每个 ${YEARS} 年 · 你们俩的每一种样子`;
+
+  const oc = document.getElementById('outcomes');
+  oc.innerHTML = sorted.map(k => {
+    const pct = S.stats[k]/total*100;
+    return `<div class="out-row">
+      <div class="nm">${OUTCOMES[k].label}</div>
+      <div class="bar"><div class="fill" data-w="${pct}" style="background:${OUTCOMES[k].color};box-shadow:0 0 12px ${OUTCOMES[k].color}"></div></div>
+      <div class="pc">${pct.toFixed(1)}%</div>
+    </div>`;
+  }).join('');
+
+  renderAvgLine();
+  buildWall();
+  renderWorld('best');
+  renderDecisions();
+
+  /* shareable permalink: twins + run salt, base64url in the hash */
+  try{
+    const payload = btoa(unescape(encodeURIComponent(JSON.stringify({ a: Twins.a, b: Twins.b, r: runSalt }))))
+      .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    history.replaceState(null, '', '#t=' + payload);
+  }catch(e){}
+}
+
+/* mean relationship-health across all worlds, drawn as one quiet line */
+function renderAvgLine(){
+  const worlds = SIM.worlds;
+  if(!worlds || !worlds.length || !worlds[0].traj) return;
+  const T = worlds[0].traj.length;
+  const mean = new Array(T).fill(0);
+  worlds.forEach(w => w.traj.forEach((v,i) => { mean[i] += v; }));
+  for(let i = 0; i < T; i++) mean[i] /= worlds.length;
+  const W = 680, H = 90, P = 6;
+  const lo = Math.min(...mean), hi = Math.max(...mean), span = Math.max(hi - lo, 1);
+  const pts = mean.map((v,i) => {
+    const x = P + i/(T-1)*(W-2*P);
+    const y = H - P - (v-lo)/span*(H-2*P);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const end = pts[T-1].split(',');
+  document.getElementById('avgline-svg').innerHTML =
+    `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:680px;height:auto;display:block;margin:0 auto">
+      <polyline points="${pts.join(' ')}" fill="none" stroke="var(--ink)" stroke-width="1.4" opacity=".8"/>
+      <circle cx="${end[0]}" cy="${end[1]}" r="3.2" fill="var(--gold)"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;max-width:680px;margin:10px auto 0;
+      font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--faint)">
+      <span>第 0 天</span><span>第 ${YEARS*365} 天</span>
+    </div>`;
+}
+
+function revealResults(){
+  document.querySelectorAll('#outcomes .fill').forEach(f =>
+    requestAnimationFrame(() => f.style.width = f.dataset.w + '%'));
+  document.querySelectorAll('.wtile').forEach(t =>
+    requestAnimationFrame(() => t.classList.add('on')));
+}
+
+function showWorld(which){
+  document.querySelectorAll('.wtab').forEach(t => t.classList.toggle('sel', t.dataset.w === which));
+  renderWorld(which);
+}
+
+function renderWorld(which){
+  const S = SIM;
+  const w = which === 'best' ? S.best : which === 'worst' ? S.worst : which === 'wild' ? S.wild : S.avg;
+  const A = S.twins.a.name, B = S.twins.b.name;
+  const oc = OUTCOMES[w.outcome];
+  const label = which === 'best' ? '最好的宇宙' : which === 'worst' ? '最糟的宇宙' : which === 'wild' ? '最疯的宇宙' : '最普通的宇宙';
+  const f = w.final;
+  const card = document.getElementById('world-card');
+  const rows = (w.log || []).slice(0, 14).map((l, i) =>
+    l.snap
+      ? `<div class="wlog-row has-moment" onclick="watchMoment('${which}',${i})"><div class="d">${fmtDay(l.day)}</div><div class="e">${l.text}</div></div>`
+      : `<div class="wlog-row"><div class="d">${fmtDay(l.day)}</div><div class="e">${l.text}</div></div>`
+  ).join('');
+  card.innerHTML = `
+    <div class="world-badge" style="color:${oc.color}">${label}</div>
+    <div class="world-meta">
+      <span>${worldId(w.seed)}</span>
+      <span>结局 · <b style="color:${oc.color}">${oc.label}</b></span>
+      <span>跨度 · <b>${(w.endDay/365).toFixed(1)} 年</b></span>
+      <span>见证事件 · <b>${(w.log||[]).length}</b></span>
+    </div>
+    <div class="world-end">${OUT_ENDLINE[w.outcome](A,B)}</div>
+    <div class="wstats">
+      <div class="wstat"><div class="v">${Math.round(f.trust)}</div><div class="l">信任</div></div>
+      <div class="wstat"><div class="v">${Math.round(f.affection)}</div><div class="l">心动</div></div>
+      <div class="wstat"><div class="v">${Math.round(f.communication)}</div><div class="l">沟通</div></div>
+      <div class="wstat"><div class="v">${Math.round(f.stress)}</div><div class="l">压力</div></div>
+    </div>
+    <div class="wlog">
+      ${rows}
+      <div class="wlog-row finale"><div class="d">${fmtDay(w.endDay)}</div><div class="e"><i>${oc.label}。至少在这个宇宙，是这样。</i></div></div>
+    </div>`;
+}
+
+/* ---------- critical decisions ---------- */
+const DEC_COPY = {
+  move_city: {
+    title: '另一座城市的工作邀约。',
+    yes: '它出现的宇宙', no: '它没出现的宇宙',
+    note: '打败他们的从来不是吵架，是一个邮编。'
+  },
+  proposal: {
+    title: '那句问出口的话。',
+    yes: '问了的宇宙', no: '没问出口的宇宙',
+    note: '时机比戒指重要。'
+  },
+  jealousy: {
+    title: '凌晨一点的那条消息。',
+    yes: '发生了的宇宙', no: '没发生的宇宙',
+    note: '信任不是碎掉的，是慢慢变薄的。'
+  },
+  meet_parents: {
+    title: '见家长。',
+    yes: '见了的宇宙', no: '一直推迟的宇宙',
+    note: '家庭是引力。平时感觉不到，直到你逃不开。'
+  },
+};
+
+function renderDecisions(){
+  const S = SIM;
+  const list = [];
+  for(const id in DEC_COPY){
+    const e = S.eventById[id];
+    if(!e) continue;
+    const yesM = e.yes.length ? e.yes.filter(o => o === 'marriage').length / e.yes.length : 0;
+    const noM = e.no.length ? e.no.filter(o => o === 'marriage').length / e.no.length : 0;
+    if(e.yes.length < 30 || e.no.length < 30) continue;
+    /* median day of first occurrence across drawn worlds */
+    const days = [];
+    for(const w of S.worlds){
+      const hit = (w.log||[]).find(l => l.id === id);
+      if(hit) days.push(hit.day);
+    }
+    days.sort((a,b)=>a-b);
+    const med = days.length ? days[Math.floor(days.length/2)] : 0;
+    list.push({ id, yesM, noM, delta: Math.abs(yesM - noM), med, nYes: e.yes.length, nNo: e.no.length });
+  }
+  list.sort((a,b) => b.delta - a.delta);
+  const top = list.slice(0, 3);
+  document.getElementById('dec-list').innerHTML = top.map((d,i) => {
+    const c = DEC_COPY[d.id];
+    return `<div class="dec-card">
+      <div class="dec-day">分叉点 ${String(i+1).padStart(2,'0')} · 大约在${fmtDay(d.med)}</div>
+      <div class="dec-title">${c.title} <i>——结婚率的 ${Math.round(d.delta*100)} 个百分点，押在这上面。</i></div>
+      <div class="dec-split">
+        <div class="dec-side">
+          <div class="lab">${c.yes} · n=${d.nYes.toLocaleString()}</div>
+          <div class="big" style="color:var(--gold)">${(d.yesM*100).toFixed(0)}%</div>
+          <div class="bar"><div class="fill" style="width:${d.yesM*100}%;background:var(--gold);box-shadow:0 0 10px rgba(255,209,102,.6)"></div></div>
+        </div>
+        <div class="dec-side">
+          <div class="lab">${c.no} · n=${d.nNo.toLocaleString()}</div>
+          <div class="big">${(d.noM*100).toFixed(0)}%</div>
+          <div class="bar"><div class="fill" style="width:${d.noM*100}%;background:var(--dim)"></div></div>
+        </div>
+      </div>
+      <div class="dec-note">${c.note}</div>
+      <button class="btn cf-btn" onclick="runCounterfactual('${d.id}', this)">把这个瞬间从所有宇宙里抹掉</button>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- counterfactual: same seeds, one moment erased ---------- */
+function runCounterfactual(id, btn){
+  const res = document.createElement('div');
+  res.className = 'cf-res';
+  res.innerHTML = `<span style="color:var(--faint)">正在模拟没有它的一万个宇宙……</span>`;
+  btn.replaceWith(res);
+  setTimeout(() => {
+    const ban = new Set([id]);
+    const stats = { marriage:0, breakup:0, cold_war:0, long_distance:0, still_dating:0 };
+    for(let i = 0; i < N_WORLDS; i++){
+      const w = simulateWorld(1000 + runSalt*104729 + i*7919, Twins, false, ban);
+      stats[w.outcome]++;
+    }
+    const oldM = SIM.stats.marriage / N_WORLDS * 100, newM = stats.marriage / N_WORLDS * 100;
+    const oldB = SIM.stats.breakup  / N_WORLDS * 100, newB = stats.breakup  / N_WORLDS * 100;
+    const d = newM - oldM;
+    const verdict = d > 3  ? '抹掉它，几千个宇宙里的他们会白头。'
+                  : d < -3 ? '奇怪——宇宙们需要这个瞬间。疼，但有用。'
+                  : '数字几乎没动。多元宇宙耸了耸肩。';
+    res.innerHTML =
+      `已从所有宇宙抹除——结婚 <b>${newM.toFixed(0)}%</b>（原来 ${oldM.toFixed(0)}%）· 分手 <b>${newB.toFixed(0)}%</b>（原来 ${oldB.toFixed(0)}%）<br><i>${verdict}</i>`;
+  }, 60);
+}
+
+/* ================================================================
+   SOUND — WebAudio synthesis, zero assets.
+   The tear (noise sweep + sub drop), the divergence drone,
+   the convergence chimes, then silence. Everything fails silently.
+   ================================================================ */
+const Snd = {
+  ctx:null, master:null, on:true, nodes:[], drone:null,
+  init(){
+    if(this.ctx){ try{ this.ctx.resume().catch(()=>{}); }catch(e){} return !!this.ctx; }
+    try{
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0.9;
+      this.master.connect(this.ctx.destination);
+      this.ctx.resume().catch(()=>{});
+    }catch(e){ this.ctx = null; }
+    return !!this.ctx;
+  },
+  noiseBuf(){
+    const len = this.ctx.sampleRate * 2;
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i = 0; i < len; i++) d[i] = Math.random()*2-1;
+    return buf;
+  },
+  reg(n){ this.nodes.push(n); return n; },
+  jump(){
+    if(!this.on || !this.init()) return;
+    const c = this.ctx, t = c.currentTime;
+    /* the tear — noise swept upward through a bandpass */
+    const noise = c.createBufferSource(); noise.buffer = this.noiseBuf();
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.2;
+    bp.frequency.setValueAtTime(180, t); bp.frequency.exponentialRampToValueAtTime(5200, t + .85);
+    const ng = c.createGain(); ng.gain.setValueAtTime(.0001, t);
+    ng.gain.exponentialRampToValueAtTime(.5, t + .12); ng.gain.exponentialRampToValueAtTime(.0001, t + 1.1);
+    noise.connect(bp); bp.connect(ng); ng.connect(this.master); noise.start(t); noise.stop(t + 1.2);
+    /* sub drop */
+    const sub = c.createOscillator(); sub.type = 'sine';
+    sub.frequency.setValueAtTime(160, t); sub.frequency.exponentialRampToValueAtTime(38, t + .9);
+    const sg = c.createGain(); sg.gain.setValueAtTime(.0001, t);
+    sg.gain.exponentialRampToValueAtTime(.4, t + .1); sg.gain.exponentialRampToValueAtTime(.0001, t + 1.0);
+    sub.connect(sg); sg.connect(this.master); sub.start(t); sub.stop(t + 1.1);
+    /* divergence drone — detuned sines with slow tremolo, held through phase B */
+    const dg = c.createGain(); dg.gain.setValueAtTime(.0001, t + .5);
+    dg.gain.exponentialRampToValueAtTime(.07, t + 2.2); dg.connect(this.master);
+    [54, 54.6, 108.3].forEach(f => {
+      const o = c.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+      o.connect(dg); o.start(t + .5); this.reg(o);
+    });
+    const lfo = c.createOscillator(); lfo.frequency.value = 4.2;
+    const lg = c.createGain(); lg.gain.value = .03;
+    lfo.connect(lg); lg.connect(dg.gain); lfo.start(t + .5); this.reg(lfo);
+    this.drone = dg;
+  },
+  converge(){
+    if(!this.on || !this.ctx) return;
+    const c = this.ctx, t = c.currentTime;
+    /* pentatonic chimes as the streams lock into statistics */
+    [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5].forEach((f, i) => {
+      const o = c.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+      const g = c.createGain(); g.gain.setValueAtTime(.0001, t + i*.28);
+      g.gain.exponentialRampToValueAtTime(.12, t + i*.28 + .02);
+      g.gain.exponentialRampToValueAtTime(.0001, t + i*.28 + 1.4);
+      o.connect(g); g.connect(this.master); o.start(t + i*.28); o.stop(t + i*.28 + 1.5);
+    });
+    if(this.drone){
+      this.drone.gain.cancelScheduledValues(t);
+      this.drone.gain.setTargetAtTime(.0001, t + 1.2, .8);
+    }
+  },
+  end(){
+    if(!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.nodes.forEach(n => { try{ n.stop(t + .1); }catch(e){} });
+    this.nodes = []; this.drone = null;
+    if(!this.on) return;
+    /* one soft low chime — then the room goes quiet */
+    const o = this.ctx.createOscillator(); o.type = 'sine'; o.frequency.value = 220;
+    const g = this.ctx.createGain(); g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(.08, t + .03); g.gain.exponentialRampToValueAtTime(.0001, t + 2.2);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + 2.3);
+  },
+  toggle(){
+    this.on = !this.on;
+    if(!this.on){
+      this.nodes.forEach(n => { try{ n.stop(); }catch(e){} });
+      this.nodes = []; this.drone = null;
+    }
+    return this.on;
+  }
+};
+function sndToggle(btn){
+  const on = Snd.toggle();
+  btn.textContent = on ? '声音 · 开' : '声音 · 关';
+}
+
+function rerun(){ startJump(); }
+
+/* ---------- sensitivity: which trait moves the most futures ---------- */
+const ATT_CN = { anxious:'焦虑型', secure:'安全型', avoidant:'回避型' };
+function runWhatIfs(btn){
+  const body = document.getElementById('sens-body');
+  const A = Twins.a.name, B = Twins.b.name;
+  const whatifs = [
+    { show: Twins.a.attachment !== 'secure', label:`如果 ${A} 是安全型，而不是${ATT_CN[Twins.a.attachment] || Twins.a.attachment}`, mut:t => { t.a.attachment = 'secure'; } },
+    { show: Twins.b.attachment !== 'secure', label:`如果 ${B} 是安全型，而不是${ATT_CN[Twins.b.attachment] || Twins.b.attachment}`, mut:t => { t.b.attachment = 'secure'; } },
+    { show: Twins.a.conflict_style !== 'repair' || Twins.b.conflict_style !== 'repair', label:'如果你们俩吵完都会修', mut:t => { t.a.conflict_style = 'repair'; t.b.conflict_style = 'repair'; } },
+    { show: Twins.a.career_priority > 0.5, label:`如果 ${A} 把关系排在事业前面`, mut:t => { t.a.career_priority = Math.max(.1, t.a.career_priority - .3); } },
+    { show: Twins.b.career_priority > 0.5, label:`如果 ${B} 把关系排在事业前面`, mut:t => { t.b.career_priority = Math.max(.1, t.b.career_priority - .3); } },
+    { show: Twins.a.money_value !== Twins.b.money_value, label:'如果你们对钱想要的是一回事', mut:t => { t.b.money_value = t.a.money_value; } },
+  ].filter(w => w.show);
+  if(!whatifs.length){ btn.outerHTML = '<div class="cf-res"><i>没什么可修的。多元宇宙表示满意。</i></div>'; return; }
+  const baseM = SIM.stats.marriage / N_WORLDS * 100;
+  const results = [];
+  let i = 0;
+  btn.remove();
+  const prog = document.createElement('div');
+  prog.className = 'cf-res';
+  body.appendChild(prog);
+  (function step(){
+    if(i >= whatifs.length){ prog.remove(); renderWhatIfs(body, results, baseM); return; }
+    const w = whatifs[i];
+    prog.innerHTML = `<span style="color:var(--faint)">正在模拟第 ${i+1}/${whatifs.length} 个假设……</span>`;
+    setTimeout(() => {
+      const T = JSON.parse(JSON.stringify(Twins));
+      w.mut(T);
+      let m = 0;
+      for(let j = 0; j < N_WORLDS; j++)
+        if(simulateWorld(1000 + runSalt*104729 + j*7919, T, false, null).outcome === 'marriage') m++;
+      results.push({ label: w.label, delta: m / N_WORLDS * 100 - baseM });
+      i++; step();
+    }, 60);
+  })();
+}
+
+function renderWhatIfs(body, results, baseM){
+  results.sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
+  const maxAbs = Math.max(...results.map(r => Math.abs(r.delta)), 1);
+  body.innerHTML = results.map(r => {
+    const pos = r.delta >= 0;
+    const col = pos ? 'var(--gold)' : 'var(--red)';
+    return `<div class="out-row wi-row">
+      <div class="nm" style="text-align:right">${r.label}</div>
+      <div class="bar"><div class="fill" style="width:${Math.abs(r.delta)/maxAbs*100}%;background:${col};box-shadow:0 0 10px ${pos?'rgba(255,209,102,.5)':'rgba(255,61,92,.5)'}"></div></div>
+      <div class="pc" style="color:${col}">${pos?'+':''}${r.delta.toFixed(1)} pp</div>
+    </div>`;
+  }).join('') + `<div class="sub" style="margin-top:26px">结婚率变化（pp）· 基准 ${baseM.toFixed(1)}%</div>`;
+}
+
+/* ---------- boot ---------- */
+/* run immediately (script sits at end of body); never wait on window.load —
+   a hanging font stylesheet must not hold the whole page hostage */
+/* NOTE: never split('') emoji strings — it tears surrogate pairs and VS16
+   apart; a literal array keeps every grapheme intact */
+const RIBBON_EMOJI = ['🪨','🐈','🩴','🪴','🥤','💡','🧊','📏','💍','💔','💌','🌧️'];
+document.getElementById('ribbon-track').innerHTML =
+  [...RIBBON_EMOJI, ...RIBBON_EMOJI].map(e => `<span>${e}</span>`).join('');
+document.querySelectorAll('#scene-hero .fade-up').forEach((el,i) =>
+  setTimeout(() => el.classList.add('on'), 200 + i*180));
+
+/* ================================================================
+   LLM CHANNEL — any OpenAI-compatible endpoint.
+   Key lives in this browser's localStorage only; never in the file.
+   ================================================================ */
+const LLM = {
+  cfg: null,
+  load(){ try{ this.cfg = JSON.parse(localStorage.getItem('multius_llm') || 'null'); }catch(e){ this.cfg = null; } },
+  save(){ localStorage.setItem('multius_llm', JSON.stringify(this.cfg)); },
+  ready(){ return !!(this.cfg && this.cfg.endpoint && this.cfg.key && this.cfg.model); },
+  async chat(messages, opts = {}){
+    const url = this.cfg.endpoint.replace(/\/+$/,'') + '/chat/completions';
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + this.cfg.key },
+      body: JSON.stringify({
+        model: this.cfg.model, messages,
+        temperature: opts.temperature ?? 0.85,
+        max_tokens: opts.max_tokens ?? 90
+      })
+    });
+    if(!res.ok) throw new Error('LLM HTTP ' + res.status);
+    const data = await res.json();
+    return data.choices[0].message.content.trim();
+  }
+};
+LLM.load();
+
+function llmFab(){
+  const fab = document.getElementById('llm-fab');
+  fab.textContent = LLM.ready() ? 'LLM · 在线' : 'LLM · 关';
+  fab.classList.toggle('live', LLM.ready());
+}
+function openLLM(){
+  document.getElementById('llm-endpoint').value = LLM.cfg?.endpoint || '';
+  document.getElementById('llm-model').value = LLM.cfg?.model || '';
+  document.getElementById('llm-key').value = LLM.cfg?.key || '';
+  document.getElementById('llm-status').textContent = '';
+  document.getElementById('llm-ovl').style.display = 'block';
+}
+function closeLLM(){ document.getElementById('llm-ovl').style.display = 'none'; }
+function saveLLM(){
+  LLM.cfg = {
+    endpoint: document.getElementById('llm-endpoint').value.trim(),
+    model: document.getElementById('llm-model').value.trim(),
+    key: document.getElementById('llm-key').value.trim()
+  };
+  LLM.save(); llmFab();
+  document.getElementById('llm-status').textContent = LLM.ready() ? '已保存。分身们有脑子了。' : '已保存——但三项都要填才有用。';
+}
+async function testLLM(btn){
+  const st = document.getElementById('llm-status');
+  saveLLM();
+  if(!LLM.ready()){ st.textContent = '先把三项填完。'; return; }
+  st.textContent = '正在呼叫……';
+  try{
+    const out = await LLM.chat([{ role: 'user', content: '只回一个字：在' }], { max_tokens: 10, temperature: 0 });
+    st.textContent = '线路通了。它回了：“' + out.slice(0, 40) + '”';
+  }catch(e){
+    st.textContent = '失败：' + e.message + ' —— 检查接口、模型、密钥（以及 CORS）。';
+  }
+}
+
+/* ================================================================
+   THE TWO AGENTS, TALKING
+   Every line is driven by who they are (traits) and where this world
+   had them (state snapshot at that day). With an LLM key the exchange
+   is live and unscripted; without one, the engine renders its own
+   state into words — deterministic, grounded, never canned.
+   ================================================================ */
+const ATT_WORD = { anxious: '焦虑型依恋', secure: '安全型依恋', avoidant: '回避型依恋' };
+const CS_WORD  = { avoid: '吵架时会沉默，需要空间', confront: '有矛盾当场说清楚', repair: '吵得凶，好得也快' };
+const MV_WORD  = { save: '为还没到的将来存钱', spend: '把钱花在当下的日子' };
+
+function personaBrief(t){
+  return `${t.name}——${ATT_WORD[t.attachment] || t.attachment}，${CS_WORD[t.conflict_style] || t.conflict_style}，` +
+    `事业心 ${Math.round(t.career_priority*100)}%，家庭权重 ${Math.round(t.family_priority*100)}%，` +
+    `金钱观：${MV_WORD[t.money_value] || t.money_value}，开放度 ${Math.round(t.openness*100)}%`;
+}
+
+function stateBrief(s){
+  return `信任 ${Math.round(s.trust)} · 心动 ${Math.round(s.affection)} · 沟通 ${Math.round(s.communication)} · ` +
+    `压力 ${Math.round(s.stress)} · 承诺 ${Math.round(s.commitment)}${s.ld ? ' · 此刻异地' : ''}`;
+}
+
+/* ---- live LLM exchange: 4 turns, each conditioned on persona + state + history ---- */
+async function genDialogueLLM(world, entry, onTurn){
+  const s = entry.snap;
+  const order = (world.seed + entry.day) % 2 ? [Twins.a, Twins.b] : [Twins.b, Twins.a];
+  const history = [];
+  for(let k = 0; k < 4; k++){
+    const me = order[k % 2], other = order[(k+1) % 2];
+    const sys =
+      `你是 ${me.name}。${personaBrief(me)}。` +
+      `这是你和 ${other.name} 这段关系的第 ${entry.day} 天。` +
+      `这段关系此刻的状态：${stateBrief(s)}（0 到 100）。` +
+      `刚刚发生了这件事：“${entry.text}”。` +
+      `以这个人在这个情绪温度下真实的说话方式，给对方发一条短消息。` +
+      `第一人称，现在时，最多一两句。不要旁白，不要星号，不要引号，不要 emoji。` +
+      `压力大、沟通少的时候，就少说。如果你爱对方，别宣布——让它漏出来。`;
+    const msgs = [{ role: 'system', content: sys }];
+    history.forEach(h => msgs.push({ role: h.who === me.name ? 'assistant' : 'user', content: h.text }));
+    if(!history.length) msgs.push({ role: 'user', content: '（你先开口。）' });
+    const text = await LLM.chat(msgs, { temperature: 0.85, max_tokens: 80 });
+    const turn = { who: me.name, text };
+    history.push(turn);
+    onTurn(turn, k);
+  }
+}
+
+/* ---- engine-grounded fallback: the sim's own numbers, rendered as speech ---- */
+function genDialogueEngine(world, entry){
+  const s = entry.snap;
+  const jr = mulberry32(world.seed ^ (entry.day * 7919));
+  const order = (world.seed + entry.day) % 2 ? [Twins.a, Twins.b] : [Twins.b, Twins.a];
+  const hi = s.stress > 70, warm = s.affection > 65, distant = s.communication < 45, ld = s.ld;
+  const line = (me, k) => {
+    const att = me.attachment, cs = me.conflict_style;
+    if(k === 0){
+      if(ld && att === 'anxious') return pickJ(jr, [`我这边${pickJ(jr,['很晚了','已经是后半夜'])}。最后那通电话，我翻来覆去地想。`, `今晚的距离，好像比平时更响。`]);
+      if(hi && cs === 'avoid') return pickJ(jr, [`没事，就是累了。`, `今晚能不能不聊这个？`]);
+      if(hi && cs === 'confront') return pickJ(jr, [`这事得谈。现在，不是下周。`, `这次我不会就这么算了。`]);
+      if(warm) return pickJ(jr, [`喂，今天算是好日子。`, `想了你一整天。`]);
+      return pickJ(jr, [`到家了？`, `吃饭了吗？`]);
+    }
+    if(k === 1){
+      if(att === 'avoidant' && hi) return pickJ(jr, [`听到了。我需要自己待一会儿。`, `我现在说不出什么像样的话。`]);
+      if(att === 'anxious') return pickJ(jr, [`再说一遍，走心的那种。`, `我怎么觉得，你一只脚已经在门外了？`]);
+      if(warm) return pickJ(jr, [`过来。我们没事的。`, `我知道。我也一样。`]);
+      return pickJ(jr, [`嗯，我知道。`, `嗯。`]);
+    }
+    if(k === 2){
+      if(cs === 'repair') return pickJ(jr, [`好吧，刚才我语气冲了。怪我。`, `翻篇。我不想赢，我想要我们。`]);
+      if(hi && att === 'anxious') return pickJ(jr, [`那你跟我说我们没事。就说这一句。`, `我不想再猜你什么意思了。`]);
+      if(att === 'avoidant') return pickJ(jr, [`我不会走的。只是我表达的方式不一样。`, `我在努力了。虽然看不太出来。`]);
+      return pickJ(jr, [`会解决的。我们一向如此。`, `明天老时间？`]);
+    }
+    if(warm && !hi) return pickJ(jr, [`晚安啦。`, `爱你。行，我先说了。`]);
+    if(hi) return pickJ(jr, [`晚安。`, `…`, `明天再说。`]);
+    return pickJ(jr, [`晚安。`, `明天聊。`]);
+  };
+  const turns = [];
+  for(let k = 0; k < 4; k++) turns.push({ who: order[k % 2].name, text: line(order[k % 2], k) });
+  return turns;
+}
+function pickJ(jr, arr){ return arr[Math.floor(jr() * arr.length)]; }
+
+/* ---- overlay driver ---- */
+let moToken = 0;
+let woToken = 0; // 真宇宙时间线流式渲染/生成的防串台令牌（与 moToken 同款）
+function watchMoment(which, idx){
+  const w = which === 'best' ? SIM.best : which === 'worst' ? SIM.worst : which === 'wild' ? SIM.wild : which === 'custom' ? SIM.custom : SIM.avg;
+  const entry = (w.log || [])[idx];
+  if(!entry || !entry.snap) return;
+  const token = ++moToken;
+  document.getElementById('mo-meta').textContent = `${worldId(w.seed)} · ${fmtDay(entry.day)} · 结局：${OUTCOMES[w.outcome].label}`;
+  document.getElementById('mo-event').textContent = entry.text;
+  document.getElementById('mo-state').textContent = stateBrief(entry.snap);
+  document.getElementById('mo-src').textContent = LLM.ready() ? '实时 · 两个分身，一个 LLM，没有剧本' : '引擎生成 · 配置 LLM 密钥可看实时对话';
+  const box = document.getElementById('mo-lines');
+  box.innerHTML = '';
+  document.getElementById('moment-ovl').style.display = 'block';
+  const alive = {};
+  const showTurn = (turn, k) => {
+    if(token !== moToken) return;
+    const typ = box.querySelector('.mo-typing'); if(typ) typ.remove();
+    const div = document.createElement('div');
+    div.className = 'mo-line' + (turn.who === Twins.b.name ? ' right' : '');
+    const col = turn.who === Twins.a.name ? 'var(--pink)' : '#41f2ff';
+    div.innerHTML = `<div class="who" style="color:${col}">${turn.who}</div><div class="say"></div>`;
+    div.querySelector('.say').textContent = turn.text;
+    box.appendChild(div);
+    requestAnimationFrame(() => div.classList.add('on'));
+  };
+  const typing = name => {
+    if(token !== moToken) return;
+    const t = document.createElement('div');
+    t.className = 'mo-typing';
+    t.textContent = name + ' 正在输入……';
+    box.appendChild(t);
+  };
+  if(LLM.ready()){
+    (async () => {
+      try{
+        await genDialogueLLM(w, entry, (turn, k) => {
+          showTurn(turn, k);
+          if(k < 3) typing(turn.who === Twins.a.name ? Twins.b.name : Twins.a.name);
+        });
+      }catch(e){
+        if(token !== moToken) return;
+        const typ = box.querySelector('.mo-typing'); if(typ) typ.remove();
+        document.getElementById('mo-src').textContent = 'LLM 挂了（' + e.message + '）——引擎接手了';
+        genDialogueEngine(w, entry).forEach((turn, k) => setTimeout(() => showTurn(turn, k), 400 + k * 1100));
+      }
+    })();
+    typing(((w.seed + entry.day) % 2 ? Twins.a : Twins.b).name);
+  }else{
+    genDialogueEngine(w, entry).forEach((turn, k) => setTimeout(() => showTurn(turn, k), 350 + k * 1100));
+  }
+}
+function closeMoment(){ moToken++; document.getElementById('moment-ovl').style.display = 'none'; }
+
+/* ================================================================
+   UNIVERSE THEMES — 每个宇宙一套配色，点开时整页漾过去
+   ================================================================ */
+const DEFAULT_THEME = { bg:'#050507', bg2:'#0a0a10', ink:'#ece9e2', dim:'#8a877f', faint:'#3a3a42', accent:'#ff3d8a', accent2:'#41f2ff', gold:'#ffd166' };
+const THEME_VAR = { bg:'--bg', bg2:'--bg2', ink:'--ink', dim:'--dim', faint:'--faint', accent:'--pink', accent2:'--cyan', gold:'--gold' };
+
+function applyTheme(t){
+  const st = document.documentElement.style;
+  for(const k in THEME_VAR){
+    if(t && t[k]) st.setProperty(THEME_VAR[k], t[k]);
+    else st.removeProperty(THEME_VAR[k]);
+  }
+}
+
+/* 参考 .qa/ref-seku.html：startViewTransition + clip-path 圆从点击处扩散；
+   不支持或减弱动态效果时直接切换 */
+function transitionTo(theme, x, y, mutate){
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!document.startViewTransition || reduce){ applyTheme(theme); mutate(); return; }
+  const vt = document.startViewTransition(() => { applyTheme(theme); mutate(); });
+  vt.ready.then(() => {
+    const r = Math.hypot(Math.max(x, innerWidth-x), Math.max(y, innerHeight-y));
+    document.documentElement.animate(
+      { clipPath:[`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+      { duration:680, easing:'cubic-bezier(.4,0,.2,1)', pseudoElement:'::view-transition-new(root)' });
+  }).catch(()=>{});
+}
+
+/* 真实宇宙的主题跟着结局走 */
+const OUTCOME_THEME = {
+  marriage:      { bg:'#120c05', bg2:'#1c1207', ink:'#f4ead6', dim:'#a8977a', faint:'#4a3d28', accent:'#ffb14d', accent2:'#ffd166', gold:'#ffd166' },
+  breakup:       { bg:'#0e060a', bg2:'#180a10', ink:'#eadfe2', dim:'#9a8288', faint:'#42262e', accent:'#ff3d5c', accent2:'#7aa7ff', gold:'#c9a0a8' },
+  cold_war:      { bg:'#05080f', bg2:'#0a101c', ink:'#dde4ee', dim:'#7d8aa0', faint:'#25344a', accent:'#7aa7ff', accent2:'#41f2ff', gold:'#a8c0e8' },
+  long_distance: { bg:'#0b0714', bg2:'#130c22', ink:'#e6dff2', dim:'#8f84a8', faint:'#322547', accent:'#b48cff', accent2:'#ff3d8a', gold:'#c9b3f2' },
+  still_dating:  { bg:'#041014', bg2:'#081c22', ink:'#dcefee', dim:'#6f9a9a', faint:'#1c3a3e', accent:'#41f2ff', accent2:'#7dd8c8', gold:'#a8e0d8' },
+};
+
+/* ================================================================
+   恶搞宇宙 — 不跑引擎，结局分布和时间线都是预设的
+   ================================================================ */
+const GAGS = [
+  { id:'rock', name:'石头宇宙', emoji:'🪨', img:'assets/worlds/gag-rock.jpg',
+    tagline:'他们都是石头。什么都没发生。',
+    endline:'一亿年过去了。还是石头。稳。',
+    note:'石头不会分手',
+    stats:[{label:'稳', n:9991, color:'#9fb4c8'},{label:'裂开', n:9, color:'#7a5a62'}],
+    events:[
+      ['第 0 年','两块石头就位。谁也没说话。石头不说话。'],
+      ['第 340 年','左边那块身上长了层苔藓。右边那块没有。没人在意这事。'],
+      ['第 1200 年','一场暴雨，两块同时湿透。这是他们最接近牵手的一次。'],
+      ['第 8600 年','风在他们中间放了粒沙。第三年，沙走了。'],
+      ['第 4 万年','一只羊来蹭了蹭左边那块。右边那块假装没看见。石头最擅长假装。'],
+      ['第 17 万年','地壳挪了一下，两块近了 2 厘米。进展喜人。'],
+      ['第 90 万年','右边那块裂了道缝。紧张了一阵子，缝后来没再长。'],
+      ['第 300 万年','有个人类坐在他们中间哭了一下午。两块石头陪着。用石头的方式。'],
+      ['第 1200 万年','又近了 1 厘米。照这个速度，四亿年后能碰上。'],
+      ['第 1 亿年','还是石头。稳。']
+    ],
+    grad:['#2a2a26','#101010'],
+    theme:{ bg:'#141412', bg2:'#1c1c19', ink:'#d8d5cc', dim:'#8a877f', faint:'#3a3a36', accent:'#9fb4c8', accent2:'#d0dce8', gold:'#b8c8d4' } },
+  { id:'cats', name:'全是猫的宇宙', emoji:'🐈', img:'assets/worlds/gag-cats.jpg',
+    tagline:'两个人的事，一只猫说了算。',
+    endline:'猫同意了。这比「我愿意」更早听到。',
+    note:'一切进度以主子心情为准',
+    stats:[{label:'主子恩准', n:8217, color:'#e8a4b4'},{label:'主子反对', n:1783, color:'#8a6a50'}],
+    events:[
+      ['第 1 天','第一次上门。猫审视了对方 40 分钟，尾巴没炸。试用期开始。'],
+      ['第 3 天','猫允许对方坐沙发的同一个角落。评论界普遍认为是积极信号。'],
+      ['第 9 天','对方带了猫条。贿赂评委。评委收下了，还翻了个面。'],
+      ['第 15 天','猫在对方腿上睡着了。两人对视，谁都不敢动 🐈'],
+      ['第 31 天','猫把对方的耳机推下桌子。这是压力测试。对方没急，过了。'],
+      ['第 58 天','猫吐在了对方鞋里。对方默默收拾完，还顺手查了猫粮配方。加分。'],
+      ['第 90 天','同居。猫巡视新房三圈，在两人枕头中间留了一泡。是宣示主权，也是认证。'],
+      ['第 140 天','两人吵架，音量渐高。猫跳上桌，一屁股坐在正中间。和谈立刻开始。'],
+      ['第 220 天','猫开始吃两个人喂的饭，一个月胖了 400 克。这是爱的重量。'],
+      ['第 365 天','求婚。戒指挂在猫项圈上。主子先把盒子扒进沙发底，半小时后才赏脸拿出来。']
+    ],
+    grad:['#3a2408','#120a02'],
+    theme:{ bg:'#160e04', bg2:'#221505', ink:'#f5e6cf', dim:'#b09468', faint:'#4a3416', accent:'#e8a4b4', accent2:'#ffd166', gold:'#ffd166' } },
+  { id:'slippers', name:'拖鞋宇宙', emoji:'🩴', img:'assets/worlds/gag-slippers.jpg',
+    tagline:'左拖鞋和右拖鞋。天生一对，总走散。',
+    endline:'一只在床头，一只在床底。异地恋的极致。',
+    note:'总有一只被床底吞掉',
+    stats:[{label:'成双', n:8942, color:'#e0a45c'},{label:'落单', n:1058, color:'#6a5a70'}],
+    events:[
+      ['出厂第 1 天','装进同一个盒子。左脚问：你也在啊。右脚没搭理。右脚高冷。'],
+      ['上架第 12 天','被同一双脚买走。从此一个朝左一个朝右，一辈子背对背。'],
+      ['第 1 个月','每天最远的距离是床的两头，最近的距离是鞋柜里挨着。恋爱现状。'],
+      ['第 3 个月','主人穿着他们追了一站地铁。两只一起飞出去过。算共患难了。'],
+      ['第 5 个月','右脚被踢进床底。左脚在床边等了六天。床底很黑，右脚说它不怕。'],
+      ['第 7 个月','大扫除，重逢。右脚灰头土脸。左脚什么都没说，往旁边挪了挪。'],
+      ['第 1 年','鞋底都磨平了，磨的角度一模一样。这东西叫默契。'],
+      ['第 2 年','主人买了新拖鞋。他们被收进鞋柜最里面。挺好，更近了。'],
+      ['第 3 年','搬家。两只塞进同一个塑料袋，一路颠，一路挨着。'],
+      ['第 5 年','垃圾日，一起进的回收箱。右脚说：跟盒子里那天一样。左脚说：嗯。']
+    ],
+    grad:['#1c1c3a','#08081a'],
+    theme:{ bg:'#0e0a06', bg2:'#171008', ink:'#f0e6d4', dim:'#a8906c', faint:'#3a2c16', accent:'#e0a45c', accent2:'#f0c88a', gold:'#e8c490' } },
+  { id:'plants', name:'盆栽宇宙', emoji:'🪴', img:'assets/worlds/gag-plant.jpg',
+    tagline:'两盆多肉，隔着窗台，用蒸腾说早安。',
+    endline:'朝对方的方向，各长歪了三厘米。',
+    note:'他们的全部对话靠光合作用',
+    stats:[{label:'长到一起', n:7664, color:'#6fc8b0'},{label:'各长各的', n:2336, color:'#5a7a68'}],
+    events:[
+      ['第 1 天','被摆上同一个窗台，间隔 40 厘米。对植物来说，这是异地恋。'],
+      ['第 7 天','左边那盆朝右歪了 2 度。园丁说是向光性。它自己知道不是。'],
+      ['第 21 天','右边那盆开了朵小花。左边连夜冒出两片新叶。是较劲，也是展示。'],
+      ['第 45 天','浇水先左后右。右边那盆蔫了一晚上。植物也会吃醋。'],
+      ['第 70 天','台风夜，玻璃响了一宿。两盆用叶子碰了一下。就一下。'],
+      ['第 100 天','左边那盆被搬去客厅。信号全无。右边那盆三天没长。'],
+      ['第 104 天','搬回来了，官方理由是客厅光照不足。两盆都装作无所谓，新叶却都冲着对方。'],
+      ['第 160 天','藤蔓越过了那 40 厘米。学术上叫攀援，实际上叫牵手。'],
+      ['第 240 天','两盆的根在各自的盆里打转。这是植物能走的最远的路。'],
+      ['第 365 天','窗台合影。两盆都长歪了，歪向同一个方向。主人至今没想明白。']
+    ],
+    grad:['#0f2c14','#04140a'],
+    theme:{ bg:'#071409', bg2:'#0c1f10', ink:'#dcf0dc', dim:'#7da884', faint:'#264a2e', accent:'#6fc8b0', accent2:'#a0dcd0', gold:'#b8d8c8' } },
+  { id:'vending', name:'自动贩卖机宇宙', emoji:'🥤', img:'assets/worlds/gag-vending.jpg',
+    tagline:'他买可乐，它亮灯。凌晨一点的交情。',
+    endline:'可乐永远 4 度。它只有这一种表达方式。',
+    note:'他出 3 块钱，它出 4 度的可乐',
+    stats:[{label:'每晚都来', n:6789, color:'#41f2ff'},{label:'再没来过', n:3211, color:'#f08bb0'}],
+    events:[
+      ['第 1 天','他第一次来。凌晨 1 点，3 块钱，一罐可乐。它记住了这个组合。'],
+      ['第 4 天','又来。差 5 毛，他骂了一句走了。它把这笔账记下了。'],
+      ['第 7 天','他补上了那 5 毛，还敲了敲它的玻璃。它灯管闪了一下。原谅他了。'],
+      ['第 15 天','连着来了五天。它开始提前把可乐冰到 4 度。这是它全部的温柔。'],
+      ['第 23 天','他靠着它打了 40 分钟电话，哭了一会。它把灯调暗了一格。'],
+      ['第 30 天','可乐断货。他站了 10 秒，说：连你也这样。它当晚就报了缺货。'],
+      ['第 32 天','补货员来了，可乐位双倍库存。有些话不能说，但能做。'],
+      ['第 60 天','他带朋友来，指着它说：就这台，我的深夜食堂。它亮了整晚。'],
+      ['第 100 天','他没来。第 101 天也没来。可乐继续冰在 4 度。万一呢。'],
+      ['第 117 天','凌晨 1 点，熟悉的脚步声。3 块钱，一罐可乐。他说搬家了，远了点。它觉得 4 度正好。']
+    ],
+    grad:['#0a2230','#020c14'],
+    theme:{ bg:'#050c12', bg2:'#0a1620', ink:'#dcecf4', dim:'#7c98a8', faint:'#1e3a4a', accent:'#41f2ff', accent2:'#f08bb0', gold:'#e8a4bc' } },
+  { id:'lamps', name:'路灯宇宙', emoji:'💡', img:'assets/worlds/gag-streetlamp.jpg',
+    tagline:'隔一条街，每晚同时亮起。这就是约会。',
+    endline:'光到不了对面。但光知道对面在。',
+    note:'有一盏先坏的那个宇宙，另一条街整夜没睡',
+    stats:[{label:'亮到退役', n:8455, color:'#ffd166'},{label:'有一盏先坏', n:1545, color:'#6a6258'}],
+    events:[
+      ['安装第 1 天','相距 30 米。这是市政规划，也是他们之间全部的距离。'],
+      ['第 1 晚','19:00 同时亮起。它朝对面闪了两下，对面回了两下。从此这就是晚安。'],
+      ['第 9 天','下雨。两束光在积水里连成一片。这是他们离得最近的一次。'],
+      ['第 20 天','一只飞蛾天天围着它转。对面那晚多亮了 10 瓦。路灯也会较劲。'],
+      ['第 45 天','一对情侣在它灯柱下吵架，在对面的灯柱下和好。分工明确。'],
+      ['第 80 天','它的灯管老化，暗了一格。对面把光往这边斜了斜。物理上说不通，但看上去就是。'],
+      ['第 120 天','市政检修，它被断电一晚。对面独自亮到天亮，一秒没暗。值守也是表白。'],
+      ['第 200 天','大雪，两根灯柱一起白了头。这梗它们自己笑不了，路过的小孩替它们笑了。'],
+      ['第 400 天','街口开了家 24 小时便利店，灯比它们亮得多。两根路灯决定不卷。'],
+      ['第 1000 天','19:00，同时亮起，闪两下。晚安。第 1000 遍，和第一遍一样。']
+    ],
+    grad:['#2c2004','#0c0800'],
+    theme:{ bg:'#100c04', bg2:'#181204', ink:'#f2e8d0', dim:'#a89468', faint:'#403214', accent:'#ffd166', accent2:'#ffb14d', gold:'#ffd166' } },
+  { id:'fridge', name:'冰箱宇宙', emoji:'🧊', img:'assets/worlds/gag-fridge.jpg',
+    tagline:'鸡蛋和啤酒，隔着 35 厘米的楼层差谈恋爱。',
+    endline:'他们不吵架。他们一起保鲜。',
+    note:'字面意义上的冷战。恒温四度',
+    stats:[{label:'保鲜到底', n:9107, color:'#41f2ff'},{label:'先被吃掉', n:893, color:'#7aa7ff'}],
+    events:[
+      ['入住第 1 天','鸡蛋 🥚 在冷藏上层，啤酒 🍺 在下层门架。垂直距离 35 厘米，楼层差。'],
+      ['第 2 天','冰箱灯每次亮，鸡蛋都能看见啤酒。一天见十几次，每次不超过 15 秒。'],
+      ['第 5 天','半夜压缩机启动，整个冰箱一起嗡嗡。鸡蛋想，这算不算一起失眠。'],
+      ['第 9 天','主人买了新鸡蛋放进同层。啤酒莫名松了口气，又说不清为什么松。'],
+      ['第 14 天','鸡蛋被挪到门架，就在啤酒旁边。35 厘米变成 5 厘米。鸡蛋紧张得冒汗。冷凝水那种。'],
+      ['第 18 天','停电 6 小时，一起升温。啤酒说：别慌，我陪你一起不新鲜。最凉的安慰。'],
+      ['第 22 天','来电了，一起重新制冷。共患过 6 小时，感情明显不一样。'],
+      ['第 30 天','深夜，主人的手在鸡蛋和啤酒之间停了三秒，拿走了啤酒。鸡蛋装作没看见。'],
+      ['第 31 天','啤酒被喝掉半罐，剩下半罐放回鸡蛋旁边。它说：我为他付出了一半。'],
+      ['第 45 天','鸡蛋快到保质期。它最大的愿望是变成一个蛋糕。啤酒说：那我负责庆祝。']
+    ],
+    grad:['#0c2430','#020a10'],
+    theme:{ bg:'#060d12', bg2:'#0b161e', ink:'#dcecf2', dim:'#7e9aaa', faint:'#1e3a46', accent:'#41f2ff', accent2:'#7aa7ff', gold:'#a8d8e8' } },
+  { id:'parallel', name:'平行线宇宙', emoji:'📏', img:'assets/worlds/gag-parallel.jpg',
+    tagline:'他们在这个宇宙里，刷到了一个讲平行宇宙的网站。',
+    endline:'网站说他们 32% 会结婚。他们决定亲自验证一下。',
+    note:'他们是第 10,001 个宇宙',
+    stats:[{label:'成了', n:5552, color:'#7fd4e8'},{label:'还在刷概率', n:4448, color:'#e06a9a'}],
+    events:[
+      ['第 1 天','他刷到一个叫 MultiUs 的网站，输入了他和她的名字。页面说：一万个宇宙同时开跑。'],
+      ['第 1 天 · 续','结果出来了：在 32% 的未来里，他们结了婚。他盯着这个数字看了很久。比他想的高。'],
+      ['第 2 天','他把链接发给她，附了三个字：试试呗。发完去洗了个澡，掩饰紧张。'],
+      ['第 2 天 · 晚','她跑出来的结果是「没能走到最后」。她回了一串哈哈哈哈。他心里咯噔了一下。'],
+      ['第 3 天','两人各自偷偷重跑。他的最好成绩 78%，她的最差成绩 12%。谁也没告诉谁。'],
+      ['第 5 天','她问：你说那些结婚的宇宙里，是谁先表的白？他说：反正这个宇宙里，我打算先。'],
+      ['第 6 天','他们把恶搞宇宙翻了个遍。她最喜欢石头宇宙。她说：稳，也是一种答案。'],
+      ['第 9 天','他们开始怀疑自己是某个宇宙里的 NPC。证据：这周的对话巧得像写出来的。'],
+      ['第 12 天','表白。没用网站上的任何一句话。网站表示理解：数据仅供参考，表白请自备。'],
+      ['第 30 天','网站被加进收藏夹，文件夹名叫「其他宇宙的我们」。']
+    ],
+    grad:['#161616','#000000'],
+    theme:{ bg:'#000000', bg2:'#0a0a0a', ink:'#ece9e2', dim:'#8a877f', faint:'#2a2a2e', accent:'#7fd4e8', accent2:'#e06a9a', gold:'#c8d8e0' } },
+];
+
+/* ================================================================
+   THE MULTIVERSE WALL — twelve worlds you can step into
+   ================================================================ */
+const WORLD_IMG = {
+  marriage:      ['assets/worlds/marriage-a.jpg',  'assets/worlds/marriage-b.jpg'],
+  cold_war:      ['assets/worlds/cold_war-a.jpg',  'assets/worlds/cold_war-b.jpg'],
+  still_dating:  ['assets/worlds/dating-a.jpg',    'assets/worlds/dating-b.jpg'],
+  long_distance: ['assets/worlds/distance-a.jpg',  'assets/worlds/distance-b.jpg'],
+  breakup:       ['assets/worlds/breakup-a.jpg',   'assets/worlds/breakup-b.jpg']
+};
+function worldImg(w){ const a = WORLD_IMG[w.outcome] || []; return a[w.seed % a.length] || ''; }
+
+function buildWall(){
+  const wall = document.getElementById('wall');
+  wall.innerHTML = '';
+  /* 6 个真实宇宙：四个代表 + 结局带抽样 */
+  const sims = [];
+  const seen = new Set();
+  const take = w => { if(w && !seen.has(w.seed)){ seen.add(w.seed); sims.push(w); } };
+  take(SIM.best); take(SIM.avg); take(SIM.worst); take(SIM.wild);
+  Object.keys(OUTCOMES).forEach(k => {
+    const band = SIM.worlds.filter(w => w.outcome === k && !seen.has(w.seed));
+    if(band.length && sims.length < 6) take(band[Math.floor(band.length/2)]);
+  });
+  const simTiles = sims.slice(0,6).map(w => ({ kind:'sim', w }));
+  /* 6 个恶搞宇宙：按 runSalt 轮换，每次跳进来看到的不完全一样 */
+  const gagTiles = [];
+  for(let i = 0; i < 6; i++) gagTiles.push({ kind:'gag', g: GAGS[(runSalt + i) % GAGS.length] });
+  /* 混排：真-假-真-假 */
+  const tiles = [];
+  for(let i = 0; i < 6; i++){ if(simTiles[i]) tiles.push(simTiles[i]); if(gagTiles[i]) tiles.push(gagTiles[i]); }
+
+  tiles.forEach((e, i) => {
+    const t = document.createElement('div');
+    t.className = 'wtile';
+    t.style.transitionDelay = (i * 70) + 'ms';
+    if(e.kind === 'sim'){
+      const oc = OUTCOMES[e.w.outcome];
+      t.innerHTML = `<div class="art" style="background-image:url('${worldImg(e.w)}')"></div>
+        <div class="veil"></div>
+        <div class="cap"><div class="wid" style="color:${oc.color}">${worldId(e.w.seed)} · ${oc.label}</div></div>`;
+    }else{
+      const g = e.g;
+      /* 恶搞格和真宇宙格同一规格：大图封面 + 图上标签，emoji 退成标签前的小图标 */
+      t.innerHTML = `<div class="art" style="background-color:${g.grad[1]};background-image:url('${g.img}')"></div>
+        <div class="veil"></div>
+        <div class="cap"><div class="wid" style="color:${g.theme.accent}"><span class="gmoji">${g.emoji}</span>${g.name}</div></div>`;
+    }
+    t.onclick = ev => openEntry(e, ev);
+    wall.appendChild(t);
+  });
+}
+
+/* ---------- 打开一个宇宙：主题从点击处漾开，内容同时切过去 ---------- */
+function openEntry(e, ev){
+  const theme = e.kind === 'gag' ? e.g.theme : (OUTCOME_THEME[e.w.outcome] || null);
+  const x = ev && ev.clientX != null ? ev.clientX : innerWidth/2;
+  const y = ev && ev.clientY != null ? ev.clientY : innerHeight/2;
+  transitionTo(theme, x, y, () => {
+    if(e.kind === 'gag') renderGagOverlay(e.g);
+    else renderSimOverlay(e.w);
+    const ovl = document.getElementById('world-ovl');
+    ovl.style.display = 'block';
+    ovl.scrollTop = 0;
+  });
+}
+
+/* ===== 真宇宙时间线 · LLM 现场书写 ===== */
+async function genTimelineLLM(w){
+  const snaps = w.log.filter(l=>l.snap);
+  const ctx = [
+    `甲：${personaBrief(Twins.a)}`,
+    `乙：${personaBrief(Twins.b)}`,
+    `这条世界线活了 ${w.endDay} 天，结局是「${OUTCOMES[w.outcome].label}」。`,
+    `关键节点时的数值：`,
+    ...snaps.map(l=>`第 ${l.day} 天：${stateBrief(l.snap)}`)
+  ].join('\n');
+  const days = w.log.map(l=>l.day);
+  const messages = [
+    {role:'system', content:'你是 MultiUs 的时间线写手，为一个「另一个世界的你们」模拟器书写感情世界线。只输出一个 JSON 数组，格式 [{"day":天数,"text":"事件"}]，不要代码块标记，不要任何多余文字。\n\n硬性风格红线：\n- 每条最多两句话，口语、短句、有画面感，像朋友圈里真朋友随口讲的事。\n- 禁止排比、禁止鸡汤和说教、禁止「震撼/炸裂/惊艳」这类词、禁止星号旁白、禁止对话引号、禁止 emoji。\n- 每条独立成立，但整体要推进一条感情弧线：前期新鲜试探，中期数值演什么就写什么（压力高写具体摩擦、异地写时差和屏幕、沟通低写没说开的话），结局标签给后段定调。\n- 事件要小而具体：一碗面、一趟末班车、一次没接的电话。不写「他们感情升温了」这种抽象总结。'},
+    {role:'user', content:`${ctx}\n\n日子列表：${days.join(', ')}\n\n为每个日子写一条事件，day 原样返回。`}
+  ];
+  const raw = await LLM.chat(messages, {temperature:0.9, max_tokens:1400});
+  const m = raw.match(/\[[\s\S]*\]/);
+  if(!m) throw new Error('no json');
+  const arr = JSON.parse(m[0]);
+  if(!Array.isArray(arr) || !arr.length) throw new Error('bad json');
+  const byDay = {};
+  for(const it of arr){
+    const d = +it.day, t = (it.text||'').trim();
+    if(days.includes(d) && t) byDay[d] = t;
+  }
+  if(Object.keys(byDay).length < Math.ceil(days.length*0.8)) throw new Error('low coverage');
+  return days.map(d=>byDay[d]||null);
+}
+
+function renderSimOverlay(w){
+  const token = ++woToken; // 任何一次重渲染都作废旧的在途生成
+  renderSimOverlay._w = w;
+  w._engineLog ||= (w.log||[]).map(l=>({...l})); // 引擎原版首次深拷贝，永远留着兜底
+  const A = Twins.a.name, B = Twins.b.name;
+  const oc = OUTCOMES[w.outcome];
+  const f = w.final;
+  const hero = document.getElementById('wo-hero');
+  hero.style.background = '';
+  hero.style.backgroundImage = `url('${worldImg(w)}')`;
+  hero.innerHTML = '<div class="veil"></div>';
+  document.getElementById('wo-meta').textContent =
+    `${worldId(w.seed)} · 结局：${oc.label} · ${(w.endDay/365).toFixed(1)} 年`;
+  document.getElementById('wo-end').textContent = OUT_ENDLINE[w.outcome](A,B);
+  const statsRow = `<div class="world-meta" style="margin-bottom:10px">
+       <span>信任 <b>${Math.round(f.trust)}</b></span>
+       <span>心动 <b>${Math.round(f.affection)}</b></span>
+       <span>压力 <b>${Math.round(f.stress)}</b></span>
+       <span>承诺 <b>${Math.round(f.commitment)}</b></span>
+     </div>`;
+  const srcRow = txt =>
+    `<div class="world-meta" style="margin-bottom:34px"><span id="wo-src">${txt}</span>` +
+    (LLM.ready() ? ` <button class="wo-rewrite" onclick="rewriteTimeline()">重写这条线</button>` : '') +
+    `</div>`;
+  const rowsFor = log => log.map((l, i) =>
+    l.snap
+      ? `<div class="wlog-row has-moment" onclick="watchMomentDirect(${i})"><div class="d">${fmtDay(l.day)}</div><div class="e">${l.text}</div></div>`
+      : `<div class="wlog-row"><div class="d">${fmtDay(l.day)}</div><div class="e">${l.text}</div></div>`
+  ).join('');
+  const logEl = document.getElementById('wo-log');
+
+  if(!LLM.ready()){
+    w.log = w._engineLog;
+    logEl.innerHTML = statsRow + srcRow('引擎预写 · 配 LLM 可现场书写') + rowsFor(w.log);
+    return;
+  }
+  if(w._llmLog){
+    w.log = w._llmLog;
+    logEl.innerHTML = statsRow + srcRow('现场书写 · LLM · 每次都不一样') + rowsFor(w.log);
+    return;
+  }
+  /* 有 key 且未生成过：先铺引擎版兜底，再流式替换 */
+  w.log = w._engineLog;
+  logEl.innerHTML = statsRow + srcRow('现场书写中 · LLM……') +
+    `<div class="wo-writing" id="wo-writing">分身们正在回忆这 ${(w.endDay/365).toFixed(1)} 年……</div>`;
+  (async () => {
+    try{
+      const texts = await genTimelineLLM(w);
+      w._llmLog = w._engineLog.map((l,i)=>({...l, text: texts[i] || l.text}));
+      w.log = w._llmLog; // 人走了也照缓存，下次进来直接用
+      if(token !== woToken) return;
+      const wt = document.getElementById('wo-writing');
+      if(wt) wt.remove();
+      const src = document.getElementById('wo-src');
+      if(src) src.textContent = '现场书写 · LLM · 每次都不一样';
+      const holder = document.createElement('div');
+      holder.innerHTML = rowsFor(w._llmLog).replace(/class="wlog-row/g, 'class="wlog-row pre');
+      const rows = [...holder.children];
+      rows.forEach(r => logEl.appendChild(r));
+      rows.forEach((r,i)=>setTimeout(()=>{ if(token===woToken) r.classList.add('on'); }, 120+i*240));
+    }catch(e){
+      if(token !== woToken) return;
+      w.log = w._engineLog;
+      logEl.innerHTML = statsRow + srcRow('LLM 没接上 · 引擎预写的时间线') + rowsFor(w.log);
+    }
+  })();
+}
+
+function renderGagOverlay(g){
+  ++woToken; // 点开恶搞宇宙，取消真宇宙在途的 LLM 生成（两者共用 #wo-log）
+  const hero = document.getElementById('wo-hero');
+  hero.style.background = '';
+  hero.style.backgroundColor = g.grad[1];
+  hero.style.backgroundImage = `url('${g.img}')`;
+  /* 比真宇宙更狠的压暗：图上直接叠内容，得保证文字读得清 */
+  hero.innerHTML = `<div class="veil" style="background:linear-gradient(180deg,rgba(0,0,0,.38) 0%,rgba(0,0,0,.10) 42%,var(--bg) 96%)"></div>`;
+  document.getElementById('wo-meta').textContent = `${g.name} · ${g.tagline}`;
+  document.getElementById('wo-end').textContent = g.endline;
+  /* 专属结局统计：每个恶搞宇宙有自己的结局口径和配色，数字按 10,000 次模拟报 */
+  const bars = g.stats.map(s => `
+    <div class="out-row">
+      <div class="nm">${s.label}</div>
+      <div class="bar"><div class="fill" style="width:${s.n / 100}%;background:${s.color};box-shadow:0 0 12px ${s.color}"></div></div>
+      <div class="pc">${s.n.toLocaleString()}</div>
+    </div>`).join('');
+  document.getElementById('wo-log').innerHTML =
+    `<div class="world-meta" style="margin-bottom:20px"><span>结局分布 · 10,000 次模拟 · <b>${g.note}</b></span></div>
+     <div class="outcomes" style="margin:0 0 40px;width:100%">${bars}</div>` +
+    g.events.map(e =>
+      `<div class="wlog-row"><div class="d">${e[0]}</div><div class="e">${e[1]}</div></div>`
+    ).join('');
+}
+function closeWorld(ev){
+  woToken++; // 关掉 overlay 即作废在途的流式渲染
+  const x = ev && ev.clientX != null ? ev.clientX : innerWidth/2;
+  const y = ev && ev.clientY != null ? ev.clientY : innerHeight/2;
+  transitionTo(null, x, y, () => {
+    document.getElementById('world-ovl').style.display = 'none';
+  });
+}
+function watchMomentDirect(idx){
+  const w = renderSimOverlay._w; if(!w) return;
+  SIM.custom = w;
+  watchMoment('custom', idx);
+}
+/* 有 key 才看得见的「重写这条线」：清掉缓存重跑一次现场书写 */
+function rewriteTimeline(){
+  const w = renderSimOverlay._w;
+  if(!w || !LLM.ready()) return;
+  w._llmLog = null;
+  renderSimOverlay(w);
+}
+
+/* ---------- permalink boot: #t=<base64url> reproduces a universe ---------- */
+function fillTwinForm(s, t){
+  document.getElementById(`name-${s}`).value = t.name || '';
+  document.getElementById(`openness-${s}`).value = Math.round((t.openness ?? .5) * 100);
+  document.getElementById(`career-${s}`).value = Math.round((t.career_priority ?? .5) * 100);
+  document.getElementById(`family-${s}`).value = Math.round((t.family_priority ?? .5) * 100);
+  document.getElementById(`conflict-${s}`).value = t.conflict_style;
+  document.getElementById(`attach-${s}`).value = t.attachment;
+  document.getElementById(`money-${s}`).value = t.money_value;
+}
+(function(){
+  const m = location.hash.match(/#t=([A-Za-z0-9\-_]+)/);
+  if(!m) return;
+  try{
+    const d = JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g,'+').replace(/_/g,'/')))));
+    if(!d.a || !d.b) return;
+    fillTwinForm('a', d.a); fillTwinForm('b', d.b);
+    Twins.a = d.a; Twins.b = d.b;
+    runSalt = (d.r|0) - 1;
+    startJump();
+  }catch(e){}
+})();
+
+/* ---------- copy permalink ---------- */
+function copyLink(btn){
+  const done = () => {
+    btn.textContent = '已复制链接';
+    setTimeout(() => btn.textContent = '复制这个多元宇宙', 1800);
+  };
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = location.href;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    ta.remove(); done();
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(location.href).then(done).catch(fallback);
+  else fallback();
+}
+
+/* ---------- demo shortcut: J jumps, from anywhere ---------- */
+addEventListener('keydown', e => {
+  if(e.key !== 'j' && e.key !== 'J') return;
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+  if(CURRENT_SCENE === 'scene-jump') return;
+  if(CURRENT_SCENE === 'scene-results'){ rerun(); return; }
+  generateTwins();
+  startJump();
+});
+
+/* ---------- autopilot: press A, watch the whole thing run itself ---------- */
+const autopilot = { timers: [], on: false };
+function autopilotAbort(){
+  autopilot.timers.forEach(clearTimeout);
+  autopilot.timers = [];
+  autopilot.on = false;
+  const h = document.getElementById('ap-hint');
+  if(h) h.remove();
+}
+function autopilotStart(){
+  if(autopilot.on) return;
+  autopilot.on = true;
+  const h = document.createElement('div');
+  h.id = 'ap-hint';
+  h.style.cssText = 'position:fixed;top:4vh;left:0;right:0;text-align:center;z-index:50;' +
+    'font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase';
+  h.textContent = '自动演示中 · 按 ESC 退出';
+  document.body.appendChild(h);
+  const later = (ms, fn) => autopilot.timers.push(setTimeout(() => { if(autopilot.on) fn(); }, ms));
+  later(1500, () => go('scene-twins'));
+  later(3500, () => generateTwins());
+  later(8500, () => { autopilotAbort(); startJump(); });
+}
+addEventListener('keydown', e => {
+  if(e.key === 'Escape'){ autopilotAbort(); closeMoment(); closeLLM(); closeWorld(); return; }
+  if(e.key !== 'a' && e.key !== 'A') return;
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+  if(CURRENT_SCENE !== 'scene-hero') return;
+  autopilotStart();
+});
+
+/* ---------- last: paint the LLM status (needs const LLM initialized) ---------- */
+llmFab();
+</script>
+</body>
+</html>

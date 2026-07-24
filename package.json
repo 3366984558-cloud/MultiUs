@@ -1,0 +1,9 @@
+{
+  "name": "multius",
+  "private": true,
+  "version": "0.1.0",
+  "description": "MultiUs — Monte Carlo simulation for human relationships. Every possible version of us.",
+  "scripts": {
+    "dev": "node dev-server.mjs"
+  }
+}

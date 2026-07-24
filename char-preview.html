@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MultiUs · 角色预览</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: #14141c;
+    color: #e8e8f0;
+    font-family: "Courier New", ui-monospace, monospace;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 32px; padding: 40px 16px;
+  }
+  h1 {
+    font-size: 20px; letter-spacing: 4px; font-weight: normal;
+    color: #9a9ab0;
+  }
+  h1 b { color: #ffd76a; font-weight: normal; }
+  .stage { display: flex; gap: 48px; flex-wrap: wrap; justify-content: center; }
+  .card {
+    background: #1d1d28;
+    border: 3px solid #33334a;
+    box-shadow: 0 6px 0 #0a0a10;
+    padding: 24px 28px 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    image-rendering: pixelated;
+  }
+  .card img { image-rendering: pixelated; display: block; }
+  .face {
+    width: 128px; height: 128px;
+    object-fit: contain;
+    background: #262636;
+    border: 2px solid #3d3d55;
+  }
+  canvas {
+    width: 128px; height: 128px;
+    image-rendering: pixelated;
+    background: #262636;
+    border: 2px solid #3d3d55;
+  }
+  .name { font-size: 16px; letter-spacing: 2px; color: #ffd76a; }
+  .tag  { font-size: 11px; color: #77779a; letter-spacing: 1px; }
+  .foot { font-size: 11px; color: #55556e; letter-spacing: 1px; text-align: center; line-height: 1.8; }
+</style>
+</head>
+<body>
+  <h1>MULTIUS <b>·</b> 角色预览 v1</h1>
+
+  <div class="stage">
+    <div class="card">
+      <img class="face" src="assets/chars/oscar_face.png" alt="Oscar 头像">
+      <canvas id="walk-oscar" width="64" height="64"></canvas>
+      <div class="name">OSCAR</div>
+      <div class="tag">年轻创作者 · 深色短发 / 深色上衣 / 牛仔裤</div>
+    </div>
+    <div class="card">
+      <img class="face" src="assets/chars/mira_face.png" alt="Mira 头像">
+      <canvas id="walk-mira" width="64" height="64"></canvas>
+      <div class="name">MIRA</div>
+      <div class="tag">聪明干练 · 栗色中长发 / 简约上衣</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    sprite sheet: Universal LPC Character Generator (CC-BY-SA 3.0 / GPL 3.0)<br>
+    下方为朝南行走循环（walk row, 9 帧）
+  </div>
+
+<script>
+// LPC universal sheet: 64x64 帧, 第 10 行 = 朝南行走, 9 帧, 第 0 帧为站立
+const WALK_ROW = 10, FRAMES = 9, FRAME = 64, FPS = 8;
+
+function play(canvasId, src) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const img = new Image();
+  img.src = src;
+  let f = 0;
+  img.onload = () => {
+    setInterval(() => {
+      ctx.clearRect(0, 0, FRAME, FRAME);
+      ctx.drawImage(img, f * FRAME, WALK_ROW * FRAME, FRAME, FRAME, 0, 0, FRAME, FRAME);
+      f = (f + 1) % FRAMES;
+      window.__walkFrame = (window.__walkFrame || 0) + 1;
+    }, 1000 / FPS);
+  };
+}
+
+play('walk-oscar', 'assets/chars/oscar.png');
+play('walk-mira',  'assets/chars/mira.png');
+</script>
+</body>
+</html>

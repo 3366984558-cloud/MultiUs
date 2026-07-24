@@ -1,0 +1,32 @@
+{
+  "characters": [
+    {
+      "name": "oscar",
+      "body": "male",
+      "layers": [
+        { "def": "body", "variant": "light" },
+        { "def": "feet_shoes", "variant": "charcoal" },
+        { "def": "legs_pants", "variant": "blue" },
+        { "def": "torso_clothes_longsleeve", "variant": "charcoal" },
+        { "def": "head_human_male", "variant": "light" },
+        { "def": "eyes", "variant": "gray" },
+        { "def": "eyebrows_thin", "variant": "black" },
+        { "def": "hair_messy1", "variant": "black" }
+      ]
+    },
+    {
+      "name": "mira",
+      "body": "female",
+      "layers": [
+        { "def": "body", "variant": "light" },
+        { "def": "feet_shoes", "variant": "black" },
+        { "def": "legs_pants", "variant": "slate" },
+        { "def": "torso_clothes_blouse", "variant": "white" },
+        { "def": "head_human_female", "variant": "light" },
+        { "def": "eyes", "variant": "brown" },
+        { "def": "eyebrows_thin", "variant": "dark brown" },
+        { "def": "hair_lob", "variant": "dark brown" }
+      ]
+    }
+  ]
+}

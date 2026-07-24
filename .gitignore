@@ -1,0 +1,12 @@
+# QA artifacts & secrets (tripo key, screenshots)
+.qa/
+# image-gen working dir
+_gen/
+# local backup chain (git history replaces these)
+index-v*-cn.html
+# OS / editor junk
+.DS_Store
+Thumbs.db
+
+# third-party LPC asset pack (36MB, embedded git repo)
+vendor/
