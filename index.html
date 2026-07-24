@@ -135,6 +135,9 @@ textarea:focus{border-color:var(--dim);color:var(--ink)}
 .jump-legend .dot{width:8px;height:8px;border-radius:50%}
 .jump-legend .cnt{color:var(--ink);min-width:48px;text-align:right}
 .skip{position:absolute;bottom:5vh;right:5vw;z-index:6;background:none;border:none;color:var(--faint);font-family:var(--mono);font-size:10px;letter-spacing:.3em;text-transform:uppercase;cursor:pointer;pointer-events:auto;transition:color .3s}
+/* 结尾震屏：五条光带收齐那一下，幅度小，别晕 */
+@keyframes jShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-3px,2px)}45%{transform:translate(3px,-2px)}70%{transform:translate(-2px,1px)}}
+#scene-jump.shaking{animation:jShake .42s ease-in-out}
 
 /* ---------- results ---------- */
 #scene-results{justify-content:flex-start;padding-top:10vh;padding-bottom:12vh}
@@ -170,6 +173,11 @@ textarea:focus{border-color:var(--dim);color:var(--ink)}
 .wlog-row .e{font-size:15px;color:#c9c6bd;line-height:1.6}
 .wlog-row .e i{font-family:var(--serif);color:var(--dim)}
 .wlog-row.finale .e{color:var(--ink)}
+/* 关键事件锚点：节点旁小图标，行内容放大 ~1.2 倍，图标微弱脉冲 */
+.wlog-row.key .e{font-size:18px;color:var(--ink)}
+.ev-ico{display:inline-block;margin-left:8px;animation:evPulse 2.8s ease-in-out infinite}
+@keyframes evPulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.22);opacity:1}}
+@media (prefers-reduced-motion:reduce){.ev-ico{animation:none}}
 
 /* critical decisions */
 .decisions{width:min(880px,92vw);margin:10vh auto 0}
@@ -224,6 +232,10 @@ textarea:focus{border-color:var(--dim);color:var(--ink)}
 .mo-line.right{text-align:right}
 .mo-line.right .say{margin-left:auto}
 .mo-typing{font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase;margin:18px 0}
+/* CRT 开机：画面从一条水平线向上下撑开，再进打字机 */
+#moment-ovl.crt > div{transform-origin:50% 50%;animation:crtOn .32s cubic-bezier(.23,.9,.3,1) both}
+@keyframes crtOn{0%{transform:scaleY(.006);filter:brightness(2.6)}55%{transform:scaleY(1.03);filter:brightness(1.12)}100%{transform:scaleY(1);filter:none}}
+@media (prefers-reduced-motion:reduce){#moment-ovl.crt > div{animation:none}}
 /* ---------- LLM settings ---------- */
 #llm-fab{position:fixed;left:18px;bottom:14px;z-index:60;background:none;border:none;cursor:pointer;
   font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase;transition:color .3s}
@@ -268,7 +280,7 @@ textarea:focus{border-color:var(--dim);color:var(--ink)}
   mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
 .tick-track{display:flex;width:max-content;animation:tickScroll var(--tickdur,90s) linear infinite}
 .tick:hover .tick-track{animation-play-state:paused}
-.tick-track span{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--faint);white-space:nowrap;padding-right:64px}
+.tick-track span{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim);white-space:nowrap;padding-right:64px}
 @keyframes tickScroll{to{transform:translateX(-50%)}}
 
 /* ---------- A1 结局大字标题 ---------- */
@@ -424,7 +436,7 @@ textarea:focus{border-color:var(--dim);color:var(--ink)}
 
 <!-- ============ SCENE 0 · HERO ============ -->
 <section class="scene active" id="scene-hero">
-  <div class="kicker fade-up">在某个宇宙，你答应了。在另一个，你没有。</div>
+  <div class="kicker fade-up" id="hero-kicker">在某个宇宙，你答应了。在另一个，你没有。</div>
   <h1 class="hero-title fade-up">MULT<span class="u">i</span>US</h1>
   <div class="hero-sub fade-up">我们的每一万种可能。</div>
   <div class="hero-meta fade-up">一万个宇宙 &nbsp;·&nbsp; 每个五年 &nbsp;·&nbsp; 只问一个问题</div>
@@ -1597,7 +1609,9 @@ function avg(a){ return a.reduce((x,y)=>x+y,0)/a.length; }
 /* ================================================================
    THE JUMP — EEAAO-style worldline divergence
    ================================================================ */
-let runSalt = 0;
+/* 每次打开页面都从随机盐起跑：同一对名字，每次来访都是新的一万个宇宙。
+   分享链接里带着当时的 runSalt，凭链接仍可复现同一场模拟。 */
+let runSalt = ((Date.now() & 0xffffff) ^ Math.floor(Math.random() * 0x7fffffff)) >>> 0;
 const jump = { raf:null, done:false };
 
 function startJump(){
@@ -1648,6 +1662,7 @@ function playJump(){
 
   /* 五条结局光带：画面右侧竖排，厚度按占比分 */
   const x0 = -8 * dpr, xEnd = W * 0.84;
+  const boomX = W * 0.5, boomY = H * 0.47;   /* 爆炸原点：一万个宇宙先从一个点炸开 */
   const NX = 96, stepX = (xEnd - x0) / (NX - 1);
   const bandSpan = H * 0.52, bandTop0 = H * 0.47 - bandSpan / 2, gap = 12 * dpr;
   const avail = bandSpan - gap * (keys.length - 1);
@@ -1706,6 +1721,10 @@ function playJump(){
       fork: kk === 'long_distance'                     /* 异地：后段岔成两条 */
         ? (jr() < .5 ? -1 : 1) * (20 + jr() * 14) * dpr : 0,
       dim: kk === 'cold_war',                          /* 冷战：越来越淡 */
+      bang: jr() * Math.PI * 2,                        /* 爆炸方向：360° 随机 */
+      blen: (50 + jr() * 190) * dpr,                   /* 爆炸半径 */
+      bd: jr() * 120,                                  /* 起爆先后差一点点 */
+      ex: null, ey: 0,
       lx: null, ly: 0, fx: null, fy: 0,
       dead: false, spark: -1
     });
@@ -1725,13 +1744,14 @@ function playJump(){
     }
   }
 
+  const T_BOOM = 900;                                        /* 爆炸 prelude：先混乱，后秩序 */
   const T_STATUS2 = 2100, T_GATHER = 2950, T_SND2 = 2500, T_COUNT = 3000;
   const TOTAL = 4700;
   const t0 = performance.now();
-  let chimed = false, legendOn = false;
-  Snd.jump();
+  let chimed = false, legendOn = false, shook = false;
+  Snd.jump(); Snd.boom();
   clearTimeout(jump.safety);
-  jump.safety = setTimeout(() => finishJump(true), TOTAL + 5000);
+  jump.safety = setTimeout(() => finishJump(true), T_BOOM + TOTAL + 5000);
 
   /* 同帧同色的线段并成一条 path，一帧最多几十次 stroke */
   const buckets = new Map();
@@ -1746,22 +1766,31 @@ function playJump(){
 
   function frame(now){
     if(jump.done) return;
-    const t = now - t0;
-    if(t >= T_SND2 && !chimed){ chimed = true; Snd.converge(); }
+    const t = now - t0;        /* 全程时间轴（含爆炸 prelude） */
+    const tw = t - T_BOOM;     /* 游走时间轴：炸完了才开始走 */
+    if(tw >= T_SND2 && !chimed){ chimed = true; Snd.converge(); }
 
     statusEl.textContent =
-      t < 600 ? '一万个宇宙同时开跑'
-      : t < T_STATUS2 ? '每条线，都是他们的一种五年'
-      : t < T_GATHER ? '后半程，结局开始显色'
+      tw < 0 ? '所有宇宙同时炸开'
+      : tw < 600 ? '一万个宇宙同时开跑'
+      : tw < T_STATUS2 ? '每条线，都是他们的一种五年'
+      : tw < T_GATHER ? '后半程，结局开始显色'
       : '向各自的结局归拢';
-    numEl.textContent = Math.round(N_WORLDS * easeOut(Math.min(1, t / T_COUNT))).toLocaleString();
+    numEl.textContent = Math.round(N_WORLDS * easeOut(Math.min(1, Math.max(0, tw / T_COUNT)))).toLocaleString();
+
+    /* 结尾：五条光带收齐，屏幕轻轻晃一下 */
+    if(!shook && tw >= TOTAL - 700){
+      shook = true;
+      const sc = document.getElementById('scene-jump');
+      sc.classList.remove('shaking'); void sc.offsetWidth; sc.classList.add('shaking');
+    }
 
     cx.globalCompositeOperation = 'lighter';
 
     /* 光带微光：收束段一点点积出来，亮度和占比成正比；
        水平方向做渐变，免得出硬边矩形 */
-    if(t > T_GATHER - 200){
-      const ramp = Math.min(1, (t - T_GATHER + 200) / 1500);
+    if(tw > T_GATHER - 200){
+      const ramp = Math.min(1, (tw - T_GATHER + 200) / 1500);
       keys.forEach(k => {
         const b = bands[k], c = outRGB[k];
         const gx0 = xEnd - W * 0.30, gx1 = xEnd + W * 0.02;
@@ -1794,7 +1823,19 @@ function playJump(){
         }
         continue;
       }
-      const g = (t - p.delay) / p.dur;
+      /* prelude：先从原点向四面八方炸开，尾迹留在身体层当星爆背景 */
+      if(t < T_BOOM){
+        const bg = (t - p.bd) / (T_BOOM - 120);
+        if(bg <= 0) continue;
+        const bp = easeOut(Math.min(1, bg));
+        const bx = boomX + Math.cos(p.bang) * p.blen * bp + (Math.random() - .5) * 1.6 * dpr;
+        const by = boomY + Math.sin(p.bang) * p.blen * bp + (Math.random() - .5) * 1.6 * dpr;
+        if(p.ex !== null) seg('rgb(236,231,222)', .34, p.ex, p.ey, bx, by);
+        p.ex = bx; p.ey = by;
+        (headByColor[p.k] || (headByColor[p.k] = [])).push(bx, by, 0);
+        continue;
+      }
+      const g = (tw - p.delay) / p.dur;
       if(g <= 0) continue;
       const headF = Math.min(g, 1) * (NX - 1);
       const si = Math.min(Math.floor(headF), p.end);
@@ -1864,7 +1905,7 @@ function playJump(){
     hx.globalAlpha = 1;
 
     /* 收尾：图例亮起，五种结局各就各位 */
-    if(t >= T_GATHER && !legendOn){
+    if(tw >= T_GATHER && !legendOn){
       legendOn = true;
       legendEl.innerHTML = keys.map(k =>
         `<div class="li"><span class="dot" style="background:${OUTCOMES[k].color};box-shadow:0 0 10px ${OUTCOMES[k].color}"></span>${OUTCOMES[k].label}<span class="cnt" data-k="${k}">0</span></div>`
@@ -1872,13 +1913,13 @@ function playJump(){
       legendEl.classList.add('on');
     }
     if(legendOn){
-      const lg = easeOut(Math.min(1, (t - T_GATHER) / 800));
+      const lg = easeOut(Math.min(1, (tw - T_GATHER) / 800));
       legendEl.querySelectorAll('.cnt').forEach(el => {
         el.textContent = Math.round(SIM.stats[el.dataset.k] * lg).toLocaleString();
       });
     }
 
-    if(t >= TOTAL){ finishJump(); return; }
+    if(tw >= TOTAL){ finishJump(); return; }
     jump.raf = requestAnimationFrame(frame);
   }
   jump.raf = requestAnimationFrame(frame);
@@ -1909,6 +1950,7 @@ function finishJump(skipped){
   clearInterval(jump.tick);
   cancelAnimationFrame(jump.raf);
   if(jump.heads){ jump.heads.remove(); jump.heads = null; }
+  document.getElementById('scene-jump').classList.remove('shaking');
   document.getElementById('jump-ticker').style.opacity = 0;
   Snd.end();
   renderResults();
@@ -2076,6 +2118,9 @@ const TICKER_BITS = [
   '两块广告屏断电那晚，第一次看见彼此本来的样子', '扫地机器人把客厅扫出了同一个圆心',
   '左耳走丢以后，右耳把余生唱成了单声道', '酸笋说：这不叫臭，叫人格',
   '手机满电走了，充电宝躺在抽屉里，四个灯全灭。值了', '两块屏轮播了一千遍，播放量都是对方贡献的',
+  '宇宙的尽头是便利店，他们在关东煮柜台前重逢', '冰箱里的酸奶过期那天，他们决定再试一次',
+  '蚊子在耳边说了一晚上情话，第二天耳朵申请调休', 'WiFi 密码是他们第一次见面的日期，路由器一直记得',
+  '拖鞋和扫地机器人谈过三个月，最后因为转速不合分手', '两块石头在一起了，一亿年，没吵过架，因为都没长嘴',
 ];
 (function bootTicker(){
   const track = document.getElementById('tick-track');
@@ -2327,6 +2372,21 @@ function showWorld(which){
   renderWorld(which);
 }
 
+/* 关键事件图标：先按事件 id 认，再按文本关键词兜底（LLM 重写后 id 还在） */
+const EV_ICON = [
+  ['💍', { proposal:1 }, /求婚|表白|戒指/],
+  ['✈️', { move_city:1, job_offer_far:1, ld_end:1 }, /异地|另一座城市|外地|搬了过/],
+  ['💔', {}, /分手|走散/],
+  ['⚡', { money_fight:1, vacation_fight:1, chore_fight:1, alarm_fight:1, harsh_word:1, jealousy:1, ex_shadow:1, money_secret:1, habit_annoy:1 }, /吵|冷战|争执/],
+];
+function eventIcon(id, text){
+  for(const [ico, ids, kw] of EV_ICON){
+    if(id && ids[id]) return ico;
+    if(text && kw.test(text)) return ico;
+  }
+  return '';
+}
+
 function renderWorld(which){
   const S = SIM;
   const w = which === 'best' ? S.best : which === 'worst' ? S.worst : which === 'wild' ? S.wild : S.avg;
@@ -2335,11 +2395,14 @@ function renderWorld(which){
   const label = which === 'best' ? '最好的宇宙' : which === 'worst' ? '最糟的宇宙' : which === 'wild' ? '最疯的宇宙' : '最普通的宇宙';
   const f = w.final;
   const card = document.getElementById('world-card');
-  const rows = (w.log || []).slice(0, 14).map((l, i) =>
-    l.snap
-      ? `<div class="wlog-row has-moment" onclick="watchMoment('${which}',${i})"><div class="d">${fmtDay(l.day)}</div><div class="e">${l.text}</div></div>`
-      : `<div class="wlog-row"><div class="d">${fmtDay(l.day)}</div><div class="e">${l.text}</div></div>`
-  ).join('');
+  const rows = (w.log || []).slice(0, 14).map((l, i) => {
+    const ico = eventIcon(l.id, l.text);
+    const cls = 'wlog-row' + (l.snap ? ' has-moment' : '') + (ico ? ' key' : '');
+    const d = `${fmtDay(l.day)}${ico ? `<span class="ev-ico">${ico}</span>` : ''}`;
+    return l.snap
+      ? `<div class="${cls}" onclick="watchMoment('${which}',${i})"><div class="d">${d}</div><div class="e">${l.text}</div></div>`
+      : `<div class="${cls}"><div class="d">${d}</div><div class="e">${l.text}</div></div>`;
+  }).join('');
   card.innerHTML = `
     <div class="world-badge" style="color:${oc.color}">${label}</div>
     <div class="world-meta">
@@ -2507,6 +2570,22 @@ const Snd = {
     lfo.connect(lg); lg.connect(dg.gain); lfo.start(t + .5); this.reg(lfo);
     this.drone = dg;
   },
+  boom(){
+    if(!this.on || !this.init()) return;
+    const c = this.ctx, t = c.currentTime;
+    /* 爆炸 prelude 的低频轰鸣：地板先抖一下 */
+    const o = c.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(70, t); o.frequency.exponentialRampToValueAtTime(30, t + .9);
+    const g = c.createGain(); g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(.5, t + .05); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + 1.3);
+    /* 轰鸣上的糙边：低通噪声 */
+    const n = c.createBufferSource(); n.buffer = this.noiseBuf();
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 160;
+    const ng = c.createGain(); ng.gain.setValueAtTime(.0001, t);
+    ng.gain.exponentialRampToValueAtTime(.35, t + .04); ng.gain.exponentialRampToValueAtTime(.0001, t + 1.0);
+    n.connect(lp); lp.connect(ng); ng.connect(this.master); n.start(t); n.stop(t + 1.1);
+  },
   converge(){
     if(!this.on || !this.ctx) return;
     const c = this.ctx, t = c.currentTime;
@@ -2610,6 +2689,18 @@ function renderWhatIfs(body, results, baseM){
 const RIBBON_EMOJI = ['🪨','🐈','🩴','🪴','🥤','💡','🧊','📏','💍','💔','💌','🌧️'];
 document.getElementById('ribbon-track').innerHTML =
   [...RIBBON_EMOJI, ...RIBBON_EMOJI].map(e => `<span>${e}</span>`).join('');
+const WTF_KICKERS = [
+  '在某个宇宙，你们因为螺蛳粉臭不臭分手了。',
+  '在另一个宇宙，两块石头在一起了，还没离婚。',
+  '有一万个宇宙在等你们俩的名字，纯属好奇。',
+  '宇宙 #9527：两只猫为罐头打了一架，最后结婚了。',
+  '输入两个名字，看一万个宇宙怎么胡来。',
+  '73% 的宇宙里你们熬过了所有狗屁倒灶，来看看你的。',
+  '某个宇宙里，你们是因为空调 24 度还是 27 度分手的。',
+  '我们不预测爱情，只模拟可能性——包括最荒谬的那些。'
+];
+const hk = document.getElementById('hero-kicker');
+if(hk) hk.textContent = WTF_KICKERS[Math.floor(Math.random() * WTF_KICKERS.length)];
 document.querySelectorAll('#scene-hero .fade-up').forEach((el,i) =>
   setTimeout(() => el.classList.add('on'), 200 + i*180));
 
@@ -2773,7 +2864,11 @@ function watchMoment(which, idx){
   document.getElementById('mo-src').textContent = LLM.ready() ? '实时 · 两个分身，一个 LLM，没有剧本' : '引擎生成 · 配置 LLM 密钥可看实时对话';
   const box = document.getElementById('mo-lines');
   box.innerHTML = '';
-  document.getElementById('moment-ovl').style.display = 'block';
+  const mo = document.getElementById('moment-ovl');
+  mo.classList.remove('crt');
+  mo.style.display = 'block';
+  void mo.offsetWidth;   /* 每次重开都重播 CRT 开机 */
+  mo.classList.add('crt');
   const alive = {};
   const showTurn = (turn, k) => {
     if(token !== moToken) return;
@@ -2812,7 +2907,7 @@ function watchMoment(which, idx){
     genDialogueEngine(w, entry).forEach((turn, k) => setTimeout(() => showTurn(turn, k), 350 + k * 1100));
   }
 }
-function closeMoment(){ moToken++; document.getElementById('moment-ovl').style.display = 'none'; }
+function closeMoment(){ moToken++; const mo = document.getElementById('moment-ovl'); mo.classList.remove('crt'); mo.style.display = 'none'; }
 
 /* ================================================================
    UNIVERSE THEMES — 每个宇宙一套配色，点开时整页漾过去
@@ -3200,6 +3295,39 @@ function bake(rows, pal, mirror){
   return { cv, w, h };
 }
 const K = '#14141a'; // 通用描边
+
+/* ---------- 5×7 点阵字：开屏「UNIVERSE #编号」专用，逐像素随机消散 ---------- */
+const FONT57 = {
+  '0':['01110','10001','10011','10101','11001','10001','01110'],
+  '1':['00100','01100','00100','00100','00100','00100','01110'],
+  '2':['01110','10001','00001','00110','01000','10000','11111'],
+  '3':['11111','00010','00100','00010','00001','10001','01110'],
+  '4':['00010','00110','01010','10010','11111','00010','00010'],
+  '5':['11111','10000','11110','00001','00001','10001','01110'],
+  '6':['00110','01000','10000','11110','10001','10001','01110'],
+  '7':['11111','00001','00010','00100','01000','01000','01000'],
+  '8':['01110','10001','10001','01110','10001','10001','01110'],
+  '9':['01110','10001','10001','01111','00001','00010','01100'],
+  'U':['10001','10001','10001','10001','10001','10001','01110'],
+  'N':['10001','11001','10101','10011','10001','10001','10001'],
+  'I':['01110','00100','00100','00100','00100','00100','01110'],
+  'V':['10001','10001','10001','10001','10001','01010','00100'],
+  'E':['11111','10000','10000','11110','10000','10000','11111'],
+  'R':['11110','10001','10001','11110','10100','10010','10001'],
+  'S':['01111','10000','10000','01110','00001','00001','11110'],
+  'G':['01110','10001','10000','10111','10001','10001','01110'],
+  '#':['01010','11111','01010','01010','01010','11111','01010']
+};
+function labelPixels(text){
+  const px = []; let ox = 0;
+  for(const ch of text){   /* for..of 按码点走（这里全是 ASCII，规矩不变） */
+    const g = FONT57[ch];
+    if(g) g.forEach((row, y) => { for(let x = 0; x < 5; x++)
+      if(row[x] === '1') px.push({ x: ox + x, y, thr: Math.random() }); });
+    ox += 6;
+  }
+  return { px, w: ox - 1 };
+}
 
 /* —— 人形底图（贩卖机的人、平行宇宙的两个人共用，换色区分） —— */
 const MAP_HUMAN = [
@@ -3999,6 +4127,7 @@ let cv, cx, ovl, srcEl;
 let chars = null, names = ['', ''], theme = null, idleKind = 'human';
 let lines = [], totalExpected = 0, pendingLLM = false;
 let phase = 'idle', startT = 0, lineIdx = 0, lineStartT = 0, exitT = 0, skipT = 0;
+let univT = 0, univLabel = null, univNum = '';
 let charIdx = 0, lastLineDone = 0;
 let blinkNext = 3000, blinkUntil = 0;
 let currentSrc = '';
@@ -4161,6 +4290,22 @@ function drawScene(now){
     }
   }
 
+  /* UNIVERSE #编号：角色亮起后亮 1s，逐像素随机消散，散完才开聊 */
+  if(phase === 'univ' && univLabel){
+    const ut = now - univT;
+    const aIn = clamp01(ut / 180);
+    const dp = clamp01((ut - 1000) / 600);
+    const S = 3, ox = Math.round(320 - univLabel.w * S / 2), oy = 104;
+    cx.fillStyle = theme.accent;
+    for(const p of univLabel.px){
+      const a = aIn * clamp01((p.thr - dp) / .18);
+      if(a <= 0) continue;
+      cx.globalAlpha = a;
+      cx.fillRect(ox + p.x * S, oy + p.y * S, S, S);
+    }
+    cx.globalAlpha = 1;
+  }
+
   /* §5 气泡：说话者头顶，canvas 绘制，打字机入场 */
   if(speaking){
     const line = lines[speakingIdx];
@@ -4233,8 +4378,10 @@ function frame(now){
 
   /* 状态推进 */
   if(phase === 'ignite' && t > 2000){
-    phase = lines.length ? 'lines' : 'waitline';
-    lineStartT = now;
+    phase = 'univ'; univT = now;   /* 角色亮起后：先亮牌子，再开聊 */
+    univLabel = labelPixels('UNIVERSE #' + univNum);
+  }else if(phase === 'univ'){
+    if(now - univT > 1650){ phase = lines.length ? 'lines' : 'waitline'; lineStartT = now; }
   }else if(phase === 'lines'){
     const line = lines[lineIdx];
     if(line){
@@ -4333,6 +4480,7 @@ async function play(e){
     const g = e.g, def = GAG_CHARS[g.id];
     chars = { 0: { map: def.L() }, 1: { map: def.R() } };
     names = def.names; idleKind = def.idle; theme = g.theme;
+    univNum = 'G' + String(GAGS.indexOf(g) + 1).padStart(2, '0');   /* 恶搞宇宙走 G 编号段 */
     fallback = buildGagScript(g.id).lines;
     totalExpected = fallback.length;
     if(LLM.ready()){
@@ -4357,6 +4505,7 @@ async function play(e){
   }else{
     const w = e.w, A = Twins.a.name, B = Twins.b.name;
     theme = OUTCOME_THEME[w.outcome] || DEFAULT_THEME;
+    univNum = String(w.seed % 10000).padStart(4, '0');
     names = [A, B]; idleKind = 'human';
     loadLPC();
     await (lpc.promise || Promise.resolve());
@@ -4383,7 +4532,7 @@ async function play(e){
   }
 
   /* ---- 状态复位，开场 ---- */
-  lines = []; lineIdx = 0; phase = 'ignite';
+  lines = []; lineIdx = 0; phase = 'ignite'; univLabel = null;
   lastLines = fallback;
   pendingLLM = !!llmJob;
   if(!llmJob) fallback.forEach(l => pushLine(l.who, l.text)); // 无 key：预设台词直接就位
@@ -4490,11 +4639,14 @@ function renderSimOverlay(w){
     `<div class="world-meta" style="margin-bottom:34px"><span id="wo-src">${txt}</span>` +
     (LLM.ready() ? ` <button class="wo-rewrite" onclick="rewriteTimeline()">重写这条线</button>` : '') +
     `</div>`;
-  const rowsFor = log => log.map((l, i) =>
-    l.snap
-      ? `<div class="wlog-row has-moment" onclick="watchMomentDirect(${i})"><div class="d">${fmtDay(l.day)}</div><div class="e">${l.text}</div></div>`
-      : `<div class="wlog-row"><div class="d">${fmtDay(l.day)}</div><div class="e">${l.text}</div></div>`
-  ).join('');
+  const rowsFor = log => log.map((l, i) => {
+    const ico = eventIcon(l.id, l.text);
+    const cls = 'wlog-row' + (l.snap ? ' has-moment' : '') + (ico ? ' key' : '');
+    const d = `${fmtDay(l.day)}${ico ? `<span class="ev-ico">${ico}</span>` : ''}`;
+    return l.snap
+      ? `<div class="${cls}" onclick="watchMomentDirect(${i})"><div class="d">${d}</div><div class="e">${l.text}</div></div>`
+      : `<div class="${cls}"><div class="d">${d}</div><div class="e">${l.text}</div></div>`;
+  }).join('');
   const logEl = document.getElementById('wo-log');
 
   if(!LLM.ready()){
@@ -4554,9 +4706,10 @@ function renderGagOverlay(g){
   document.getElementById('wo-log').innerHTML =
     `<div class="world-meta" style="margin-bottom:20px"><span>结局分布 · 10,000 次模拟 · <b>${g.note}</b></span></div>
      <div class="outcomes" style="margin:0 0 40px;width:100%">${bars}</div>` +
-    g.events.map(e =>
-      `<div class="wlog-row"><div class="d">${e[0]}</div><div class="e">${e[1]}</div></div>`
-    ).join('');
+    g.events.map(e => {
+      const ico = eventIcon('', e[1]);
+      return `<div class="wlog-row${ico ? ' key' : ''}"><div class="d">${e[0]}${ico ? `<span class="ev-ico">${ico}</span>` : ''}</div><div class="e">${e[1]}</div></div>`;
+    }).join('');
 }
 function closeWorld(ev){
   woToken++; // 关掉 overlay 即作废在途的流式渲染
