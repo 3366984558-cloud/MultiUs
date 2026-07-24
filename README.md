@@ -23,9 +23,13 @@ npm run dev        # → http://localhost:7100  (node dev-server.mjs, no deps)
 ## The 5-minute demo path
 
 1. **Hero** — "Begin the jump" (or press **J** from anywhere, **A** for full autopilot)
-2. **Digital Twins** — two people, six signals each (prefilled: Oscar × Mira)
+2. **The story, not the quiz** — four fill-in-the-blank memories about your last fight
+   (what it was about, who spoke first, what was said, what you were thinking)
+   secretly map to the nine engine parameters; a fold-out panel exposes the raw
+   sliders for psychology nerds (prefilled: Oscar × Mira)
 3. **Compression** — twins materialize as structured JSON
-4. **The Jump** — 10,000 worldlines tear, diverge, and collapse into 5 outcome streams (sound on);
+4. **The Jump** — all 10,000 worlds explode outward, then diverge and collapse into
+   5 outcome streams with a screen-shake finale (sound on);
    witnessed moments from random worlds scroll by while they diverge
 5. **Results** — headline stat → outcome distribution → *The average five years, in one line*
    → **the multiverse wall**: twelve worlds you can *step into*, each with its own
@@ -68,6 +72,25 @@ and that world's numbers, never canned.
 Decision cards can erase one event type (e.g. `move_city`) and rerun the same
 10,000 seeds without it — a true counterfactual, not a fresh roll.
 
+### Keepsakes & avatars — 3D, by Tripo
+
+Every gag universe (the rock universe, the cat universe, the vending-machine
+universe… 14 in all) owns a **3D keepsake**, and the two protagonists have
+chibi Tomodachi-style 3D doubles — all generated with **Tripo text-to-3D**,
+then squeezed for the web:
+
+```
+text prompt → Tripo text-to-3D (GLB, ~14 MB)
+            → gltf-transform: weld → simplify 8% → quantize (+ texture 512)
+            → 200 K–2.4 MB GLB → local <model-viewer> (UMD, vendored)
+```
+
+No CDN, no runtime dependency: the viewer ships in `assets/lib/`, models in
+`assets/keepsakes/`, and static render fallbacks (`render/*.webp`) keep
+`file://` double-click runs and the universe-ID card working offline.
+Tour the full set in `keepsakes-gallery.html`; meet the doubles in
+`avatars-proto.html`.
+
 ### Determinism
 
 Every world is `seed = 1000 + runSalt·104729 + i·7919`. World #0417 is a real,
@@ -81,11 +104,15 @@ reproducible universe.
 - [x] Sensitivity analysis (one trait changed at a time, same 10,000 seeds)
 - [x] Shareable multiverse links (`#t=…` — twins + run salt, exact reproduction)
 - [x] Autopilot demo mode (press **A**, the whole show runs itself)
+- [x] Story-first input: fill-in-the-blank narrative maps to engine parameters (quiz dead, story lives)
+- [x] Universe keepsakes: 14 Tripo-generated 3D souvenirs, one per gag universe
+- [x] Chibi 3D doubles for the two protagonists (Tomodachi-style)
+- [ ] Keepsake printed on the universe-ID card (assets ready)
 - [ ] Sensitivity heatmap (trait × outcome)
 
 ## Principles
 
 - Demo > perfection.
 - Animate for meaning, not decoration.
-- Never cute. Never a quiz. Never a chatbot.
+- Absurd ≠ childish. A joke must be smart; a bad outcome gets only gentleness.
 - Insight, not prediction.
