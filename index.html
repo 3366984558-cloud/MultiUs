@@ -1525,6 +1525,25 @@ const EVENTS = [
       `伞又丢了。今年第五把。他们决定以后出门只看天气预报的命。`,
       `便利店的伞架认得他们了。每次进门，老板默默指向同一款。`
     ]) },
+  /* ---- 后劲层：低概率，不搞笑，只在后半程出现 ---- */
+  { id:'old_ticket', w:0.18, min:600,
+    cond: () => true,
+    apply: (s,T,r) => { s.affection += 3; s.stress -= 2; },
+    text: (A,B) => pick([
+      `搬家那天，从一本书里掉出两张过期的电影票。片名忘了，座位号还记得。`,
+      `收拾屋子翻到一沓旧票根。两个人蹲在地上看了半小时，地没扫成。`
+    ]) },
+  { id:'night_fever', w:0.18, min:400,
+    cond: () => true,
+    apply: (s,T,r) => { s.affection += 4; s._who = r()<.5?'a':'b'; },
+    text: (A,B,r,s) => (s && s._who === 'b' ? `${A} 半夜发烧，${B} 打车穿过半个城市。第二天谁都没提，但粥连续喝了三天。` : `${B} 半夜发烧，${A} 打车穿过半个城市。第二天谁都没提，但粥连续喝了三天。`) },
+  { id:'reunion_code', w:0.16, min:900,
+    cond: () => true,
+    apply: (s,T,r) => { s.affection += 3; },
+    text: (A,B) => pick([
+      `同学聚会上，有人喊了他们当年的旧暗号。两个人同时回了头。`,
+      `多年后的饭局，有人讲起他们当年的糗事。两个人笑到同一个字上。`
+    ]) },
 ];
 
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
