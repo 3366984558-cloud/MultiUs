@@ -261,12 +261,22 @@ body.nerd-on .cf-btn{display:inline-block}
 .wtile .jump{position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:9px;letter-spacing:.2em;
   color:var(--ink);text-transform:uppercase;opacity:0;transition:opacity .4s}
 /* ---------- world overlay (jump into one universe) ---------- */
-#world-ovl{display:none;position:fixed;inset:0;background:var(--bg);z-index:70;overflow-y:auto}
+#world-ovl{display:none;position:fixed;inset:0;background:var(--bg);z-index:70;overflow-y:auto;overflow-x:hidden}
 #world-ovl .whero{position:relative;height:52vh;min-height:300px;background-size:cover;background-position:center;
   animation:kenburns 24s ease-in-out infinite alternate}
 @keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.09)}}
 #world-ovl .whero .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,5,7,.25) 0%,rgba(5,5,7,.05) 40%,var(--bg) 100%)}
 #world-ovl .wbody{max-width:720px;margin:-14vh auto 0;position:relative;padding:0 24px 12vh}
+
+/* ---------- 宇宙信物槽（恶搞宇宙 overlay，hero 区下方） ---------- */
+#wo-keepsake{display:none;margin-bottom:34px}
+.ks-frame{width:min(300px,68vw);aspect-ratio:1/1;margin:0 auto;border:1px solid #23222b;border-radius:12px;
+  overflow:hidden;background:radial-gradient(ellipse at 50% 42%,#17161f 0%,#0a0a0f 72%);
+  box-shadow:0 0 60px color-mix(in srgb, var(--ks-accent,#ff3d8a) 16%, transparent)}
+.ks-frame model-viewer{width:100%;height:100%;--poster-color:transparent}
+.ks-frame img{width:100%;height:100%;object-fit:cover;display:block}
+.ks-cap{margin:14px auto 0;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--dim);
+  text-align:center;line-height:1.8;max-width:26em}
 
 /* ---------- moment overlay (watch the two agents talk) ---------- */
 .wlog-row.has-moment{cursor:pointer;transition:opacity .3s}
@@ -466,6 +476,7 @@ body.nerd-on .cf-btn{display:inline-block}
   #llm-fab{padding:14px 16px;left:6px;bottom:calc(6px + env(safe-area-inset-bottom,0px));min-height:44px;display:inline-flex;align-items:center}
 }
 </style>
+<script src="assets/lib/model-viewer-umd.min.js" defer></script>
 </head>
 <body>
 <noscript>
@@ -714,6 +725,7 @@ body.nerd-on .cf-btn{display:inline-block}
 <div id="world-ovl">
   <div class="whero" id="wo-hero"><div class="veil"></div></div>
   <div class="wbody">
+    <div id="wo-keepsake"></div>
     <div id="wo-meta" style="font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase"></div>
     <div id="wo-end" style="font-family:var(--serif);font-style:italic;font-size:clamp(26px,3.4vw,40px);line-height:1.3;margin:18px 0 40px"></div>
     <div id="wo-log"></div>
@@ -2390,22 +2402,67 @@ function drawIdCard(){
   cx.fillText(`${total.toLocaleString()} universes · ${YEARS} years each`, W/2, H - 58);
   return { top, topPct, uni };
 }
+/* Q 版分身贴图：本地 webp 圆角小砖，放卡面底部两角（水印两侧永远空着）。
+   file:// 下 drawImage 本地图会把 canvas 永久 taint（toBlob 必炸，重绘也洗不掉）——
+   所以先在一块一次性的探针画布上试贴试读：脏了说明是 taint 环境，静默不贴，
+   真卡面从头到尾保持干净，任何环境「保存图片」都能下载 */
+let _charImgs;   // undefined=未加载 false=加载失败 {a,b}=可用
+function pasteIdCardChars(){
+  const finish = (imgs) => {
+    if(!imgs) return;
+    const probe = document.createElement('canvas');
+    probe.width = probe.height = 8;
+    const px = probe.getContext('2d');
+    try{ px.drawImage(imgs.a, 0, 0, 8, 8); px.getImageData(0, 0, 1, 1); }
+    catch(e){ return; }   // taint 环境：不贴
+    const cv = document.getElementById('idcard-cv');
+    drawIdCard();   // 幂等重绘干净底
+    const cx = cv.getContext('2d');
+    /* 两枚小砖放顶部两角（证书证件照位）。名字太长会顶到角上就不硬塞 */
+    cx.font = 'italic 84px "Instrument Serif","Noto Serif SC","Songti SC",serif';
+    cx.textAlign = 'center';
+    const nameW = cx.measureText(Twins.a.name + ' × ' + Twins.b.name).width;
+    const S = 110, y0 = 64, xs = [60, 1080 - 60 - S];
+    if(nameW / 2 + 24 > xs[1]) return;
+    xs.forEach((x, i) => {
+      const im = i === 0 ? imgs.a : imgs.b;
+      cx.save();
+      cx.beginPath(); cx.roundRect(x, y0, S, S, 16); cx.clip();
+      cx.drawImage(im, x, y0, S, S);
+      cx.restore();
+      cx.strokeStyle = 'rgba(255,255,255,.14)'; cx.lineWidth = 2;
+      cx.beginPath(); cx.roundRect(x, y0, S, S, 16); cx.stroke();
+    });
+  };
+  if(_charImgs !== undefined){ finish(_charImgs || null); return; }
+  const load = src => new Promise(res => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = () => res(null);
+    im.src = src;
+  });
+  Promise.all([load('assets/keepsakes/render/char_oscar.webp'), load('assets/keepsakes/render/char_mira.webp')])
+    .then(([a, b]) => { _charImgs = (a && b) ? { a, b } : false; finish(_charImgs || null); });
+}
 function openIdCard(){
   if(!SIM) return;
   drawIdCard();
   document.getElementById('idcard-ovl').style.display = 'block';
+  pasteIdCardChars();
 }
 function closeIdCard(){ document.getElementById('idcard-ovl').style.display = 'none'; }
 document.getElementById('idcard-save').addEventListener('click', () => {
   const A = Twins.a.name, B = Twins.b.name;
-  document.getElementById('idcard-cv').toBlob(blob => {
-    if(!blob) return;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `multius-宇宙身份证-${A}-${B}.png`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  }, 'image/png');
+  try{
+    document.getElementById('idcard-cv').toBlob(blob => {
+      if(!blob) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `multius-宇宙身份证-${A}-${B}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }, 'image/png');
+  }catch(e){ /* canvas 被 taint 的极端情况：静默失败，不污染 console */ }
 });
 
 function renderResults(){
@@ -4755,6 +4812,9 @@ function renderSimOverlay(w){
   hero.style.background = '';
   hero.style.backgroundImage = `url('${worldImg(w)}')`;
   hero.innerHTML = '<div class="veil"></div>';
+  /* 真宇宙没有信物：槽位收起来，别硬塞 */
+  const ksSlot = document.getElementById('wo-keepsake');
+  if(ksSlot){ ksSlot.style.display = 'none'; ksSlot.innerHTML = ''; }
   document.getElementById('wo-meta').textContent =
     `${worldId(w.seed)} · 结局：${oc.label} · ${(w.endDay/365).toFixed(1)} 年`;
   document.getElementById('wo-end').textContent = OUT_ENDLINE[w.outcome](A,B);
@@ -4815,6 +4875,28 @@ function renderSimOverlay(w){
   })();
 }
 
+/* ---------- 宇宙信物：恶搞宇宙 id → 模型/渲染图文件 + 一句 caption ---------- */
+const KEEPSAKE = {
+  rock:      ['stone',      '一亿年，没吵过架。都没长嘴。'],
+  cats:      ['cat',        '一切进度，以主子心情为准。'],
+  slippers:  ['slippers',   '天生一对。总有一只被床底吞掉。'],
+  plants:    ['succulent',  '隔着窗台，用蒸腾说早安。'],
+  vending:   ['vending',    '凌晨一点，只出热饮，不出答案。'],
+  lamps:     ['streetlamp', '每晚七点互闪两下。第一千遍，和第一遍一样。'],
+  fridge:    ['fridge',     '鸡蛋想变成蛋糕，啤酒负责庆祝。'],
+  parallel:  ['matryoshka', '宇宙套宇宙。他们是第 10,001 个。'],
+  powerbank: ['powerbank',  '我能给你的不多，只有 20%。'],
+  mosquito:  ['mosquito',   '围着同一盏灯，转了十万圈。'],
+  adscreen:  ['adscreen',   '十五秒一轮，轮轮播给你看。'],
+  robotvac:  ['robotvac',   '在客厅画了八年同心圆。'],
+  earbuds:   ['earphones',  '中间隔个脑袋，放同一首歌。'],
+  luosifen:  ['luosifen',   '在滚烫里互相成全。'],
+};
+function ksWebglOK(){
+  try{ const c = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); }
+  catch(e){ return false; }
+}
 function renderGagOverlay(g){
   ++woToken; // 点开恶搞宇宙，取消真宇宙在途的 LLM 生成（两者共用 #wo-log）
   const hero = document.getElementById('wo-hero');
@@ -4823,6 +4905,21 @@ function renderGagOverlay(g){
   hero.style.backgroundImage = `url('${g.img}')`;
   /* 比真宇宙更狠的压暗：图上直接叠内容，得保证文字读得清 */
   hero.innerHTML = `<div class="veil" style="background:linear-gradient(180deg,rgba(0,0,0,.38) 0%,rgba(0,0,0,.10) 42%,var(--bg) 96%)"></div>`;
+  /* 信物槽：file:// 下 model-viewer 拉 GLB 会被 CORS 杀还污染 console，干脆不建元素，
+     用静态渲染图；http(s) 有 WebGL 才上 3D，加载失败回落静态图 */
+  const ksSlot = document.getElementById('wo-keepsake');
+  const ks = KEEPSAKE[g.id];
+  if(!ks){ ksSlot.style.display = 'none'; ksSlot.innerHTML = ''; }
+  else{
+    const imgHtml = `<img src="assets/keepsakes/render/${ks[0]}.webp" alt="${g.name}信物" loading="lazy">`;
+    const useMV = location.protocol !== 'file:' && ksWebglOK() && !!customElements.get('model-viewer');
+    ksSlot.innerHTML = `<div class="ks-frame" style="--ks-accent:${g.theme.accent}">${
+      useMV ? `<model-viewer src="assets/keepsakes/${ks[0]}-web.glb" camera-controls auto-rotate interaction-prompt="none" loading="lazy" camera-orbit="30deg 68deg auto" exposure="1.05"></model-viewer>` : imgHtml
+    }</div><div class="ks-cap">${ks[1]}</div>`;
+    ksSlot.style.display = 'block';
+    const mv = ksSlot.querySelector('model-viewer');
+    if(mv) mv.addEventListener('error', () => { mv.parentElement.innerHTML = imgHtml; });
+  }
   document.getElementById('wo-meta').textContent = `${g.name} · ${g.tagline}`;
   document.getElementById('wo-end').textContent = g.endline;
   /* 专属结局统计：每个恶搞宇宙有自己的结局口径和配色，数字按 10,000 次模拟报 */
