@@ -1,0 +1,1 @@
+{"error":{"message":"Current group default and fallback groups [Agent] have no available channels for model claude-fable-5 under billing mode [pay-as-you-go, pay-per-request] (request id: 202607241121284832205096e93ae38UFoHg4V)","type":"shell_api_error"}}

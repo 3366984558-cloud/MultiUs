@@ -282,6 +282,27 @@ textarea:focus{border-color:var(--dim);color:var(--ink)}
 /* ---------- 滚动链：overlay / 场景滚到底不把滚动漏给下层 ---------- */
 .scene,#world-ovl,#moment-ovl,#llm-ovl{overscroll-behavior:contain}
 
+/* ---------- 宇宙开屏 · 双人对话场景（640×360 逻辑分辨率，pixelated 放大） ---------- */
+#duo-ovl{display:none;position:fixed;inset:0;z-index:75;background:#0a0a0e;cursor:pointer;
+  clip-path:circle(150% at 50% 50%);opacity:1;transition:opacity .3s ease}
+#duo-ovl.fading{opacity:0}
+#duo-cv{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  image-rendering:pixelated;image-rendering:crisp-edges;background:#0a0a0e}
+#duo-src{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:18px;z-index:2;
+  font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:#5a5a66;text-transform:uppercase;pointer-events:none}
+#duo-skip{position:absolute;bottom:calc(10px + env(safe-area-inset-bottom,0px));right:14px;z-index:2;
+  font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:#5a5a66;text-transform:uppercase;
+  padding:14px 12px;min-height:44px;display:flex;align-items:center;pointer-events:none}
+#duo-ring{position:absolute;left:50%;top:50%;width:0;height:0;border-radius:50%;pointer-events:none;
+  border:2px solid rgba(120,180,255,.6);box-shadow:0 0 20px rgba(120,180,255,.4),inset 0 0 15px rgba(120,180,255,.2);
+  opacity:0;transform:translate(-50%,-50%)}
+/* 规格书 §6.5：时间线从中心圆扩出来（duo 层 clip 收缩，下面的世界线 overlay 露出） */
+#duo-ovl.exiting{transition:clip-path .8s cubic-bezier(.34,1.56,.64,1);clip-path:circle(0% at 50% 50%)}
+#duo-ovl.fast-exit{transition:clip-path .22s cubic-bezier(.25,.46,.45,.94);clip-path:circle(0% at 50% 50%)}
+#duo-ovl.exiting #duo-ring{animation:duoRing .8s ease-out forwards}
+#duo-ovl.fast-exit #duo-ring{animation:duoRing .25s ease-out forwards}
+@keyframes duoRing{0%{width:0;height:0;opacity:1}100%{width:230vmax;height:230vmax;opacity:0}}
+
 /* ---------- 手机端适配（≤640px）：以下规则只在小屏生效，桌面端零改动 ---------- */
 @media (max-width:640px){
   .scene{padding:5vh 5vw}
@@ -561,6 +582,14 @@ textarea:focus{border-color:var(--dim);color:var(--ink)}
       <button class="btn" onclick="closeWorld(event)">回到多元宇宙</button>
     </div>
   </div>
+</div>
+
+<!-- ============ DUO SCENE · 宇宙开屏双人对话 ============ -->
+<div id="duo-ovl">
+  <canvas id="duo-cv" width="640" height="360"></canvas>
+  <div id="duo-src"></div>
+  <div id="duo-skip">点击跳过 →</div>
+  <div id="duo-ring"></div>
 </div>
 
 <!-- ============ LLM SETTINGS ============ -->
@@ -2198,6 +2227,696 @@ function buildWall(){
   });
 }
 
+/* ================================================================
+   宇宙开屏 · 双人对话场景（规格书 .qa/motion_spec.md §1-5 / spec2 §6-8）
+   640×360 逻辑分辨率 canvas · CSS pixelated 缩放 · 零依赖
+   角色预制：真人 LPC sprite + 8 组像素图恶搞角色
+   台词：LLM 现场写（逐条到达逐条播）/ 预设台词兜底，失败静默回退
+   ================================================================ */
+const DUO = (() => {
+
+/* ---------- 像素角色烘焙：行字符串 → offscreen canvas ---------- */
+function bake(rows, pal, mirror){
+  const h = rows.length, w = Math.max(...rows.map(r => r.length));
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const cx = cv.getContext('2d');
+  rows.forEach((r, y) => { for(let x = 0; x < r.length; x++){
+    const c = pal[r[x]]; if(!c) continue;
+    cx.fillStyle = c; cx.fillRect(mirror ? w - 1 - x : x, y, 1, 1);
+  }});
+  return { cv, w, h };
+}
+const K = '#14141a'; // 通用描边
+
+/* —— 人形底图（贩卖机的人、平行宇宙的两个人共用，换色区分） —— */
+const MAP_HUMAN = [
+'..kkkk..',
+'.khhhhk.',
+'.khhhhk.',
+'..kkkk..',
+'.kbbbbk.',
+'kkbbbbkk',
+'.kbbbbk.',
+'.kbbbbk.',
+'..kbbk..',
+'..kllk..',
+'..kllk..',
+'..kllk..',
+'.kk..kk.',
+'.kk..kk.'];
+const humanChar = (shirt, mirror) => bake(MAP_HUMAN,
+  { k:K, h:'#e8c8a8', b:shirt, l:'#4a4a56' }, mirror);
+
+/* —— 石头 ×2：右块带裂缝 —— */
+const MAP_ROCK_A = [
+'....kkkkkk....',
+'..kkggggggkk..',
+'.kgglllggggk..',
+'.kglllllggggk.',
+'kgglllgggggggk',
+'kggggggggkgggk',
+'kggggkggggkggk',
+'kggkggggggkggk',
+'kggggggggggggk',
+'.kggggkggggk..',
+'.kkkkkkkkkkk..'];
+const MAP_ROCK_B = [
+'.....kkkkk....',
+'...kkgggggkk..',
+'..kggllggggk..',
+'..kglllggdgk..',
+'.kggllgggdggk.',
+'.kggggggdkggk.',
+'.kggggkdgkggk.',
+'..kggggdgggk..',
+'..kggggggggk..',
+'...kkkkkkkk...'];
+const rockPal = { k:'#26262a', g:'#8a8a90', l:'#b8b8c0', d:'#4a4a50' };
+
+/* —— 猫 ×2：主子（白）和大橘 —— */
+const MAP_CAT = [
+'.kk........kk.',
+'.kcck....kcck.',
+'.kccckkkccck.',
+'.kcccccccccck.',
+'kcceccccccecck',
+'kcccccccccccck',
+'.kcccccccccck.',
+'.kcccccccccck.',
+'.kcccccccccck.',
+'kcccccccccck..',
+'kcccccccck....',
+'kccccccck.....',
+'kcckcckcck....',
+'.kk.kk.kk.....'];
+const catChar = (fur, eye, mirror) => bake(MAP_CAT, { k:K, c:fur, e:eye }, mirror);
+
+/* —— 拖鞋 ×2：俯视人字拖，V 形带，左右脚镜像 —— */
+const MAP_SLIPPER = [
+'...kkkk...',
+'..kssssk..',
+'.kssstssk.',
+'.kssttssk.',
+'.kstk.tksk.',
+'.ktk...ktk.',
+'.kssssssk.',
+'kssssssssk',
+'kssssssssk',
+'kssssssssk',
+'kssssssssk',
+'.kssssssk.',
+'.kssssssk.',
+'..kssssk..',
+'...kkkk...'];
+const slipChar = (c, mirror) => bake(MAP_SLIPPER,
+  { k:K, s:c, t:'#3a2c16' }, mirror);
+
+/* —— 多肉 ×2：叶形略不同 —— */
+const MAP_PLANT_A = [
+'.....gg.....',
+'....gllg....',
+'...gllllg...',
+'.ggllllllgg.',
+'glllgllglllg',
+'gllllllllllg',
+'.gllllllllg.',
+'..ggggggg...',
+'..kpppppk...',
+'.kpppppppk..',
+'.kpppppppk..',
+'..kkkkkkk...'];
+const MAP_PLANT_B = [
+'....gg.gg...',
+'...gllglg...',
+'..gllllllg..',
+'.gllglllllg.',
+'glllllgllllg',
+'glllllllllg.',
+'.glllllllg..',
+'..ggggggg...',
+'..kpppppk...',
+'.kpppppppk..',
+'.kpppppppk..',
+'..kkkkkkk...'];
+const plantChar = (rows, leaf, mirror) => bake(rows,
+  { k:K, g:'#3a6a48', l:leaf, p:'#8a5a3a' }, mirror);
+
+/* —— 贩卖机 + 买可乐的人 —— */
+const MAP_VENDING = [
+'kkkkkkkkkkkk',
+'krrrrrrrrrrk',
+'krwwwwwwwkrk',
+'krwcwcwcwkrk',
+'krwwwwwwwkrk',
+'krwcwcwcwkrk',
+'krwwwwwwwkrk',
+'krrrrrrrrrrk',
+'krrrrrrkkyrk',
+'krrrrrrrrrrk',
+'krrkkkkkkrrk',
+'krrkkkkkkrrk',
+'kkkkkkkkkkkk'];
+const vendChar = mirror => bake(MAP_VENDING,
+  { k:K, r:'#2a4a5a', w:'#bfeee8', c:'#41f2ff', y:'#ffd166' }, mirror);
+
+/* —— 路灯 ×2：公园灯柱造型，灯头辉光在绘制时程序化叠加 —— */
+const MAP_LAMP = [
+'...kkkk...',
+'..kllllk..',
+'..klyylk..',
+'..kllllk..',
+'...kkkk...',
+'....kk....',
+'....kk....',
+'....kk....',
+'....kk....',
+'....kk....',
+'....kk....',
+'....kk....',
+'...kkkk...',
+'..kkkkkk..'];
+const lampChar = mirror => bake(MAP_LAMP,
+  { k:K, l:'#6a5a38', y:'#ffd166', w:'#fff2c8' }, mirror);
+
+/* —— 鸡蛋 + 啤酒（棕瓶才有啤酒相） —— */
+const MAP_EGG = [
+'...kkkk...',
+'..kwwwwk..',
+'.kwwlwwwk.',
+'kwwllwwwwk',
+'kwwwwwwwwk',
+'kwwwwwwwwk',
+'kwwwwwwwwk',
+'.kwwwwwwk.',
+'..kkkkkk..'];
+const eggChar = () => bake(MAP_EGG, { k:K, w:'#f0ece0', l:'#ffffff' });
+const MAP_BEER = [
+'...kk...',
+'..knnk..',
+'..knnk..',
+'..knnk..',
+'.knnnnk.',
+'knnnnnnk',
+'knllllnk',
+'knllllnk',
+'knnnnnnk',
+'knnnnnnk',
+'.kkkkkk.'];
+const beerChar = () => bake(MAP_BEER,
+  { k:K, n:'#8a5a2a', l:'#e8e0c8' });
+
+/* ---------- 8 个恶搞宇宙的角色表：左/右 + 名字 + idle 类型 ---------- */
+const GAG_CHARS = {
+  rock:     { L: () => bake(MAP_ROCK_A, rockPal),  R: () => bake(MAP_ROCK_B, rockPal, true),
+              names: ['左石', '右石'], idle: 'stone' },
+  cats:     { L: () => catChar('#e8dcd0', '#e8a4b4'), R: () => catChar('#d8924a', '#4a3416', true),
+              names: ['主子', '大橘'], idle: 'cat' },
+  slippers: { L: () => slipChar('#e0a45c'), R: () => slipChar('#f0c88a', true),
+              names: ['左脚', '右脚'], idle: 'still' },
+  plants:   { L: () => plantChar(MAP_PLANT_A, '#6fc8b0'), R: () => plantChar(MAP_PLANT_B, '#a0dcd0', true),
+              names: ['小多', '小肉'], idle: 'stone' },
+  vending:  { L: () => humanChar('#4a6a7c'), R: () => vendChar(true),
+              names: ['他', '贩卖机'], idle: 'still' },
+  lamps:    { L: () => lampChar(), R: () => lampChar(true),
+              names: ['这盏', '那盏'], idle: 'lamp' },
+  fridge:   { L: () => eggChar(), R: () => beerChar(),
+              names: ['鸡蛋', '啤酒'], idle: 'still' },
+  parallel: { L: () => humanChar('#e06a9a'), R: () => humanChar('#7fd4e8', true),
+              names: ['他', '她'], idle: 'human' }
+};
+
+/* ---------- 真人 LPC sprite：832×2944，64px/帧，walk 行 16-19=上左下右 ---------- */
+const lpc = { a: null, b: null, failed: false };
+function loadLPC(){
+  if(lpc.a || lpc.failed) return;
+  const load = src => new Promise(res => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = () => { lpc.failed = true; res(null); };
+    im.src = src;
+  });
+  lpc.promise = Promise.all([load('assets/chars/oscar.png'), load('assets/chars/mira.png')])
+    .then(([a, b]) => { lpc.a = a; lpc.b = b; });
+}
+
+/* ---------- 预设台词（无 key / LLM 失败时兜底，调性对齐各宇宙已有梗） ---------- */
+const GAG_LINES = {
+  rock: [[0,'风停了。'],[1,'嗯。'],[0,'那粒沙，走了。'],[1,'走了好。'],[0,'你近了两厘米。'],[1,'慢慢来。']],
+  cats: [[0,'那个人类，试用期。'],[1,'他带了猫条。'],[0,'收下了。不代表什么。'],[1,'你昨晚睡他腿上。'],[0,'那是压力测试。']],
+  slippers: [[0,'你也在啊。'],[1,'嗯。一直在。'],[0,'床底黑吗？'],[1,'黑。但知道你在外面。'],[0,'挪近点。']],
+  plants: [[0,'早安。（蒸腾）'],[1,'早安。（更用力地蒸腾）'],[0,'你朝我歪了两度。'],[1,'向光性。'],[0,'嗯。向光性。']],
+  vending: [[0,'老样子，一罐。'],[1,'（灯闪了一下）'],[0,'今天冰得刚好。'],[1,'4 度。永远 4 度。'],[0,'谢了，老伙计。']],
+  lamps: [[0,'19:00，亮了。'],[1,'闪两下。晚安。'],[0,'飞蛾又来了。'],[1,'我多亮 10 瓦。'],[0,'对面在，就好。']],
+  fridge: [[0,'灯亮了。看见你了。'],[1,'15 秒。够了。'],[0,'楼上有点冷。'],[1,'一起保鲜，不冷。'],[0,'我想变成蛋糕。'],[1,'那我负责庆祝。']],
+  parallel: [[0,'网站说我们 32% 会结婚。'],[1,'比我的 12% 强。'],[0,'那些宇宙里，谁先表的白？'],[1,'反正这个宇宙——'],[0,'我先。']]
+};
+
+/* ---------- 恶搞宇宙 LLM system prompt：一宇宙一个人设 ---------- */
+const GAG_PROMPTS = {
+  rock: '你是编剧，写两块相邻石头的对话。它们一亿岁了，说话极慢极省，每句最多 10 个字。内容关于风、苔藓、一粒沙、缓慢靠近的距离。淡定，温吞，偶尔冷幽默。绝不用叹号。',
+  cats: '你是编剧，写两只猫（主子、大橘）评审两个人类恋爱的对话。主子高冷毒舌，大橘憨厚拆台。每句最多 16 字，猫的逻辑，人的事它们说了算。',
+  slippers: '你是编剧，写左右两只拖鞋的对话。老夫老妻感，背对背但一条心，话题是床底、鞋柜、走散又重逢。日常，温情，每句最多 14 字。',
+  plants: '你是编剧，写窗台上两盆多肉的对话。它们用蒸腾、新叶、朝向交流，安静克制但甜。可以出现（蒸腾）（摇晃）这类极简动作括注。每句最多 14 字。',
+  vending: '你是编剧，写一个凌晨买可乐的人和一台贩卖机的对话。人正常说话；贩卖机不会说话，只用灯闪、温度、出货表达（台词写成它的灯语或内心，极短）。每句最多 14 字。',
+  lamps: '你是编剧，写隔一条街的两盏路灯的对话。每晚 19:00 同时亮起，闪两下当晚安。值守、遥远、稳定，每句最多 14 字。',
+  fridge: '你是编剧，写冰箱冷藏室里一颗鸡蛋和一罐啤酒的对话。上下楼层差，一起保鲜的爱情，凉飕飕的温柔。每句最多 14 字。',
+  parallel: '你是编剧，写两个人刷到 MultiUs 平行宇宙网站后讨论自己概率的对话。元叙事、自嘲、甜，提到百分比和「哪个宇宙谁先表白」。每句最多 18 字。'
+};
+
+/* ---------- 场景引擎 ---------- */
+const W = 640, H = 360, GROUND = 280;
+const LX = 200, RX = 440; // 左右角色中心 x
+const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
+const easeOutQuad = t => 1 - (1 - t) * (1 - t);
+const easeOutBack = t => { const c = 1.70158; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+const clamp01 = v => Math.max(0, Math.min(1, v));
+
+let token = 0, raf = 0, active = false;
+let cv, cx, ovl, srcEl;
+let chars = null, names = ['', ''], theme = null, idleKind = 'human';
+let lines = [], totalExpected = 0, pendingLLM = false;
+let phase = 'idle', startT = 0, lineIdx = 0, lineStartT = 0, exitT = 0, skipT = 0;
+let charIdx = 0, lastLineDone = 0;
+let blinkNext = 3000, blinkUntil = 0;
+let currentSrc = '';
+
+function charSprite(side){
+  const c = chars[side];
+  if(c.img){ // LPC：站立帧，面向对方
+    const row = side === 0 ? 19 : 17; // 左角色面朝右，右角色面朝左
+    return { img: c.img, sx: 0, sy: row * 64, sw: 64, sh: 64, dw: 62, dh: 62 };
+  }
+  const s = c.map;
+  return { img: s.cv, sx: 0, sy: 0, sw: s.w, sh: s.h, dw: s.w * 4, dh: s.h * 4 };
+}
+
+function roundRect(x, y, w, h, r){
+  cx.beginPath();
+  cx.moveTo(x + r, y);
+  cx.arcTo(x + w, y, x + w, y + h, r);
+  cx.arcTo(x + w, y + h, x, y + h, r);
+  cx.arcTo(x, y + h, x, y, r);
+  cx.arcTo(x, y, x + w, y, r);
+  cx.closePath();
+}
+
+/* 气泡文本排版：for..of 按码点切，绝不 split('')（UTF-16 emoji 会碎） */
+function layoutText(text, maxW){
+  cx.font = '15px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+  const out = []; let line = '';
+  for(const ch of text){
+    if(cx.measureText(line + ch).width > maxW && line){ out.push(line); line = ch; }
+    else line += ch;
+  }
+  if(line) out.push(line);
+  return out;
+}
+
+function drawScene(now){
+  const t = now - startT;
+  cx.clearRect(0, 0, W, H);
+  cx.fillStyle = '#0a0a0e'; cx.fillRect(0, 0, W, H);
+
+  /* §2.1 虚空点亮（0-800ms），之后保持余晖 */
+  const r = easeOutCubic(clamp01(t / 800)) * 450;
+  if(r > 1){
+    const g = cx.createRadialGradient(320, 240, 0, 320, 240, r);
+    g.addColorStop(0, 'rgba(30,30,48,1)');
+    g.addColorStop(0.7, 'rgba(12,12,18,0.9)');
+    g.addColorStop(1, 'rgba(10,10,14,0)');
+    cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+  }
+
+  /* §2.2 地面扫描线（600-1400ms） */
+  [{ y: 280, delay: 0, color: 'rgba(60,60,80,0.3)' },
+   { y: 290, delay: 150, color: 'rgba(40,40,60,0.15)' },
+   { y: 270, delay: 100, color: 'rgba(50,50,70,0.2)' }].forEach(ln => {
+    const p = clamp01((t - 600 - ln.delay) / 400);
+    if(p <= 0) return;
+    const w2 = easeOutQuart(p) * W;
+    cx.strokeStyle = ln.color; cx.lineWidth = 1;
+    cx.beginPath(); cx.moveTo(320 - w2 / 2, ln.y); cx.lineTo(320 + w2 / 2, ln.y); cx.stroke();
+  });
+
+  /* 说话状态参数（§4）：hold/exit/skip 阶段仍定格在最后一句 */
+  const speakingIdx = phase === 'lines' ? lineIdx
+    : (phase === 'hold' || phase === 'exit' || phase === 'skip') ? Math.min(lineIdx, lines.length - 1) : -1;
+  const speaking = speakingIdx >= 0 && !!lines[speakingIdx];
+  const speakSide = speaking ? lines[speakingIdx].who : -1;
+  const speakTime = speaking ? now - lineStartT : 0;
+
+  /* §6.2 退场参数 / §8 signature：最后一句话后，两人先向对方跳近一小步 */
+  let exitP = 0, hop = 0;
+  if(phase === 'exit'){ exitP = clamp01((now - exitT) / 600); hop = Math.sin(clamp01((now - exitT) / 400) * Math.PI) * 3; }
+
+  /* §2.3 角色淡入（1200-2000ms） */
+  const inA = easeOutQuad(clamp01((t - 1200) / 800));
+
+  for(const side of [0, 1]){
+    const dir = side === 0 ? 1 : -1; // 朝向对方的水平方向
+    const sp = charSprite(side);
+    let x = side === 0 ? LX : RX, y = GROUND, alpha = inA;
+
+    /* §3 idle 微动（2000ms 后） */
+    let breath = 0, sway = 0, tilt = 0;
+    if(t > 2000 && exitP === 0){
+      if(idleKind === 'stone'){ /* §3.B 地质呼吸 */
+        breath = Math.sin((now + side * 900) / 4800 * Math.PI * 2) * 0.3;
+        tilt = Math.sin((now + side * 600) / 5000 * Math.PI * 2) * 0.005;
+      }else if(idleKind === 'still' || idleKind === 'lamp'){ /* §3.C 静物 */
+        breath = Math.abs(Math.sin((now + side * 500) / 2800 * Math.PI * 2)) * 0.2;
+      }else{ /* §3.A 小人/猫：呼吸 + 重心摇摆 180° 相位差 */
+        breath = Math.sin(((now % 2400) / 2400) * Math.PI * 2) * 1.5;
+        sway = Math.sin((now / 3200 + side * 0.5) * Math.PI * 2) * 0.8;
+      }
+    }
+    /* §4 说话者：前倾 + 强调跳 + 头部摇摆加剧；听者：后仰 + 点头 */
+    let glow = false, squash = 1;
+    if(speaking && exitP === 0){
+      if(side === speakSide){
+        const lean = easeOutQuad(clamp01(speakTime / 200)) * 2;
+        x += dir * lean;
+        const bounce = speakTime < 400 ? Math.sin(speakTime / 400 * Math.PI) * 3 : 0;
+        y -= bounce;
+        sway += Math.sin(speakTime / 600 * Math.PI * 2) * 1.2;
+        glow = true;
+      }else{
+        const away = easeOutQuad(clamp01(speakTime / 150)) * 1;
+        x -= dir * away;
+        if(speakTime % 1200 < 300) y += Math.sin((speakTime % 1200) / 300 * Math.PI) * 1.5;
+      }
+    }
+    /* 眨眼（小人/猫）：整幅微蹲 120ms 代替逐像素改眼睛 */
+    if((idleKind === 'human' || idleKind === 'cat') && now > blinkNext + side * 1700){
+      if(now > blinkUntil) blinkUntil = now + 120;
+      if(side === 1) blinkNext = now + 4000 + Math.random() * 3000;
+    }
+    if(now < blinkUntil) squash = 0.97;
+
+    x += sway + dir * hop; /* §8 signature：退场瞬间向对方跳近一小步再弹回 */
+    y -= breath;
+    if(phase === 'exit'){ alpha = 1 - exitP; y += exitP * 12; }
+
+    /* 脚底投影 */
+    cx.globalAlpha = alpha * 0.4;
+    cx.fillStyle = '#000';
+    cx.beginPath();
+    cx.ellipse(x, GROUND + 4, sp.dw * 0.32, 4, 0, 0, Math.PI * 2);
+    cx.fill();
+
+    cx.globalAlpha = alpha;
+    cx.save();
+    cx.translate(x, y - sp.dh);
+    if(tilt) cx.rotate(tilt);
+    if(squash !== 1){ cx.translate(0, sp.dh * (1 - squash)); cx.scale(1, squash); }
+    if(glow){ cx.shadowColor = theme.accent; cx.shadowBlur = 6; }
+    cx.drawImage(sp.img, sp.sx, sp.sy, sp.sw, sp.sh, -sp.dw / 2, 0, sp.dw, sp.dh);
+    cx.restore();
+    cx.shadowBlur = 0;
+
+    /* 路灯辉光：程序化光晕 */
+    if(idleKind === 'lamp' && alpha > 0.05){
+      const flick = 0.75 + Math.sin(now / 1800 * Math.PI * 2 + side * 2.2) * 0.25;
+      const gy = y - sp.dh + 6;
+      const lg = cx.createRadialGradient(x, gy, 0, x, gy, 26);
+      lg.addColorStop(0, `rgba(255,209,102,${0.20 * flick * alpha})`);
+      lg.addColorStop(1, 'rgba(255,209,102,0)');
+      cx.globalAlpha = 1;
+      cx.fillStyle = lg;
+      cx.beginPath(); cx.arc(x, gy, 26, 0, Math.PI * 2); cx.fill();
+    }
+    cx.globalAlpha = 1;
+
+    /* 角色名小标签 */
+    if(inA > 0.6 && phase !== 'exit'){
+      cx.font = '9px "Space Mono", monospace';
+      cx.fillStyle = 'rgba(120,118,110,0.7)';
+      cx.textAlign = 'center';
+      cx.fillText(names[side], x, GROUND + 16);
+      cx.textAlign = 'left';
+    }
+  }
+
+  /* §5 气泡：说话者头顶，canvas 绘制，打字机入场 */
+  if(speaking){
+    const line = lines[speakingIdx];
+    const sp = charSprite(line.who);
+    const charsArr = [...line.text];
+    const shown = Math.min(charsArr.length, Math.floor(speakTime / 34));
+    const typed = charsArr.slice(0, shown).join('');
+    const sx = line.who === 0 ? LX : RX;
+    const topY = GROUND - sp.dh;
+    const bLines = layoutText(typed, 200);
+    const fullLines = layoutText(line.text, 200); // 高度按全文定，打字时不乱跳
+    const bw = Math.min(240, Math.max(70, ...fullLines.map(l => cx.measureText(l).width + 24)));
+    const bh = 16 + fullLines.length * 20;
+    const bx = Math.max(10, Math.min(W - 10 - bw, sx - bw / 2));
+    const by = topY - 18 - bh;
+    let scale = speakTime < 300 ? 0.85 + easeOutBack(clamp01(speakTime / 300)) * 0.15 : 1;
+    /* §6.3 退场时对话框收缩（200-700ms） */
+    if(phase === 'exit') scale *= 1 - clamp01((now - exitT - 200) / 500);
+    if(scale > 0.02){
+
+    cx.save();
+    cx.translate(bx + bw / 2, by + bh);
+    cx.scale(scale, scale);
+    cx.translate(-bw / 2, -bh);
+    roundRect(0, 0, bw, bh, 8);
+    cx.fillStyle = 'rgba(18,18,28,0.92)'; cx.fill();
+    cx.strokeStyle = theme.accent; cx.lineWidth = 1.5; cx.stroke();
+    /* 小三角指向角色 */
+    const tailX = Math.max(10, Math.min(bw - 10, sx - (bx + bw / 2) + bw / 2));
+    cx.beginPath();
+    cx.moveTo(tailX, bh + 7); cx.lineTo(tailX - 4, bh); cx.lineTo(tailX + 4, bh);
+    cx.closePath();
+    cx.fillStyle = 'rgba(18,18,28,0.92)'; cx.fill();
+    cx.strokeStyle = theme.accent; cx.stroke();
+    cx.fillStyle = '#e8e8f0';
+    cx.font = '15px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+    cx.textBaseline = 'top';
+    bLines.forEach((l, i) => cx.fillText(l, 12, 9 + i * 20));
+    /* 打字光标 */
+    if(shown < charsArr.length && Math.floor(now / 400) % 2 === 0){
+      const lastLine = bLines[bLines.length - 1] || '';
+      cx.fillRect(12 + cx.measureText(lastLine).width + 2, 9 + (bLines.length - 1) * 20 + 2, 7, 14);
+    }
+    cx.restore();
+    }
+  }
+
+  /* 等下一句（LLM 还在写）：下一个说话者头顶三点 */
+  if(phase === 'waitline'){
+    const side = totalExpected ? (lineIdx % 2) : 0;
+    const sx = side === 0 ? LX : RX;
+    const sp = charSprite(side);
+    const by = GROUND - sp.dh - 40;
+    roundRect(sx - 26, by, 52, 26, 8);
+    cx.fillStyle = 'rgba(18,18,28,0.85)'; cx.fill();
+    cx.strokeStyle = theme.accent; cx.lineWidth = 1; cx.stroke();
+    cx.fillStyle = '#8a8a96';
+    for(let i = 0; i < 3; i++){
+      const a = 0.3 + 0.7 * Math.abs(Math.sin(now / 500 + i * 1.1));
+      cx.globalAlpha = a;
+      cx.beginPath(); cx.arc(sx - 10 + i * 10, by + 13, 2, 0, Math.PI * 2); cx.fill();
+    }
+    cx.globalAlpha = 1;
+  }
+}
+
+function frame(now){
+  if(!active) return;
+  const t = now - startT;
+
+  /* 状态推进 */
+  if(phase === 'ignite' && t > 2000){
+    phase = lines.length ? 'lines' : 'waitline';
+    lineStartT = now;
+  }else if(phase === 'lines'){
+    const line = lines[lineIdx];
+    if(line){
+      const len = [...line.text].length;
+      const doneT = lineStartT + len * 34 + 700; /* 打完后停 700ms */
+      if(now > doneT){
+        lineIdx++;
+        lineStartT = now;
+        if(lineIdx >= totalExpected && !pendingLLM){
+          phase = 'hold'; exitT = now; /* §6.1 最后一句后停 800ms */
+        }else if(lineIdx >= lines.length){
+          phase = 'waitline';
+        }
+      }
+    }
+  }else if(phase === 'waitline'){
+    if(lineIdx < lines.length){ phase = 'lines'; lineStartT = now; }
+  }else if(phase === 'hold'){
+    if(now - exitT > 800){ phase = 'exit'; exitT = now; }
+  }else if(phase === 'exit'){
+    if(now - exitT > 820 && !ovl.classList.contains('exiting')){
+      ovl.classList.add('exiting'); /* §6.5 水波纹 clip 收缩，时间线从中心亮出来 */
+    }
+    if(now - exitT > 1750){ finish(); return; }
+  }else if(phase === 'skip'){
+    if(now - skipT > 200 && !ovl.classList.contains('fast-exit')){
+      ovl.classList.add('fast-exit'); /* §7.3 闪电波纹 */
+    }
+    if(now - skipT > 450){ finish(); return; }
+  }
+
+  drawScene(now);
+  raf = requestAnimationFrame(frame);
+}
+
+function finish(){
+  active = false;
+  cancelAnimationFrame(raf);
+  detach();
+  ovl.classList.add('fading');
+  setTimeout(() => {
+    ovl.style.display = 'none';
+    ovl.classList.remove('exiting', 'fast-exit', 'fading');
+  }, 120);
+}
+
+function onSkip(ev){
+  if(ev.type === 'keydown'){
+    if(![' ', 'Enter', 'Escape'].includes(ev.key)) return;
+    ev.stopImmediatePropagation(); // 同 target 的全局 Escape/J 监听也要拦
+    ev.preventDefault();
+  }
+  if(!active || phase === 'skip' || phase === 'exit') return;
+  /* §7：无论哪个阶段，400ms 内收场——当前行补全，直接进快速转场 */
+  if(phase === 'ignite'){ startT = performance.now() - 2001; }
+  if(lines[lineIdx]) lineStartT = performance.now() - 99999; // 当前行瞬间打全
+  phase = 'skip'; skipT = performance.now();
+}
+function attach(){
+  ovl.addEventListener('click', onSkip);
+  ovl.addEventListener('touchstart', onSkip);
+  addEventListener('keydown', onSkip, true);
+}
+function detach(){
+  ovl.removeEventListener('click', onSkip);
+  ovl.removeEventListener('touchstart', onSkip);
+  removeEventListener('keydown', onSkip, true);
+}
+
+/* 台词注入：LLM 逐条 push；pending 收尾后补齐剩余（静默回退） */
+function pushLine(who, text){
+  text = (text || '').trim();
+  if(!text) return;
+  lines.push({ who, text });
+}
+function sealWithFallback(fb){
+  while(lines.length < totalExpected){
+    const f = fb[lines.length];
+    if(!f) break;
+    pushLine(f.who, f.text);
+  }
+  pendingLLM = false;
+}
+
+async function play(e){
+  cancel();
+  const my = ++token;
+  ovl = ovl || document.getElementById('duo-ovl');
+  cv = cv || document.getElementById('duo-cv');
+  cx = cv.getContext('2d');
+  srcEl = document.getElementById('duo-src');
+
+  /* ---- 角色与台词来源 ---- */
+  let fallback, llmJob = null;
+  if(e.kind === 'gag'){
+    const g = e.g, def = GAG_CHARS[g.id];
+    chars = { 0: { map: def.L() }, 1: { map: def.R() } };
+    names = def.names; idleKind = def.idle; theme = g.theme;
+    fallback = (GAG_LINES[g.id] || []).map(([who, text]) => ({ who, text }));
+    totalExpected = fallback.length;
+    if(LLM.ready()){
+      llmJob = (async () => {
+        const sys = GAG_PROMPTS[g.id] +
+          '\n只输出 JSON 数组：[{"who":0,"text":"…"}]，who 0=' + names[0] + '（左），1=' + names[1] + '（右）。' +
+          '写 ' + totalExpected + ' 句，轮流说。不要代码块标记，不要旁白，不要 emoji。';
+        const usr = `宇宙：「${g.name}」。${g.tagline}\n氛围参考：${g.events[0][1]} / ${g.events[g.events.length-1][1]}\n写开场小对话，最后一句收在一个有余味的地方。`;
+        const raw = await Promise.race([
+          LLM.chat([{ role:'system', content:sys }, { role:'user', content:usr }], { temperature:0.9, max_tokens:600 }),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 9000))
+        ]);
+        const m = raw.match(/\[[\s\S]*\]/);
+        if(!m) throw new Error('no json');
+        const arr = JSON.parse(m[0]);
+        const good = arr.filter(it => it && (it.who === 0 || it.who === 1) && (it.text || '').trim());
+        if(good.length < 4) throw new Error('too few');
+        totalExpected = Math.min(good.length, 6);
+        good.slice(0, 6).forEach(it => { if(token === my) pushLine(it.who, it.text); });
+      })();
+    }
+  }else{
+    const w = e.w, A = Twins.a.name, B = Twins.b.name;
+    theme = OUTCOME_THEME[w.outcome] || DEFAULT_THEME;
+    names = [A, B]; idleKind = 'human';
+    loadLPC();
+    await (lpc.promise || Promise.resolve());
+    if(token !== my) return;
+    const useLPC = lpc.a && lpc.b;
+    chars = useLPC
+      ? { 0: { img: lpc.a }, 1: { img: lpc.b } }
+      : { 0: { map: humanChar(theme.accent) }, 1: { map: humanChar(theme.accent2 || '#7fd4e8', true) } };
+    const lastSnap = [...(w.log || [])].reverse().find(l => l.snap);
+    const entry = { day: lastSnap ? lastSnap.day : w.endDay,
+                    snap: lastSnap ? lastSnap.snap : w.final,
+                    text: OUT_ENDLINE[w.outcome](A, B) };
+    fallback = genDialogueEngine(w, entry).map(t => ({ who: t.who === A ? 0 : 1, text: t.text }));
+    totalExpected = 4;
+    if(LLM.ready()){
+      llmJob = (async () => {
+        await Promise.race([
+          genDialogueLLM(w, entry, t => { if(token === my) pushLine(t.who === A ? 0 : 1, t.text); }),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 16000))
+        ]);
+      })();
+    }
+  }
+
+  /* ---- 状态复位，开场 ---- */
+  lines = []; lineIdx = 0; phase = 'ignite';
+  pendingLLM = !!llmJob;
+  if(!llmJob) fallback.forEach(l => pushLine(l.who, l.text)); // 无 key：预设台词直接就位
+  startT = performance.now();
+  blinkNext = startT + 2600;
+  currentSrc = llmJob ? '现场连线中 · LLM……' : '预设台词 · 配 LLM 可现场写';
+  srcEl.textContent = currentSrc;
+  ovl.style.display = 'block';
+  ovl.scrollTop = 0;
+  active = true;
+  attach();
+  raf = requestAnimationFrame(frame);
+
+  if(llmJob){
+    llmJob.then(() => {
+      if(token !== my) return;
+      if(lines.length){ sealWithFallback(fallback); currentSrc = '现场对话 · LLM · 每次都不一样'; }
+      else { sealWithFallback(fallback); currentSrc = '预设台词'; }
+      pendingLLM = false;
+      srcEl.textContent = currentSrc;
+    }).catch(() => {
+      if(token !== my) return;
+      sealWithFallback(fallback);
+      pendingLLM = false;
+      srcEl.textContent = LLM.ready() ? 'LLM 没接上 · 预设台词' : '预设台词';
+    });
+  }
+}
+
+function cancel(){
+  token++;
+  if(active){ active = false; cancelAnimationFrame(raf); detach(); }
+  if(ovl){ ovl.style.display = 'none'; ovl.classList.remove('exiting', 'fast-exit', 'fading'); }
+}
+
+return { play, cancel, active: () => active, _chars: GAG_CHARS, _bake: bake };
+})();
+
 /* ---------- 打开一个宇宙：主题从点击处漾开，内容同时切过去 ---------- */
 function openEntry(e, ev){
   const theme = e.kind === 'gag' ? e.g.theme : (OUTCOME_THEME[e.w.outcome] || null);
@@ -2209,6 +2928,7 @@ function openEntry(e, ev){
     const ovl = document.getElementById('world-ovl');
     ovl.style.display = 'block';
     ovl.scrollTop = 0;
+    DUO.play(e); // 开屏双人对话：播完（或跳过）按规格书 §6 让位给时间线
   });
 }
 
@@ -2335,6 +3055,7 @@ function renderGagOverlay(g){
 }
 function closeWorld(ev){
   woToken++; // 关掉 overlay 即作废在途的流式渲染
+  DUO.cancel(); // 开屏对话场景一并收场
   const x = ev && ev.clientX != null ? ev.clientX : innerWidth/2;
   const y = ev && ev.clientY != null ? ev.clientY : innerHeight/2;
   transitionTo(null, x, y, () => {
@@ -2400,6 +3121,7 @@ function copyLink(btn){
 addEventListener('keydown', e => {
   if(e.key !== 'j' && e.key !== 'J') return;
   if(/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+  if(DUO.active()) return; // 开屏对话播放中，J 不触发重跳
   if(CURRENT_SCENE === 'scene-jump') return;
   if(CURRENT_SCENE === 'scene-results'){ rerun(); return; }
   generateTwins();
