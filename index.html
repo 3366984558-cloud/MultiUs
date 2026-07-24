@@ -236,7 +236,10 @@ textarea:focus{border-color:var(--dim);color:var(--ink)}
 .dec-side .bar{height:2px;background:var(--faint);margin-top:14px;position:relative}
 .dec-side .fill{position:absolute;left:0;top:-1px;height:4px;width:0;transition:width 1.6s cubic-bezier(.2,.8,.2,1)}
 .dec-note{margin-top:28px;font-family:var(--serif);font-style:italic;font-size:17px;color:var(--dim);line-height:1.6}
-.cf-btn{margin-top:22px;padding:12px 24px;font-size:10px;border-color:var(--faint);color:var(--dim)}
+.cf-btn{margin-top:22px;padding:12px 24px;font-size:10px;border-color:var(--faint);color:var(--dim);display:none}
+body.nerd-on .cf-btn{display:inline-block}
+.nerd-toggle{margin-top:60px;font-size:10px;letter-spacing:.18em;color:var(--faint);border-color:transparent}
+@media (hover:hover){.nerd-toggle:hover{color:var(--dim)}}
 .cf-res{margin-top:22px;font-family:var(--mono);font-size:11px;letter-spacing:.15em;line-height:2;color:var(--dim)}
 .cf-res b{color:var(--gold);font-weight:400}
 .cf-res i{font-family:var(--serif);font-size:15px;letter-spacing:.02em;color:var(--dim)}
@@ -662,7 +665,10 @@ textarea:focus{border-color:var(--dim);color:var(--ink)}
     <div id="dec-list"></div>
   </div>
 
-  <div class="decisions" id="sens">
+  <div style="text-align:center">
+    <button class="btn nerd-toggle" onclick="nerdToggle()">给工程师和杠精看的部分 →</button>
+  </div>
+  <div class="decisions" id="sens" style="display:none">
     <h3>什么才真正改变你们的未来。</h3>
     <div class="sub">同样的一万个宇宙 · 每次只改一个条件</div>
     <div id="sens-body" style="margin-top:40px;text-align:center">
@@ -2748,6 +2754,11 @@ function rerun(){ startJump(); }
 
 /* ---------- sensitivity: which trait moves the most futures ---------- */
 const ATT_CN = { anxious:'焦虑型', secure:'安全型', avoidant:'回避型' };
+function nerdToggle(){
+  document.body.classList.add('nerd-on');
+  const s = document.getElementById('sens'); if(s) s.style.display = 'block';
+  const t = document.querySelector('.nerd-toggle'); if(t) t.style.display = 'none';
+}
 function runWhatIfs(btn){
   const body = document.getElementById('sens-body');
   const A = Twins.a.name, B = Twins.b.name;
