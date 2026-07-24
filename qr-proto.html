@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>扫这个，玩第二遍 · MultiUs QR 原型</title>
+<style>
+:root{ --bg:#0a0a0f; --ink:#e8e6e3; --dim:#9a97a8; --faint:#565464; --pink:#ff3d8a; --card:#f5f2ec; }
+*{ margin:0; padding:0; box-sizing:border-box; }
+body{ background:var(--bg); color:var(--ink);
+  font-family:ui-monospace,'Cascadia Mono',Consolas,'Courier New',monospace;
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:5vh 5vw; }
+main{ text-align:center; width:min(560px,100%); }
+.kicker{ font-size:10px; letter-spacing:.35em; color:var(--faint); text-transform:uppercase; }
+h1{ font-size:clamp(24px,5vw,34px); font-weight:500; letter-spacing:.06em; margin-top:18px; }
+.sub{ font-size:13px; color:var(--dim); margin-top:14px; line-height:1.8; }
+.qr-card{ display:block; margin:44px auto 0; border-radius:18px;
+  box-shadow:0 0 0 1px #2a2a36, 0 18px 60px rgba(0,0,0,.55);
+  transition:box-shadow .35s, transform .35s; }
+.info{ margin-top:16px; font-size:10px; letter-spacing:.22em; color:var(--faint); text-transform:uppercase; }
+.field{ margin-top:36px; }
+.field label{ display:block; font-size:10px; letter-spacing:.3em; color:var(--faint); text-transform:uppercase; margin-bottom:12px; }
+#qr-in{ width:100%; background:#101018; border:1px solid var(--faint); color:var(--ink);
+  font:inherit; font-size:13px; padding:14px 16px; min-height:44px; border-radius:8px; outline:none;
+  transition:border-color .3s; }
+#qr-in:focus{ border-color:var(--pink); }
+.err{ margin-top:12px; font-size:11px; color:var(--pink); min-height:18px; }
+.hint{ margin-top:26px; font-size:10px; letter-spacing:.2em; color:var(--faint); line-height:2; }
+@media (hover:hover){
+  .qr-card:hover{ box-shadow:0 0 0 1px var(--pink), 0 18px 60px rgba(255,61,138,.18); transform:translateY(-2px); }
+  #qr-in:hover{ border-color:var(--dim); }
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">MultiUs · QR Proto</div>
+  <h1>扫这个，玩第二遍</h1>
+  <p class="sub">手机掏出来。你的一万个宇宙也在排队。</p>
+  <canvas class="qr-card" id="qr-cv" width="264" height="264"></canvas>
+  <div class="info" id="qr-info"></div>
+  <div class="field">
+    <label for="qr-in">码里包的内容（改动即时重生成）</label>
+    <input id="qr-in" value="https://multius.odin-lab.com" maxlength="220" spellcheck="false" autocomplete="off">
+    <div class="err" id="qr-err"></div>
+  </div>
+  <div class="hint">纯手写编码器 · byte mode · 纠错 M · 零依赖<br>将来原样搬进 index.html，放在结果页和宇宙身份证上</div>
+</main>
+
+<script>
+/* ================================================================
+   手写 QR 编码器 — byte mode · EC level M · version 1-10 自动选最小
+   零依赖，可整体搬进 index.html。只暴露两个函数：
+     qrBuild(text) → { v, size, m }   m[r][c] === 1 为深模块；文本过长返回 null
+     qrDraw(canvas, text) → boolean   画到 canvas（浅底深码 + 4 模块安静区）
+   ================================================================ */
+const QR = (() => {
+  /* --- level M 参数表（版本 1-10）：ec=每块纠错码字数，blocks=各块数据码字数 --- */
+  const VER = [ null,
+    { ec:10, blocks:[16] },
+    { ec:16, blocks:[28] },
+    { ec:26, blocks:[44] },
+    { ec:18, blocks:[32,32] },
+    { ec:24, blocks:[43,43] },
+    { ec:16, blocks:[27,27,27,27] },
+    { ec:18, blocks:[31,31,31,31] },
+    { ec:22, blocks:[38,38,39,39] },
+    { ec:22, blocks:[36,36,36,37,37] },
+    { ec:26, blocks:[43,43,43,43,44] },
+  ];
+  /* 各版本对齐图案中心坐标 */
+  const ALIGN = [ null, [], [6,18], [6,22], [6,26], [6,30], [6,34],
+    [6,22,38], [6,24,42], [6,26,46], [6,28,50] ];
+
+  /* --- GF(256) 对数/指数表，本原多项式 0x11D --- */
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  (() => { let x = 1;
+    for (let i = 0; i < 255; i++){ EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 0x100) x ^= 0x11D; }
+    for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255]; })();
+  const gmul = (a, b) => (a && b) ? EXP[LOG[a] + LOG[b]] : 0;
+
+  /* --- Reed-Solomon：生成多项式（高次在前），余式即纠错码字 --- */
+  function rsGen(deg){
+    let g = [1];
+    for (let i = 0; i < deg; i++){
+      const ng = new Array(g.length + 1).fill(0);
+      for (let j = 0; j < g.length; j++){ ng[j] ^= g[j]; ng[j + 1] ^= gmul(g[j], EXP[i]); }
+      g = ng;
+    }
+    return g;
+  }
+  function rsEC(data, g){
+    const res = new Array(g.length - 1).fill(0);
+    for (const d of data){
+      const f = d ^ res[0];
+      res.shift(); res.push(0);
+      if (f) for (let i = 0; i < res.length; i++) res[i] ^= gmul(g[i + 1], f);
+    }
+    return res;
+  }
+
+  /* --- 位流 --- */
+  function bitBuf(){
+    const b = [];
+    return {
+      push(val, n){ for (let i = n - 1; i >= 0; i--) b.push((val >>> i) & 1); },
+      bytes(){ const r = [];
+        for (let i = 0; i < b.length; i += 8){ let v = 0;
+          for (let j = 0; j < 8; j++) v = (v << 1) | (b[i + j] || 0); r.push(v); }
+        return r; },
+      get len(){ return b.length; }
+    };
+  }
+
+  /* --- 数据编码：byte mode → 码字流（含分块、RS、交错） --- */
+  function encodeBytes(bytes){
+    let v = 0;
+    for (let t = 1; t <= 10; t++){
+      const cap = VER[t].blocks.reduce((a, b) => a + b, 0) * 8;
+      if (4 + (t <= 9 ? 8 : 16) + bytes.length * 8 <= cap){ v = t; break; }
+    }
+    if (!v) return null;
+    const P = VER[v], totalData = P.blocks.reduce((a, b) => a + b, 0);
+    const bb = bitBuf();
+    bb.push(0x4, 4);                              // byte mode 标识
+    bb.push(bytes.length, v <= 9 ? 8 : 16);       // 长度字段（v1-9 八位，v10+ 十六位）
+    for (const d of bytes) bb.push(d, 8);
+    bb.push(0, Math.min(4, totalData * 8 - bb.len)); // 终止符
+    while (bb.len % 8) bb.push(0, 1);             // 对齐字节
+    const cw = bb.bytes();
+    for (let i = 0; cw.length < totalData; i++) cw.push(i % 2 ? 0x11 : 0xEC); // 填充
+    /* 分块 + 纠错 + 交错 */
+    const g = rsGen(P.ec), dBlks = [], eBlks = [];
+    let off = 0;
+    for (const sz of P.blocks){ const blk = cw.slice(off, off + sz); off += sz;
+      dBlks.push(blk); eBlks.push(rsEC(blk, g)); }
+    const out = [];
+    for (let i = 0, mx = Math.max(...P.blocks); i < mx; i++)
+      for (const b of dBlks) if (i < b.length) out.push(b[i]);
+    for (let i = 0; i < P.ec; i++) for (const b of eBlks) out.push(b[i]);
+    return { v, size: 17 + 4 * v, cw: out };
+  }
+
+  /* --- 格式信息：EC M(00) + mask(3 位) → BCH(15,5) → 异或 0x5412 --- */
+  function fmtBits(mask){
+    let rem = mask << 10;
+    for (let i = 14; i >= 10; i--) if ((rem >>> i) & 1) rem ^= 0x537 << (i - 10);
+    return ((mask << 10) | rem) ^ 0x5412;
+  }
+  /* --- 版本信息（v≥7）：BCH(18,6) --- */
+  function verBits(v){
+    let rem = v << 12;
+    for (let i = 17; i >= 12; i--) if ((rem >>> i) & 1) rem ^= 0x1F25 << (i - 12);
+    return (v << 12) | rem;
+  }
+  /* --- 掩码（固定用 0 号；八个都列出，换号即换掩码） --- */
+  const MASKS = [
+    (r, c) => (r + c) % 2 === 0,
+    (r, c) => r % 2 === 0,
+    (r, c) => c % 3 === 0,
+    (r, c) => (r + c) % 3 === 0,
+    (r, c) => (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0,
+    (r, c) => (r * c) % 2 + (r * c) % 3 === 0,
+    (r, c) => ((r * c) % 2 + (r * c) % 3) % 2 === 0,
+    (r, c) => ((r + c) % 2 + (r * c) % 3) % 2 === 0,
+  ];
+
+  function build(text, maskId){
+    maskId = maskId || 0;
+    const e = encodeBytes(new TextEncoder().encode(text));
+    if (!e) return null;
+    const n = e.size, v = e.v;
+    const m = Array.from({ length: n }, () => new Array(n).fill(0));
+    const fn = Array.from({ length: n }, () => new Array(n).fill(false)); // 功能区（不叠数据、不掩码）
+    const set = (r, c, val) => { m[r][c] = val; fn[r][c] = true; };
+
+    /* 定位图案 + 分隔带（8×8 外框含一圈浅分隔） */
+    const finder = (r0, c0) => {
+      for (let dr = -1; dr <= 7; dr++) for (let dc = -1; dc <= 7; dc++){
+        const r = r0 + dr, c = c0 + dc;
+        if (r < 0 || c < 0 || r >= n || c >= n) continue;
+        const inner = dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6 &&
+          (dr === 0 || dr === 6 || dc === 0 || dc === 6 || (dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4));
+        set(r, c, inner ? 1 : 0);
+      }
+    };
+    finder(0, 0); finder(0, n - 7); finder(n - 7, 0);
+
+    /* 对齐图案（先画，跳过与定位重叠的三处） */
+    for (const r of ALIGN[v]) for (const c of ALIGN[v]){
+      if (fn[r][c]) continue;
+      for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++)
+        set(r + dr, c + dc, Math.max(Math.abs(dr), Math.abs(dc)) !== 1 ? 1 : 0);
+    }
+    /* 时序图案 */
+    for (let i = 8; i < n - 8; i++){ set(6, i, i % 2 ? 0 : 1); set(i, 6, i % 2 ? 0 : 1); }
+
+    /* 格式信息 ×2 + 常暗模块 */
+    const fmt = fmtBits(maskId), fb = i => (fmt >>> i) & 1;
+    for (let i = 0; i <= 5; i++) set(i, 8, fb(i));
+    set(7, 8, fb(6)); set(8, 8, fb(7)); set(8, 7, fb(8));
+    for (let i = 9; i < 15; i++) set(8, 14 - i, fb(i));
+    for (let i = 0; i < 8; i++) set(8, n - 1 - i, fb(i));
+    for (let i = 8; i < 15; i++) set(n - 15 + i, 8, fb(i));
+    set(n - 8, 8, 1);
+
+    /* 版本信息（v≥7，两块 3×6） */
+    if (v >= 7){
+      const vb = verBits(v);
+      for (let i = 0; i < 18; i++){
+        const bit = (vb >>> i) & 1, a = n - 11 + (i % 3), b = Math.floor(i / 3);
+        set(b, a, bit); set(a, b, bit);
+      }
+    }
+
+    /* 数据位：右下角起，两列一组蛇形回填 */
+    const bits = [];
+    for (const cw of e.cw) for (let b = 7; b >= 0; b--) bits.push((cw >>> b) & 1);
+    let bi = 0, up = true;
+    for (let col = n - 1; col >= 1; col -= 2){
+      if (col === 6) col = 5;                     // 跳过时序列
+      for (let k = 0; k < n; k++){
+        const r = up ? n - 1 - k : k;
+        for (const c of [col, col - 1])
+          if (!fn[r][c]) m[r][c] = bi < bits.length ? bits[bi++] : 0;
+      }
+      up = !up;
+    }
+
+    /* 掩码：只翻数据区 */
+    const mf = MASKS[maskId];
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+      if (!fn[r][c] && mf(r, c)) m[r][c] ^= 1;
+    return { v, size: n, m, mask: maskId };
+  }
+
+  /* --- 画到 canvas：浅色底板（含 4 模块安静区）+ 深模块 --- */
+  function draw(canvas, text){
+    const q = build(text, 0);
+    if (!q) return false;
+    const scale = Math.max(2, Math.round(264 / (q.size + 8)));
+    const px = (q.size + 8) * scale;
+    canvas.width = canvas.height = px;
+    canvas.dataset.size = q.size; canvas.dataset.scale = scale; canvas.dataset.ver = q.v;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#f5f2ec'; ctx.fillRect(0, 0, px, px);
+    ctx.fillStyle = '#141318';
+    for (let r = 0; r < q.size; r++) for (let c = 0; c < q.size; c++)
+      if (q.m[r][c]) ctx.fillRect((c + 4) * scale, (r + 4) * scale, scale, scale);
+    return true;
+  }
+
+  return { build, draw };
+})();
+
+/* ---------- 页面接线 ---------- */
+const qrIn = document.getElementById('qr-in');
+const qrCv = document.getElementById('qr-cv');
+const qrInfo = document.getElementById('qr-info');
+const qrErr = document.getElementById('qr-err');
+function regen(){
+  if (QR.draw(qrCv, qrIn.value)){
+    qrErr.textContent = '';
+    qrInfo.textContent = 'version ' + qrCv.dataset.ver + ' · ' + qrCv.dataset.size + '×' +
+      qrCv.dataset.size + ' · mask 0 · EC-M · ' + qrCv.width + 'px';
+  } else {
+    qrErr.textContent = '太长了。链接再短点，宇宙装不下。';
+    qrInfo.textContent = '';
+  }
+}
+qrIn.addEventListener('input', regen);
+regen();
+</script>
+</body>
+</html>
