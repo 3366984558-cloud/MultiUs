@@ -1150,9 +1150,9 @@ const EVENTS = [
       s.stress -= 10*skill; s.communication += 6*skill; s.trust += 4*skill; s.affection += 3*skill; s._ok = skill >= 1; },
     text: (A,B,r,s) => (s && s._ok === false ? `本来打算聊开的。结果看了一晚上剧。那件事，继续埋在地板下面。` : `凌晨三点，厨房灯亮着，那场躲了好几个星期的谈话。接住了。`) },
   { id:'proposal', w:0.5, min:400, key:true,
-    cond: (s) => s.commitment > 68 && s.trust > 48 && !s.proposed,
+    cond: (s) => s.commitment > 74 && s.trust > 54 && !s.proposed,
     apply: (s,T,r) => { s.proposed = true;
-      if(s.stress < 60 && s.affection > 52){ s.marryPending = 40 + r()*120; s.commitment = 95; s._ok = true; }
+      if(s.stress < 50 && s.affection > 60){ s.marryPending = 40 + r()*120; s.commitment = 95; s._ok = true; }
       else { s.trust -= 14; s.stress += 16; s.communication -= 8; s.commitment -= 10; s._ok = false; } },
     text: (A,B,r,s) => (s && s._ok === false ? `戒指在错的时间拿了出来。答案在空气里悬得太久。有些话，收不回去。` : `那句话问出了口。回答没有一丝犹豫。`) },
   { id:'adopt_pet', w:0.5, min:100,
@@ -1691,13 +1691,18 @@ function simulateWorld(seed, T, keepLog, ban){
     const avd = (T.a.conflict_style==='avoid'?1:0) + (T.b.conflict_style==='avoid'?1:0);
     const avoA = (T.a.attachment==='avoidant'?1:0) + (T.b.attachment==='avoidant'?1:0);
     const cg = Math.abs(T.a.career_priority - T.b.career_priority);
-    const sFloor = 20 + anx*4 + avd*3 + avoA*6; /* chronic tension has a floor */
+    const con = (T.a.conflict_style==='confront'?1:0) + (T.b.conflict_style==='confront'?1:0);
+    const sFloor = 20 + anx*4 + avd*3 + avoA*6 + con*8; /* chronic tension has a floor */
+    const commTarget = 55 - avoA*7 - avd*3;   /* 回避的人，话会越来越少 */
     s.stress += (sFloor - s.stress) * 0.026 * (s.communication/60) * (avd? 0.55 : 1) * (avoA? 0.75 : 1);
-    s.affection += (s.trust*0.85 - s.affection) * 0.006 + (r()-0.5)*(2 + anx*1.6);
+    s.affection += (s.trust*0.85 - s.affection) * 0.006 + (r()-0.5)*(2 + anx*2.6);
     s.trust += s.communication > 58 ? 0.08 : -0.10;
     s.commitment += (s.affection > 60 ? 0.12 : -0.06) * (1 + day/900);
-    s.communication += (55 - s.communication) * 0.004;
-    if(anx && s.communication < 45) s.stress += 0.35;
+    s.communication += (commTarget - s.communication) * 0.004;
+    if(anx && s.communication < 45) s.stress += 0.5;
+    if(s.stress > 65) s.commitment -= 0.1;   /* 长期高压，承诺会耗 */
+    if(con && r() < 0.018){ s.stress += 3 + 2*con; s.communication -= 1.5; }   /* 突然的火气 */
+    if(avd && s.stress > 55) s.communication -= 0.18*avd;   /* 回避型在压力下沉默 */
     if(s.ld){ s.ldDay += TICK; s.stress += 0.22; s.affection -= 0.04;
       if(r() < (0.02 + Math.max(0, s.communication - 45)/500) * (cg > 0.5 ? 0.5 : 1)){
         s.ld = false; s.communication += 4;
@@ -1739,9 +1744,9 @@ function simulateWorld(seed, T, keepLog, ban){
       s[k] = Math.max(0, Math.min(100, s[k]));
 
     /* endings */
-    coldDays = s.stress > 76 ? coldDays + TICK : 0;
-    if(s.trust < 16 || s.affection < 10 || (s.stress > 82 && s.trust < 30)){ outcome = 'breakup'; endDay = day; break; }
-    if(coldDays > 140){ outcome = 'cold_war'; endDay = day; break; }
+    coldDays = (s.communication < 38 || s.stress > 70) ? coldDays + TICK : 0;   /* 冷战是沉默攒出来的，不是火气 */
+    if(s.trust < 16 || s.affection < 10 || (s.stress > 78 && s.trust < 38)){ outcome = 'breakup'; endDay = day; break; }
+    if(coldDays > 220){ outcome = 'cold_war'; endDay = day; break; }
     if(s.ld && s.ldDay > 360){ outcome = 'long_distance'; endDay = day; break; }
 
     if(day % 10 === 0) traj.push(health(s));
@@ -1749,8 +1754,8 @@ function simulateWorld(seed, T, keepLog, ban){
 
   if(!outcome){
     /* even the best worlds carry irreducible randomness — nobody is promised */
-    if(s.commitment > 70 && s.trust > 50 && s.stress < 64 && !s.postponed && r() < 0.85) outcome = 'marriage';
-    else if(s.stress > 78) outcome = 'cold_war';
+    if(s.commitment > 75 && s.trust > 55 && s.stress < 55 && !s.postponed && r() < 0.7) outcome = 'marriage';
+    else if(s.stress > 78 || s.communication < 36) outcome = 'cold_war';
     else if(s.ld) outcome = 'long_distance';
     else outcome = 'still_dating';
     endDay = DAYS;
