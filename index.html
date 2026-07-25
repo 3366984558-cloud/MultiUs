@@ -100,18 +100,22 @@ body{font-weight:300;-webkit-font-smoothing:antialiased;font-synthesis:none}
 .field label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
 .field label output{color:var(--cyan);letter-spacing:.1em}
 
-/* ---------- 填空式叙事输入 ---------- */
-.story{width:min(760px,92vw);margin:8vh auto 0;text-align:center}
-.story-guide{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--dim);line-height:2.1;max-width:540px;margin:0 auto 34px}
-.story-line{font-family:var(--serif);font-size:clamp(19px,2.6vw,27px);line-height:2.1;color:var(--ink);margin:0}
-.blank{display:inline-block;min-width:72px;padding:0 10px;margin:0 2px;border-bottom:1px dashed var(--dim);color:var(--gold);cursor:pointer;min-height:44px;line-height:44px;vertical-align:middle;transition:border-color .3s,color .3s}
-.blank.filled{color:var(--cyan);border-bottom-style:solid;border-bottom-color:var(--faint)}
-.chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:28px}
-.chip{font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--dim);border:1px solid var(--faint);background:rgba(255,255,255,.02);padding:12px 16px;min-height:44px;border-radius:999px;cursor:pointer;transition:color .25s,border-color .25s}
+/* ---------- MBTI 人格型号选择器 ---------- */
+.mbti-grid{display:flex;flex-wrap:wrap;gap:8px}
+.mbti-btn{flex:1 1 calc(25% - 8px);min-width:52px;min-height:44px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;background:rgba(255,255,255,.02);border:1px solid var(--faint);color:var(--dim);cursor:pointer;transition:color .25s,border-color .25s,background .25s}
+.mbti-btn[data-g="nt"]{color:#8fb6c9}
+.mbti-btn[data-g="nf"]{color:#c98fae}
+.mbti-btn[data-g="sj"]{color:#c9b48f}
+.mbti-btn[data-g="sp"]{color:#b3a1d8}
+.mbti-btn.sel{background:var(--ink);border-color:var(--ink);color:#0a0a10}
+.mbti-btn.mbti-unknown{flex:1 1 100%;border-style:dashed;color:var(--faint);font-size:11px}
+.mbti-tag{min-height:30px;margin-top:12px;font-family:var(--serif);font-style:italic;font-size:14px;line-height:1.7;color:var(--gold)}
+.mbti-guide{width:min(760px,92vw);margin:8vh auto 0;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--dim);line-height:2.1}
+.mbti-note{margin-top:10px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--faint);line-height:1.9}
 .adv-toggle{margin-top:7vh;background:none;border:none;border-bottom:1px dashed var(--faint);color:var(--faint);font-family:var(--mono);font-size:10px;letter-spacing:.3em;text-transform:uppercase;cursor:pointer;padding:10px 4px;min-height:44px;transition:color .3s}
 @media (hover:hover){
-  .blank:hover{border-bottom-color:var(--gold)}
-  .chip:hover{color:var(--ink);border-color:var(--dim)}
+  .mbti-btn:hover{border-color:var(--dim);color:var(--ink)}
+  .mbti-btn.sel:hover{background:var(--ink);color:#0a0a10}
   .adv-toggle:hover{color:var(--dim)}
 }
 #adv-panel{display:none;width:min(1060px,92vw);margin:26px auto 0;text-align:left}
@@ -127,8 +131,6 @@ body{font-weight:300;-webkit-font-smoothing:antialiased;font-synthesis:none}
 .btn.small{padding:10px 18px;font-size:11px;min-height:44px}
 .res-verdict{max-width:620px;margin:36px auto 0;font-family:var(--serif);font-style:italic;font-size:clamp(15px,1.9vw,19px);line-height:2;color:var(--dim)}
 .res-verdict b{color:var(--ink);font-weight:400}
-.res-echo{max-width:560px;margin:18px auto 0;font-family:var(--serif);font-style:italic;font-size:clamp(13px,1.6vw,16px);line-height:2;color:var(--faint)}
-.res-echo q{color:var(--dim);quotes:'「' '」'}
 .res-tone{max-width:560px;margin:24px auto 0;font-family:var(--serif);font-style:italic;font-size:clamp(16px,2vw,20px);line-height:1.9}
 .res-tone.warm{color:var(--gold)}
 .res-tone.neutral{color:var(--dim)}
@@ -565,6 +567,9 @@ body.nerd-on .cf-btn{display:inline-block}
       <div class="field"><label>捏个分身</label>
         <div class="hair-pick" id="hair-pick-a"></div></div>
       <input type="hidden" id="hair-a" value="char_oscar">
+      <div class="field"><label>TA 的人格型号</label>
+        <div class="mbti-grid" id="mbti-grid-a"></div>
+        <div class="mbti-tag" id="mbti-tag-a"></div></div>
       <div class="field"><label>TA 说过的话（选填）</label>
         <textarea id="chat-a" placeholder="贴几句你们的聊天记录。只影响分身的语气，不影响计算。"></textarea></div>
     </div>
@@ -575,16 +580,15 @@ body.nerd-on .cf-btn{display:inline-block}
       <div class="field"><label>捏个分身</label>
         <div class="hair-pick" id="hair-pick-b"></div></div>
       <input type="hidden" id="hair-b" value="char_mira">
+      <div class="field"><label>TA 的人格型号</label>
+        <div class="mbti-grid" id="mbti-grid-b"></div>
+        <div class="mbti-tag" id="mbti-tag-b"></div></div>
       <div class="field"><label>TA 说过的话（选填）</label>
         <textarea id="chat-b" placeholder=""></textarea></div>
     </div>
   </div>
 
-  <div class="story" id="story">
-    <div class="story-guide">心理学量表测不出爱情。我们测的是故事——用你记得的方式，讲一下你们吵架的样子。剩下的事，交给一万个宇宙。</div>
-    <p class="story-line">还记得你们上次吵架吗？因为 <span class="blank" data-blank="reason" onclick="openBlank('reason')">＿＿＿</span>。后来 <span class="blank" data-blank="opener" onclick="openBlank('opener')">＿＿＿</span> 先开了口，说了句「<span class="blank" data-blank="said" onclick="openBlank('said')">＿＿＿</span>」。那一刻，你心里想的是 <span class="blank" data-blank="felt" onclick="openBlank('felt')">＿＿＿</span>。</p>
-    <div class="chips" id="chips" style="display:none"></div>
-  </div>
+  <div class="mbti-guide">MBTI 测不准灵魂，但能测准吵架风格。</div>
   <div style="text-align:center"><button class="adv-toggle" id="adv-toggle" onclick="toggleAdv()">我懂心理学，直接调参数</button></div>
   <div id="adv-panel">
     <div class="adv-col"><div class="adv-who">第一个人 · 参数</div>
@@ -642,6 +646,7 @@ body.nerd-on .cf-btn{display:inline-block}
   <div class="twins-actions">
     <button class="btn primary" id="btn-generate" onclick="generateTwins()">生成数字分身</button><button class="btn" id="btn-dice" onclick="diceHair(this)">🎲 随机一对</button>
     <div class="hint">放心，什么都不上传。他们只在这个浏览器里活这一遭。</div>
+    <div class="mbti-note">MBTI 映射基于刻板印象，娱乐向。参数面板里都能手调——MBTI 只是起点，你更懂 TA。</div>
   </div>
 </section>
 
@@ -691,7 +696,6 @@ body.nerd-on .cf-btn{display:inline-block}
       <button class="btn small" id="btn-recalc" style="display:none" onclick="recalcNames()">重新算</button>
     </div>
     <div class="res-verdict" id="res-verdict"></div>
-    <div class="res-echo" id="res-echo"></div>
   </div>
   <div class="out-headline" id="out-headline"></div>
   <div class="res-tone" id="res-tone"></div>
@@ -967,7 +971,6 @@ function twinJSON(t){
 }
 
 function generateTwins(){
-  storyAutoFill();
   Twins.a = readTwin('a'); Twins.b = readTwin('b');
   go('scene-twinjson');
   document.getElementById('jhead-a').textContent = '分身 A · ' + Twins.a.name.toUpperCase();
@@ -2816,7 +2819,6 @@ function renderResults(){
 
   syncNameBar(A, B);
   renderVerdict();
-  renderEcho();
   renderTone(top);
   maybeNameToast(top);
   document.getElementById('res-headline').innerHTML =
@@ -5608,108 +5610,96 @@ function copyLink(btn){
 }
 
 
-/* ================================================================
-   填空式叙事输入 — 心理学量表测不出爱情，故事可以
-   四个空写进原有控件（滑杆/下拉原样保留在「直接调参数」里），
-   readTwin 不用改。没填的空，生成时随机补一个。
-   ================================================================ */
-const STORY_OPTS = {
-  reason: [
-    { t:'外卖到底点什么', m:{ money:['spend','spend'] } },
-    { t:'钱。就是钱', m:{ money:['save','spend'] } },
-    { t:'TA 忘了纪念日', m:{ money:['spend','save'] } },
-    { t:'谁洗碗', m:{ money:['save','save'] } },
-    { t:'手机。永远在看手机', m:{ money:['spend','save'] } },
-    { t:'过年回谁家', m:{ money:['save','save'] } },
-    { t:'已经谁都不记得了', m:{ money:['?','?'] } },
-  ],
-  opener: [
-    { t:'TA', m:{ attach:['anxious','secure'] } },
-    { t:'我', m:{ attach:['secure','anxious'] } },
-    { t:'没人。就那么冷着', m:{ attach:['avoidant','avoidant'] } },
-    { t:'同时。消息撞在一起', m:{ attach:['secure','secure'] } },
-    { t:'猫踩了键盘，发来一串乱码', m:{ attach:['anxious','avoidant'] } },
-    { t:'外卖小哥敲门，才说了第一句话', m:{ attach:['avoidant','anxious'] } },
-  ],
-  said: [
-    { t:'我错了（其实心里不服）', m:{ said:['repair','repair'] } },
-    { t:'你吃了吗', m:{ said:['repair','avoid'] } },
-    { t:'你还生气吗', m:{ said:['confront','confront'] } },
-    { t:'我们谈谈。现在', m:{ said:['confront','repair'] } },
-    { t:'一张表情包，什么字都没有', m:{ said:['avoid','avoid'] } },
-    { t:'……（沉默也算开口）', m:{ said:['avoid','avoid'] } },
-  ],
-  felt: [
-    { t:'这事过不去了', m:{ open:25, career:50, family:55 } },
-    { t:'其实我也有问题', m:{ open:85, career:50, family:65 } },
-    { t:'算了，懒得吵', m:{ open:55, career:65, family:45 } },
-    { t:'想笑，想起刚认识的时候', m:{ open:90, career:40, family:80 } },
-    { t:'明天还要上班，先睡吧', m:{ open:50, career:85, family:35 } },
-    { t:'这日子到底还过不过了', m:{ open:35, career:45, family:70 } },
-  ],
-};
-const STORY = { reason:null, opener:null, said:null, felt:null };
-let curBlank = null;
-
-function openBlank(which){
-  const box = document.getElementById('chips');
-  if(curBlank === which && box.style.display !== 'none'){
-    box.style.display = 'none'; curBlank = null; return;
-  }
-  curBlank = which;
-  box.style.display = 'flex';
-  box.innerHTML = STORY_OPTS[which].map((o,i) =>
-    `<button type="button" class="chip" onclick="pickChip(${i})">${o.t}</button>`).join('');
-}
-function pickChip(i){
-  if(!curBlank) return;   /* 收起状态下残留的 chip 被点到，直接忽略 */
-  const o = STORY_OPTS[curBlank][i];
-  STORY[curBlank] = o;
-  const el = document.querySelector(`.blank[data-blank="${curBlank}"]`);
-  el.textContent = o.t; el.classList.add('filled');
-  applyStory();
-  /* 自动进下一空；都填完就收 */
-  const next = ['reason','opener','said','felt'].find(k => !STORY[k]);
-  if(next) openBlank(next);
-  else { document.getElementById('chips').style.display = 'none'; curBlank = null; }
-}
 function setCtl(id, v){
   const el = document.getElementById(id);
   if(el){ el.value = v; el.dispatchEvent(new Event('input')); }
 }
-function applyStory(){
-  ['a','b'].forEach((s, idx) => {
-    if(STORY.reason){
-      let mv = STORY.reason.m.money[idx];
-      if(mv === '?') mv = Math.random() < .5 ? 'save' : 'spend';
-      setCtl(`money-${s}`, mv);
-    }
-    if(STORY.opener) setCtl(`attach-${s}`, STORY.opener.m.attach[idx]);
-    if(STORY.said) setCtl(`conflict-${s}`, STORY.said.m.said[idx]);
-    if(STORY.felt){
-      const f = STORY.felt.m, j = idx === 0 ? 0 : -6;
-      setCtl(`openness-${s}`, Math.max(0, Math.min(100, f.open + j)));
-      setCtl(`career-${s}`, Math.max(0, Math.min(100, f.career + j)));
-      setCtl(`family-${s}`, Math.max(0, Math.min(100, f.family + j)));
+/* ================================================================
+   MBTI 人格型号 → 参数映射 — 刻板印象娱乐向
+   选型只负责把映射值（含抖动）写进控件；控件仍是唯一事实源。
+   ================================================================ */
+const MBTI_MAP = {
+  INTJ:{o:[75,10],c:[80,10],f:[40,15],conflict:'confront',attach:'avoidant',money:'save'},
+  INTP:{o:[85,10],c:[60,15],f:[30,15],conflict:'avoid',attach:'avoidant',money:'save'},
+  ENTJ:{o:[70,10],c:[90,5],f:[45,15],conflict:'confront',attach:'secure',money:'spend'},
+  ENTP:{o:[90,8],c:[65,15],f:[35,15],conflict:'repair',attach:'secure',money:'spend'},
+  INFJ:{o:[80,10],c:[55,15],f:[70,10],conflict:'avoid',attach:'anxious',money:'save'},
+  INFP:{o:[88,8],c:[45,15],f:[65,12],conflict:'avoid',attach:'anxious',money:'save'},
+  ENFJ:{o:[75,10],c:[60,12],f:[80,8],conflict:'repair',attach:'anxious',money:'spend'},
+  ENFP:{o:[92,6],c:[50,15],f:[60,15],conflict:'repair',attach:'secure',money:'spend'},
+  ISTJ:{o:[40,12],c:[75,10],f:[80,10],conflict:'confront',attach:'secure',money:'save'},
+  ISFJ:{o:[45,12],c:[55,12],f:[90,5],conflict:'avoid',attach:'anxious',money:'save'},
+  ESTJ:{o:[35,10],c:[85,8],f:[75,10],conflict:'confront',attach:'secure',money:'save'},
+  ESFJ:{o:[50,12],c:[50,15],f:[88,8],conflict:'repair',attach:'anxious',money:'spend'},
+  ISTP:{o:[60,15],c:[70,15],f:[35,15],conflict:'avoid',attach:'avoidant',money:'spend'},
+  ISFP:{o:[70,12],c:[40,15],f:[55,15],conflict:'avoid',attach:'secure',money:'spend'},
+  ESTP:{o:[65,12],c:[75,12],f:[40,15],conflict:'confront',attach:'avoidant',money:'spend'},
+  ESFP:{o:[68,12],c:[45,15],f:[50,15],conflict:'repair',attach:'secure',money:'spend'},
+};
+const MBTI_ORDER = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
+const MBTI_TAGS = {
+  INTJ:'理性人设，吵架数据库', INTP:'沉默是今晚的冷战',
+  ENTJ:'吵赢比和好重要', ENTP:'抬杠是一种调情',
+  INFJ:'替你想了 800 种可能', INFP:'玻璃心，但记性好',
+  ENFJ:'氛围组组长（焦虑型）', ENFP:'3 分钟吵架 30 秒和好',
+  ISTJ:'说好的就是说好的', ISFJ:'默默记住你爱吃什么',
+  ESTJ:'家庭 CEO，不接受反驳', ESFJ:'你不说我怎么知道（急哭）',
+  ISTP:'需要一个人待会儿', ISFP:'不吵，但会消失几天',
+  ESTP:'说完就忘，真的忘了', ESFP:'快乐小狗，哄哄就好',
+};
+const MBTI_SEL = { a:null, b:null };
+function mbtiGroup(t){ return t[1] === 'N' ? (t[2] === 'T' ? 'nt' : 'nf') : (t[3] === 'J' ? 'sj' : 'sp'); }
+function buildMBTI(){
+  ['a','b'].forEach(s => {
+    const g = document.getElementById('mbti-grid-' + s);
+    g.innerHTML = MBTI_ORDER.map(t =>
+      `<button type="button" class="mbti-btn" data-g="${mbtiGroup(t)}" data-t="${t}" onclick="pickMBTI('${s}','${t}')">${t}</button>`
+    ).join('') +
+    `<button type="button" class="mbti-btn mbti-unknown" onclick="rollMBTI('${s}')">TA 没测过 / 我不记得了</button>`;
+    if(matchMedia('(hover:hover)').matches){
+      g.querySelectorAll('.mbti-btn[data-t]').forEach(b => {
+        b.addEventListener('mouseenter', () => mbtiPreview(s, b.dataset.t));
+        b.addEventListener('mouseleave', () => mbtiPreview(s, null));
+      });
     }
   });
 }
-function storyAutoFill(){
-  ['reason','opener','said','felt'].forEach(k => {
-    if(STORY[k]) return;
-    const pool = STORY_OPTS[k];
-    const o = pool[Math.floor(Math.random() * pool.length)];
-    STORY[k] = o;
-    const el = document.querySelector(`.blank[data-blank="${k}"]`);
-    if(el){ el.textContent = o.t; el.classList.add('filled'); }
-  });
-  applyStory();
+function mbtiJit(pair){ const base = pair[0], j = pair[1];
+  return Math.max(0, Math.min(100, base - j + Math.floor(Math.random() * (2*j + 1)))); }
+function applyMBTI(s, t, prefix){
+  const m = MBTI_MAP[t];
+  setCtl(`openness-${s}`, mbtiJit(m.o));
+  setCtl(`career-${s}`, mbtiJit(m.c));
+  setCtl(`family-${s}`, mbtiJit(m.f));
+  setCtl(`conflict-${s}`, m.conflict);
+  setCtl(`attach-${s}`, m.attach);
+  setCtl(`money-${s}`, m.money);
+  MBTI_SEL[s] = t;
+  document.querySelectorAll(`#mbti-grid-${s} .mbti-btn[data-t]`).forEach(b =>
+    b.classList.toggle('sel', b.dataset.t === t));
+  const tag = document.getElementById(`mbti-tag-${s}`);
+  tag.dataset.tag = (prefix || '') + MBTI_TAGS[t];
+  tag.textContent = tag.dataset.tag;
 }
+function pickMBTI(s, t){ applyMBTI(s, t, ''); }
+function rollMBTI(s){
+  const pool = [];
+  MBTI_ORDER.forEach(t => {
+    const w = (t === 'INFP' || t === 'ENFP' || t === 'INTJ') ? 12 : 10;
+    for(let i = 0; i < w; i++) pool.push(t);
+  });
+  applyMBTI(s, pool[Math.floor(Math.random() * pool.length)], '宇宙抽的：');
+}
+function mbtiPreview(s, t){
+  const tag = document.getElementById(`mbti-tag-${s}`);
+  tag.textContent = t ? MBTI_TAGS[t] : (tag.dataset.tag || '');
+}
+buildMBTI();
 function toggleAdv(){
   const p = document.getElementById('adv-panel');
   const on = p.classList.toggle('on');
   document.getElementById('adv-toggle').textContent =
-    on ? '收起参数，回去讲故事' : '我懂心理学，直接调参数';
+    on ? '收起参数' : '我懂心理学，直接调参数';
 }
 
 /* ---------- 揭盅：宇宙批注（按吵架风格 a×b 组合说人话，星座运势语气，不是诊断书） ---------- */
@@ -5735,18 +5725,6 @@ function renderVerdict(){
   const punch = pool[h32(key + '|verdict|' + runSalt) % pool.length];
   document.getElementById('res-verdict').innerHTML =
     `宇宙批注 · 你们吵架的模式：<b>${la} × ${lb}</b>。${punch}`;
-}
-
-/* 原话复读：填空写下的那句「说了什么」，在结果页安静复读一次 */
-function renderEcho(){
-  const el = document.getElementById('res-echo');
-  if(!el) return;
-  const q = (typeof STORY !== 'undefined') && STORY.said && STORY.said.t;
-  if(!q || !SIM || !SIM.stats){ el.textContent = ''; el.style.display = 'none'; return; }
-  const silent = (SIM.stats.cold_war || 0) + (SIM.stats.breakup || 0);
-  if(silent < 100){ el.style.display = 'none'; return; }
-  el.style.display = 'block';
-  el.innerHTML = `<q>${q}</q> ——这句话，在 ${silent.toLocaleString()} 个宇宙里，没人说出口。`;
 }
 
 /* ---------- 温度文案：幽默的对象是宇宙，不是用户；坏结果只给温柔 ---------- */
