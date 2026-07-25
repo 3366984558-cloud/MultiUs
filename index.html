@@ -111,6 +111,7 @@ body{font-weight:300;-webkit-font-smoothing:antialiased;font-synthesis:none}
 .mbti-btn.mbti-unknown{flex:1 1 100%;border-style:dashed;color:var(--faint);font-size:11px}
 .mbti-tag{min-height:30px;margin-top:12px;font-family:var(--serif);font-style:italic;font-size:14px;line-height:1.7;color:var(--gold)}
 .mbti-guide{width:min(760px,92vw);margin:8vh auto 0;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--dim);line-height:2.1}
+.mbti-guide-sub{margin-top:12px;color:var(--faint)}
 .mbti-note{margin-top:10px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--faint);line-height:1.9}
 .adv-toggle{margin-top:7vh;background:none;border:none;border-bottom:1px dashed var(--faint);color:var(--faint);font-family:var(--mono);font-size:10px;letter-spacing:.3em;text-transform:uppercase;cursor:pointer;padding:10px 4px;min-height:44px;transition:color .3s}
 @media (hover:hover){
@@ -589,6 +590,7 @@ body.nerd-on .cf-btn{display:inline-block}
   </div>
 
   <div class="mbti-guide">MBTI 测不准灵魂，但能测准吵架风格。</div>
+  <div class="mbti-guide mbti-guide-sub">类型仅作角色预设，不代表真实人格或关系预测。</div>
   <div style="text-align:center"><button class="adv-toggle" id="adv-toggle" onclick="toggleAdv()">我懂心理学，直接调参数</button></div>
   <div id="adv-panel">
     <div class="adv-col"><div class="adv-who">第一个人 · 参数</div>
@@ -5617,24 +5619,26 @@ function setCtl(id, v){
 /* ================================================================
    MBTI 人格型号 → 参数映射 — 刻板印象娱乐向
    选型只负责把映射值（含抖动）写进控件；控件仍是唯一事实源。
+   attach/money 为加权分布：原表定值作主选项（权重 0.6-0.8），余量摊给
+   刻板印象说得通的次选项——避免双 secure 必婚、双 avoidant 必冷战。
    ================================================================ */
 const MBTI_MAP = {
-  INTJ:{o:[75,10],c:[80,10],f:[40,15],conflict:'confront',attach:'avoidant',money:'save'},
-  INTP:{o:[85,10],c:[60,15],f:[30,15],conflict:'avoid',attach:'avoidant',money:'save'},
-  ENTJ:{o:[70,10],c:[90,5],f:[45,15],conflict:'confront',attach:'secure',money:'spend'},
-  ENTP:{o:[90,8],c:[65,15],f:[35,15],conflict:'repair',attach:'secure',money:'spend'},
-  INFJ:{o:[80,10],c:[55,15],f:[70,10],conflict:'avoid',attach:'anxious',money:'save'},
-  INFP:{o:[88,8],c:[45,15],f:[65,12],conflict:'avoid',attach:'anxious',money:'save'},
-  ENFJ:{o:[75,10],c:[60,12],f:[80,8],conflict:'repair',attach:'anxious',money:'spend'},
-  ENFP:{o:[92,6],c:[50,15],f:[60,15],conflict:'repair',attach:'secure',money:'spend'},
-  ISTJ:{o:[40,12],c:[75,10],f:[80,10],conflict:'confront',attach:'secure',money:'save'},
-  ISFJ:{o:[45,12],c:[55,12],f:[90,5],conflict:'avoid',attach:'anxious',money:'save'},
-  ESTJ:{o:[35,10],c:[85,8],f:[75,10],conflict:'confront',attach:'secure',money:'save'},
-  ESFJ:{o:[50,12],c:[50,15],f:[88,8],conflict:'repair',attach:'anxious',money:'spend'},
-  ISTP:{o:[60,15],c:[70,15],f:[35,15],conflict:'avoid',attach:'avoidant',money:'spend'},
-  ISFP:{o:[70,12],c:[40,15],f:[55,15],conflict:'avoid',attach:'secure',money:'spend'},
-  ESTP:{o:[65,12],c:[75,12],f:[40,15],conflict:'confront',attach:'avoidant',money:'spend'},
-  ESFP:{o:[68,12],c:[45,15],f:[50,15],conflict:'repair',attach:'secure',money:'spend'},
+  INTJ:{o:[75,10],c:[80,10],f:[40,15],conflict:'confront',attach:{avoidant:.7,secure:.2,anxious:.1},money:{save:.8,spend:.2}},
+  INTP:{o:[85,10],c:[60,15],f:[30,15],conflict:'avoid',attach:{avoidant:.7,anxious:.2,secure:.1},money:{save:.7,spend:.3}},
+  ENTJ:{o:[70,10],c:[90,5],f:[45,15],conflict:'confront',attach:{secure:.7,avoidant:.2,anxious:.1},money:{spend:.7,save:.3}},
+  ENTP:{o:[90,8],c:[65,15],f:[35,15],conflict:'repair',attach:{secure:.6,avoidant:.3,anxious:.1},money:{spend:.8,save:.2}},
+  INFJ:{o:[80,10],c:[55,15],f:[70,10],conflict:'avoid',attach:{anxious:.6,secure:.3,avoidant:.1},money:{save:.8,spend:.2}},
+  INFP:{o:[88,8],c:[45,15],f:[65,12],conflict:'avoid',attach:{anxious:.6,secure:.2,avoidant:.2},money:{save:.6,spend:.4}},
+  ENFJ:{o:[75,10],c:[60,12],f:[80,8],conflict:'repair',attach:{anxious:.6,secure:.4},money:{spend:.7,save:.3}},
+  ENFP:{o:[92,6],c:[50,15],f:[60,15],conflict:'repair',attach:{secure:.6,anxious:.3,avoidant:.1},money:{spend:.8,save:.2}},
+  ISTJ:{o:[40,12],c:[75,10],f:[80,10],conflict:'confront',attach:{secure:.7,avoidant:.2,anxious:.1},money:{save:.8,spend:.2}},
+  ISFJ:{o:[45,12],c:[55,12],f:[90,5],conflict:'avoid',attach:{anxious:.6,secure:.3,avoidant:.1},money:{save:.8,spend:.2}},
+  ESTJ:{o:[35,10],c:[85,8],f:[75,10],conflict:'confront',attach:{secure:.7,anxious:.2,avoidant:.1},money:{save:.8,spend:.2}},
+  ESFJ:{o:[50,12],c:[50,15],f:[88,8],conflict:'repair',attach:{anxious:.6,secure:.4},money:{spend:.7,save:.3}},
+  ISTP:{o:[60,15],c:[70,15],f:[35,15],conflict:'avoid',attach:{avoidant:.7,secure:.2,anxious:.1},money:{spend:.7,save:.3}},
+  ISFP:{o:[70,12],c:[40,15],f:[55,15],conflict:'avoid',attach:{secure:.6,avoidant:.3,anxious:.1},money:{spend:.7,save:.3}},
+  ESTP:{o:[65,12],c:[75,12],f:[40,15],conflict:'confront',attach:{avoidant:.6,secure:.3,anxious:.1},money:{spend:.8,save:.2}},
+  ESFP:{o:[68,12],c:[45,15],f:[50,15],conflict:'repair',attach:{secure:.6,anxious:.3,avoidant:.1},money:{spend:.7,save:.3}},
 };
 const MBTI_ORDER = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
 const MBTI_TAGS = {
@@ -5666,14 +5670,17 @@ function buildMBTI(){
 }
 function mbtiJit(pair){ const base = pair[0], j = pair[1];
   return Math.max(0, Math.min(100, base - j + Math.floor(Math.random() * (2*j + 1)))); }
+function mbtiPick(dist){ let r = Math.random();
+  for(const k in dist){ r -= dist[k]; if(r <= 0) return k; }
+  return Object.keys(dist)[0]; }
 function applyMBTI(s, t, prefix){
   const m = MBTI_MAP[t];
   setCtl(`openness-${s}`, mbtiJit(m.o));
   setCtl(`career-${s}`, mbtiJit(m.c));
   setCtl(`family-${s}`, mbtiJit(m.f));
   setCtl(`conflict-${s}`, m.conflict);
-  setCtl(`attach-${s}`, m.attach);
-  setCtl(`money-${s}`, m.money);
+  setCtl(`attach-${s}`, mbtiPick(m.attach));
+  setCtl(`money-${s}`, mbtiPick(m.money));
   MBTI_SEL[s] = t;
   document.querySelectorAll(`#mbti-grid-${s} .mbti-btn[data-t]`).forEach(b =>
     b.classList.toggle('sel', b.dataset.t === t));
