@@ -147,6 +147,25 @@ textarea{width:100%;background:transparent;border:1px dashed var(--faint);color:
 textarea:focus{border-color:var(--dim);color:var(--ink)}
 .twins-actions{text-align:center;margin:5vh 0 8vh}
 .twins-actions .hint{font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase;margin-top:16px}
+/* ---------- 捏分身：发型选择器 ---------- */
+.hair-pick{display:flex;flex-wrap:wrap;gap:10px}
+.hair-btn{position:relative;width:44px;height:44px;min-width:44px;min-height:44px;padding:3px;border-radius:50%;
+  border:1px solid var(--faint);background:rgba(255,255,255,.02);cursor:pointer;
+  transition:border-color .3s,box-shadow .3s,transform .3s}
+.hair-btn img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.hair-btn .hair-nm{position:absolute;left:50%;bottom:-15px;transform:translateX(-50%);z-index:2;
+  font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--dim);white-space:nowrap;
+  background:var(--bg);padding:2px 6px;border-radius:4px;opacity:0;transition:opacity .3s;pointer-events:none}
+.hair-btn.sel{border-color:var(--pink);box-shadow:0 0 10px rgba(255,61,138,.45)}
+.hair-btn.sel .hair-nm{opacity:1}
+.hair-btn.pop{animation:hairPop .5s}
+@keyframes hairPop{30%{transform:scale(1.18)}}
+#btn-dice{margin-left:16px}
+#btn-dice.flash{border-color:var(--pink);color:var(--pink)}
+@media (hover:hover){
+  .hair-btn:hover{border-color:var(--dim)}
+  .hair-btn:hover .hair-nm{opacity:1}
+}
 
 /* ---------- twin generation ritual ---------- */
 #scene-twinjson{text-align:center}
@@ -504,6 +523,7 @@ body.nerd-on .cf-btn{display:inline-block}
 </style>
 <script src="assets/lib/model-viewer-umd.min.js" defer></script>
 <script src="assets/keepsakes-data.js" defer></script>
+<script src="assets/avatars-data.js" defer></script>
 </head>
 <body>
 <noscript>
@@ -542,6 +562,9 @@ body.nerd-on .cf-btn{display:inline-block}
     <div class="twin-card" id="card-a">
       <div class="who">第一个人</div>
       <input class="twin-name" id="name-a" value="Oscar" maxlength="16" spellcheck="false">
+      <div class="field"><label>捏个分身</label>
+        <div class="hair-pick" id="hair-pick-a"></div></div>
+      <input type="hidden" id="hair-a" value="char_oscar">
       <div class="field"><label>TA 说过的话（选填）</label>
         <textarea id="chat-a" placeholder="贴几句你们的聊天记录。只影响分身的语气，不影响计算。"></textarea></div>
     </div>
@@ -549,6 +572,9 @@ body.nerd-on .cf-btn{display:inline-block}
     <div class="twin-card" id="card-b">
       <div class="who">第二个人</div>
       <input class="twin-name" id="name-b" value="Mira" maxlength="16" spellcheck="false">
+      <div class="field"><label>捏个分身</label>
+        <div class="hair-pick" id="hair-pick-b"></div></div>
+      <input type="hidden" id="hair-b" value="char_mira">
       <div class="field"><label>TA 说过的话（选填）</label>
         <textarea id="chat-b" placeholder=""></textarea></div>
     </div>
@@ -614,7 +640,7 @@ body.nerd-on .cf-btn{display:inline-block}
   </div>
 
   <div class="twins-actions">
-    <button class="btn primary" id="btn-generate" onclick="generateTwins()">生成数字分身</button>
+    <button class="btn primary" id="btn-generate" onclick="generateTwins()">生成数字分身</button><button class="btn" id="btn-dice" onclick="diceHair(this)">🎲 随机一对</button>
     <div class="hint">放心，什么都不上传。他们只在这个浏览器里活这一遭。</div>
   </div>
 </section>
@@ -876,11 +902,47 @@ function go(id){
 });
 
 /* ---------- twins ---------- */
+/* ---------- 捏分身：12 款发型，缩略图即控件（hidden input 是唯一事实源） ---------- */
+const AVATARS = [
+  ['char_oscar','刺猬头'], ['hair_m2','寸头'], ['hair_m3','中分'], ['hair_m4','自来卷'], ['hair_m5','大背头'], ['hair_m6','锅盖头'],
+  ['char_mira','及肩发'], ['hair_f2','高马尾'], ['hair_f3','波波头'], ['hair_f4','双丸子'], ['hair_f5','黑长直'], ['hair_f6','波浪卷'],
+];
+const HAIR_OK = k => AVATARS.some(a => a[0] === k);
+const HAIR_DEFAULT = s => s === 'a' ? 'char_oscar' : 'char_mira';
+function syncHairSel(s){
+  const cur = document.getElementById('hair-' + s).value;
+  document.querySelectorAll(`#hair-pick-${s} .hair-btn`).forEach(b =>
+    b.classList.toggle('sel', b.dataset.hair === cur));
+}
+function pickHair(s, k){
+  if(!HAIR_OK(k)) return;
+  document.getElementById('hair-' + s).value = k;
+  syncHairSel(s);
+}
+function diceHair(btn){
+  ['a','b'].forEach(s => pickHair(s, AVATARS[Math.floor(Math.random() * AVATARS.length)][0]));
+  btn.classList.add('flash');
+  setTimeout(() => btn.classList.remove('flash'), 500);
+  document.querySelectorAll('.hair-btn.sel').forEach(b => {
+    b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+  });
+}
+(function buildHairPicks(){
+  ['a','b'].forEach(s => {
+    document.getElementById('hair-pick-' + s).innerHTML = AVATARS.map(([k, label]) =>
+      `<button type="button" class="hair-btn" data-hair="${k}" aria-label="${label}"
+        onclick="pickHair('${s}','${k}')"><img src="assets/keepsakes/render/${k}.webp" alt="${label}" loading="lazy"><span class="hair-nm">${label}</span></button>`).join('');
+    syncHairSel(s);
+  });
+})();
+
 const Twins = { a:null, b:null };
 function readTwin(s){
   const chat = document.getElementById(`chat-${s}`).value.trim();
+  const hair = document.getElementById(`hair-${s}`).value;
   return {
     name: document.getElementById(`name-${s}`).value.trim() || (s==='a'?'A':'B'),
+    hair: HAIR_OK(hair) ? hair : HAIR_DEFAULT(s),
     openness: +document.getElementById(`openness-${s}`).value / 100,
     career_priority: +document.getElementById(`career-${s}`).value / 100,
     family_priority: +document.getElementById(`family-${s}`).value / 100,
@@ -2676,8 +2738,12 @@ function drawIdCard(){
    file:// 下 drawImage 本地图会把 canvas 永久 taint（toBlob 必炸，重绘也洗不掉）——
    所以先在一块一次性的探针画布上试贴试读：脏了说明是 taint 环境，静默不贴，
    真卡面从头到尾保持干净，任何环境「保存图片」都能下载 */
-let _charImgs;   // undefined=未加载 false=加载失败 {a,b}=可用
+let _charImgs;    // undefined=未加载 false=加载失败 {a,b}=可用
+let _charImgsKey = '';   // 缓存按发型组合失效
 function pasteIdCardChars(){
+  const hairA = HAIR_OK(Twins.a.hair) ? Twins.a.hair : HAIR_DEFAULT('a');
+  const hairB = HAIR_OK(Twins.b.hair) ? Twins.b.hair : HAIR_DEFAULT('b');
+  const key = hairA + '|' + hairB;
   const finish = (imgs) => {
     if(!imgs) return;
     const probe = document.createElement('canvas');
@@ -2687,6 +2753,7 @@ function pasteIdCardChars(){
     catch(e){ return; }   // taint 环境：不贴
     const cv = document.getElementById('idcard-cv');
     drawIdCard();   // 幂等重绘干净底
+    cv.dataset.chars = key;   // 可测性标记：本卡贴了哪两款
     const cx = cv.getContext('2d');
     /* 两枚小砖放顶部两角（证书证件照位）。名字太长会顶到角上就不硬塞 */
     cx.font = 'italic 84px "Instrument Serif","Noto Serif SC","Songti SC",serif';
@@ -2704,15 +2771,15 @@ function pasteIdCardChars(){
       cx.beginPath(); cx.roundRect(x, y0, S, S, 16); cx.stroke();
     });
   };
-  if(_charImgs !== undefined){ finish(_charImgs || null); return; }
+  if(_charImgs !== undefined && _charImgsKey === key){ finish(_charImgs || null); return; }
   const load = src => new Promise(res => {
     const im = new Image();
     im.onload = () => res(im);
     im.onerror = () => res(null);
     im.src = src;
   });
-  Promise.all([load('assets/keepsakes/render/char_oscar.webp'), load('assets/keepsakes/render/char_mira.webp')])
-    .then(([a, b]) => { _charImgs = (a && b) ? { a, b } : false; finish(_charImgs || null); });
+  Promise.all([load(`assets/keepsakes/render/${hairA}.webp`), load(`assets/keepsakes/render/${hairB}.webp`)])
+    .then(([a, b]) => { _charImgsKey = key; _charImgs = (a && b) ? { a, b } : false; finish(_charImgs || null); });
 }
 function openIdCard(){
   if(!SIM) return;
@@ -3359,22 +3426,25 @@ function watchMoment(which, idx){
   void mo.offsetWidth;   /* 每次重开都重播 CRT 开机 */
   mo.classList.add('crt');
   const alive = {};
-  /* 3D 分身舞台：左 a 朝右（az 0 截图实证）、右 b 朝左（az 180 截图实证）；
-     data URI 优先（file:// 也真 3D），无数据/无 WebGL 用渲染图兜底 */
+  /* 3D 分身舞台：左 a 朝右（az 0 截图实证）、右 b 朝左（az 180 截图实证），
+     全部 12 款模型同一朝向约定（front=az90，hair_m2/f2/f5 抽查过）；
+     模型读 __AV_B64[Twins.hair]（file:// 也真 3D），无数据/无 WebGL 用渲染图兜底 */
   (function moStage(){
-    const b64 = window.__KS_B64 || {};
+    const av = window.__AV_B64 || {};
     const mvOK = ksWebglOK() && !!customElements.get('model-viewer');
-    const put = (frameId, key, webp, orbit) => {
+    const put = (frameId, side, orbit) => {
       const el = document.getElementById(frameId);
-      const img = `<img src="assets/keepsakes/render/${webp}" alt="">`;
-      el.innerHTML = (b64[key] && mvOK)
-        ? `<model-viewer src="data:model/gltf-binary;base64,${b64[key]}" camera-orbit="${orbit}" interaction-prompt="none" exposure="1.05"></model-viewer>`
+      const hair = HAIR_OK(Twins[side].hair) ? Twins[side].hair : HAIR_DEFAULT(side);
+      el.dataset.hair = hair;
+      const img = `<img src="assets/keepsakes/render/${hair}.webp" alt="">`;
+      el.innerHTML = (av[hair] && mvOK)
+        ? `<model-viewer src="data:model/gltf-binary;base64,${av[hair]}" camera-orbit="${orbit}" interaction-prompt="none" exposure="1.05"></model-viewer>`
         : img;
       const mv = el.querySelector('model-viewer');
       if(mv) mv.addEventListener('error', () => { el.innerHTML = img; });
     };
-    put('ms-a-frame', 'char_oscar', 'char_oscar.webp', '0deg 78deg auto');
-    put('ms-b-frame', 'char_mira', 'char_mira.webp', '180deg 78deg auto');
+    put('ms-a-frame', 'a', '45deg 78deg auto');   /* 正侧面 3/4：长发款也看得见脸，仍望向对面 */
+    put('ms-b-frame', 'b', '135deg 78deg auto');
     document.getElementById('ms-a-name').textContent = Twins.a.name;
     document.getElementById('ms-b-name').textContent = Twins.b.name;
   })();
@@ -5330,6 +5400,9 @@ function fillTwinForm(s, t){
   document.getElementById(`conflict-${s}`).value = t.conflict_style;
   document.getElementById(`attach-${s}`).value = t.attachment;
   document.getElementById(`money-${s}`).value = t.money_value;
+  /* 老链接没有 hair 字段 → 用默认；非法 key 也回默认 */
+  document.getElementById(`hair-${s}`).value = HAIR_OK(t.hair) ? t.hair : HAIR_DEFAULT(s);
+  syncHairSel(s);
 }
 /* 双向好奇：同一个链接，所有人看到同一个角色（hash 定） */
 const SHARE_ROLES = [
