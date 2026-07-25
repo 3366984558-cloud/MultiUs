@@ -5268,6 +5268,23 @@ function fillTwinForm(s, t){
   document.getElementById(`attach-${s}`).value = t.attachment;
   document.getElementById(`money-${s}`).value = t.money_value;
 }
+/* 双向好奇：同一个链接，所有人看到同一个角色（hash 定） */
+const SHARE_ROLES = [
+  '你是溪边的第三块石头。坐得不远，听得挺全。',
+  '你是那只橘猫。尾巴那一票，是你投的。',
+  '你是左脚那只拖鞋。等的那六天，你没怨言。',
+  '你是那盆多肉。三个月浇一次水，你没怪过他们。',
+  '你是凌晨两点被买走的那罐热饮。值了。',
+  '你是那盏路灯。他们每一次和好，你都照见过。',
+  '你是那盏冰箱灯。只有你知道半夜谁来过。',
+  '你是套娃第七层。那张字条，是你藏的。',
+  '你是充电宝最后的 20%。那句话，是你帮忙发完的。',
+  '你是那只蚊子。情话都是你教的。',
+  '你是那块广告屏。一千遍轮播，你一次没跳。',
+  '你是客厅那个圆心。他们都以为地是自己扫的。',
+  '你是耳机上那个结。缠上了，就没打算解。',
+  '你是那勺酸笋。这不叫臭，叫人格。',
+];
 (function(){
   const m = location.hash.match(/#t=([A-Za-z0-9\-_]+)/);
   if(!m) return;
@@ -5292,12 +5309,16 @@ function shareLanding(){
   const sub = document.createElement('div');
   sub.style.cssText = 'color:var(--dim);font-size:14px;line-height:1.8;max-width:26em';
   sub.textContent = '把他们俩的 10,000 种结局，打包成了一个链接。';
+  const role = document.createElement('div');
+  role.style.cssText = 'color:var(--faint);font-family:var(--serif);font-style:italic;font-size:14px;line-height:1.9;max-width:24em;margin-top:6px';
+  const h = h32(location.hash || 'multus');
+  role.textContent = `对了——在他们的宇宙里，${SHARE_ROLES[h % SHARE_ROLES.length]}`;
   const open = document.createElement('button'); open.className = 'btn primary'; open.textContent = '拆开看看';
   const own = document.createElement('button'); own.className = 'btn'; own.textContent = '也算算我们的 →';
   own.style.cssText = 'border-color:transparent;color:var(--faint);min-height:44px';
   open.onclick = () => { el.remove(); startJump(); };
   own.onclick = () => { history.replaceState(null, '', location.pathname + location.search); el.remove(); go('scene-twins'); };
-  el.append(kick, names, sub, open, own);
+  el.append(kick, names, sub, role, open, own);
   document.body.appendChild(el);
 }
 
