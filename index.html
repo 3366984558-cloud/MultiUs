@@ -301,6 +301,19 @@ body.nerd-on .cf-btn{display:inline-block}
 .mo-line.right{text-align:right}
 .mo-line.right .say{margin-left:auto}
 .mo-typing{font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase;margin:18px 0}
+/* ---------- moment 3D 分身舞台：面对面，谁说话谁亮 ---------- */
+#mo-stage{display:flex;justify-content:center;align-items:flex-end;gap:9vw;margin-top:36px;height:168px}
+.ms-side{width:132px;height:160px;position:relative;animation:msBreath 5.2s ease-in-out infinite}
+#ms-b{animation-delay:-2.6s}
+.ms-frame{width:100%;height:100%;transition:transform .5s,filter .5s,opacity .5s}
+.ms-frame model-viewer,.ms-frame img{width:100%;height:100%;--poster-color:transparent}
+.ms-frame img{object-fit:contain}
+.ms-side.dim .ms-frame{opacity:.45}
+.ms-side.on .ms-frame{transform:scale(1.06);filter:drop-shadow(0 0 16px var(--msglow,rgba(255,61,138,.35)))}
+.ms-name{position:absolute;bottom:-4px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase}
+@keyframes msBreath{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.ms-side{animation:none}}
+@media (max-width:640px){#mo-stage{height:140px;gap:8vw}.ms-side{width:106px;height:128px}}
 /* CRT 开机：画面从一条水平线向上下撑开，再进打字机 */
 #moment-ovl.crt > div{transform-origin:50% 50%;animation:crtOn .32s cubic-bezier(.23,.9,.3,1) both}
 @keyframes crtOn{0%{transform:scaleY(.006);filter:brightness(2.6)}55%{transform:scaleY(1.03);filter:brightness(1.12)}100%{transform:scaleY(1);filter:none}}
@@ -490,6 +503,7 @@ body.nerd-on .cf-btn{display:inline-block}
 }
 </style>
 <script src="assets/lib/model-viewer-umd.min.js" defer></script>
+<script src="assets/keepsakes-data.js" defer></script>
 </head>
 <body>
 <noscript>
@@ -731,6 +745,10 @@ body.nerd-on .cf-btn{display:inline-block}
     <div id="mo-meta" style="font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase"></div>
     <div id="mo-event" style="font-family:var(--serif);font-style:italic;font-size:clamp(20px,2.6vw,27px);line-height:1.45;color:var(--ink);margin-top:16px"></div>
     <div id="mo-state" style="font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--faint);margin-top:18px;text-transform:uppercase"></div>
+    <div id="mo-stage">
+      <div class="ms-side" id="ms-a" style="--msglow:rgba(255,61,138,.4)"><div class="ms-frame" id="ms-a-frame"></div><div class="ms-name" id="ms-a-name"></div></div>
+      <div class="ms-side" id="ms-b" style="--msglow:rgba(65,242,255,.35)"><div class="ms-frame" id="ms-b-frame"></div><div class="ms-name" id="ms-b-name"></div></div>
+    </div>
     <div id="mo-lines" style="margin-top:44px"></div>
     <div style="margin-top:48px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
       <span id="mo-src" style="font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase"></span>
@@ -3341,6 +3359,34 @@ function watchMoment(which, idx){
   void mo.offsetWidth;   /* 每次重开都重播 CRT 开机 */
   mo.classList.add('crt');
   const alive = {};
+  /* 3D 分身舞台：左 a 朝右（az 0 截图实证）、右 b 朝左（az 180 截图实证）；
+     data URI 优先（file:// 也真 3D），无数据/无 WebGL 用渲染图兜底 */
+  (function moStage(){
+    const b64 = window.__KS_B64 || {};
+    const mvOK = ksWebglOK() && !!customElements.get('model-viewer');
+    const put = (frameId, key, webp, orbit) => {
+      const el = document.getElementById(frameId);
+      const img = `<img src="assets/keepsakes/render/${webp}" alt="">`;
+      el.innerHTML = (b64[key] && mvOK)
+        ? `<model-viewer src="data:model/gltf-binary;base64,${b64[key]}" camera-orbit="${orbit}" interaction-prompt="none" exposure="1.05"></model-viewer>`
+        : img;
+      const mv = el.querySelector('model-viewer');
+      if(mv) mv.addEventListener('error', () => { el.innerHTML = img; });
+    };
+    put('ms-a-frame', 'char_oscar', 'char_oscar.webp', '0deg 78deg auto');
+    put('ms-b-frame', 'char_mira', 'char_mira.webp', '180deg 78deg auto');
+    document.getElementById('ms-a-name').textContent = Twins.a.name;
+    document.getElementById('ms-b-name').textContent = Twins.b.name;
+  })();
+  /* 谁说话谁亮；typing 时亮正在输入的那位 */
+  const stageTurn = name => {
+    if(token !== moToken) return;
+    const aOn = name === Twins.a.name;
+    document.getElementById('ms-a').classList.toggle('on', aOn);
+    document.getElementById('ms-a').classList.toggle('dim', !aOn);
+    document.getElementById('ms-b').classList.toggle('on', !aOn);
+    document.getElementById('ms-b').classList.toggle('dim', aOn);
+  };
   const showTurn = (turn, k) => {
     if(token !== moToken) return;
     const typ = box.querySelector('.mo-typing'); if(typ) typ.remove();
@@ -3351,6 +3397,7 @@ function watchMoment(which, idx){
     div.querySelector('.say').textContent = turn.text;
     box.appendChild(div);
     requestAnimationFrame(() => div.classList.add('on'));
+    stageTurn(turn.who);
   };
   const typing = name => {
     if(token !== moToken) return;
@@ -3358,6 +3405,7 @@ function watchMoment(which, idx){
     t.className = 'mo-typing';
     t.textContent = name + ' 正在输入……';
     box.appendChild(t);
+    stageTurn(name);
   };
   if(LLM.ready()){
     (async () => {
@@ -5215,17 +5263,20 @@ function renderGagOverlay(g){
   hero.style.backgroundImage = `url('${g.img}')`;
   /* 比真宇宙更狠的压暗：图上直接叠内容，得保证文字读得清 */
   hero.innerHTML = `<div class="veil" style="background:linear-gradient(180deg,rgba(0,0,0,.38) 0%,rgba(0,0,0,.10) 42%,var(--bg) 96%)"></div>`;
-  /* 信物槽：file:// 下 model-viewer 拉 GLB 会被 CORS 杀还污染 console，干脆不建元素，
-     用静态渲染图；http(s) 有 WebGL 才上 3D，加载失败回落静态图 */
+  /* 信物槽三级：① __KS_B64 有数据且有 WebGL → data URI 真 3D（file:// 也能跑）
+     ② http(s) 外链 GLB（data 未就绪时）③ 静态渲染图兜底。error 事件回落静态图 */
   const ksSlot = document.getElementById('wo-keepsake');
   const ks = KEEPSAKE[g.id];
   if(!ks){ ksSlot.style.display = 'none'; ksSlot.innerHTML = ''; }
   else{
     const imgHtml = `<img src="assets/keepsakes/render/${ks[0]}.webp" alt="${g.name}信物" loading="lazy">`;
-    const useMV = location.protocol !== 'file:' && ksWebglOK() && !!customElements.get('model-viewer');
-    ksSlot.innerHTML = `<div class="ks-frame" style="--ks-accent:${g.theme.accent}">${
-      useMV ? `<model-viewer src="assets/keepsakes/${ks[0]}-web.glb" camera-controls auto-rotate interaction-prompt="none" loading="lazy" camera-orbit="30deg 68deg auto" exposure="1.05"></model-viewer>` : imgHtml
-    }</div><div class="ks-cap">${ks[1]}</div>`;
+    const b64 = window.__KS_B64 && window.__KS_B64[ks[0]];
+    const mvOK = ksWebglOK() && !!customElements.get('model-viewer');
+    const mvHtml = src => `<model-viewer src="${src}" camera-controls auto-rotate interaction-prompt="none" loading="lazy" camera-orbit="30deg 68deg auto" exposure="1.05"></model-viewer>`;
+    const inner = b64 && mvOK ? mvHtml(`data:model/gltf-binary;base64,${b64}`)
+      : location.protocol !== 'file:' && mvOK ? mvHtml(`assets/keepsakes/${ks[0]}-web.glb`)
+      : imgHtml;
+    ksSlot.innerHTML = `<div class="ks-frame" style="--ks-accent:${g.theme.accent}">${inner}</div><div class="ks-cap">${ks[1]}</div>`;
     ksSlot.style.display = 'block';
     const mv = ksSlot.querySelector('model-viewer');
     if(mv) mv.addEventListener('error', () => { mv.parentElement.innerHTML = imgHtml; });
