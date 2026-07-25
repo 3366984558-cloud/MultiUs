@@ -5723,6 +5723,18 @@ const VERDICT_PUNCH = {
   'repair|avoid':     ['一个追着灭火，一个偏要冷着。灭火器追不上小冰箱。'],
   'default':          ['磨合中。一万个宇宙都在围观。'],
 };
+/* 依恋维度批注（consult6：punch 读 attach，不搞字母汉明距离）。单句池，key=a|b。 */
+const VERDICT_ATTACH = {
+  'anxious|anxious':   '两个都在等对方先表态。宇宙替你们着急。',
+  'secure|secure':     '情绪稳定 ×2。这批宇宙少了点戏剧经费。',
+  'avoidant|avoidant': '都在装不在乎。装着装着，宇宙都信了。',
+  'anxious|avoidant':  '一个追，一个躲。宇宙看得都累。',
+  'avoidant|anxious':  '一个躲，一个追。跑步机都没你们忙。',
+  'anxious|secure':    '一个容易慌，好在另一个接得住。',
+  'secure|anxious':    '一个稳，一个容易慌。慌的那个有被好好接住。',
+  'avoidant|secure':   '一个需要空间，一个给得起。就是安静了点。',
+  'secure|avoidant':   '一个给得起空间，一个刚好需要。般配，虽然看着不像。',
+};
 function renderVerdict(){
   if(!Twins.a || !Twins.b) return;
   const ca = Twins.a.conflict_style, cb = Twins.b.conflict_style;
@@ -5730,8 +5742,9 @@ function renderVerdict(){
   const la = VERDICT_LABEL[ca] || '说不清', lb = VERDICT_LABEL[cb] || '说不清';
   const pool = VERDICT_PUNCH[key] || VERDICT_PUNCH.default;
   const punch = pool[h32(key + '|verdict|' + runSalt) % pool.length];
+  const apunch = VERDICT_ATTACH[Twins.a.attachment + '|' + Twins.b.attachment] || '';
   document.getElementById('res-verdict').innerHTML =
-    `宇宙批注 · 你们吵架的模式：<b>${la} × ${lb}</b>。${punch}`;
+    `宇宙批注 · 你们吵架的模式：<b>${la} × ${lb}</b>。${punch}${apunch ? ' ' + apunch : ''}`;
 }
 
 /* ---------- 温度文案：幽默的对象是宇宙，不是用户；坏结果只给温柔 ---------- */
