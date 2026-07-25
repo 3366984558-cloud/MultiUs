@@ -7,7 +7,7 @@
 
 ## 0. 当前最重要的一句话
 
-**本地 main 已领先线上 13 个 commit（0994655 起），全部验证过但没部署——等 Oscar 验收三任务（填空叙事/名字编辑/温度文案），验收一过：部署 + 信物接入 + 身份证印图 + QR 上结果页，一气做完。** 验收前的集成方案在 `.qa/_keepsake_integration.md`，拿奖 backlog 在 `.qa/_backlog_win.md`，CLI loop 的进度账在 `.qa/_loop_progress.md`。
+**部署在 Cloudflare Pages 的线上版落后 git main 29 个 commit（v10 时代），本地全部验证过但没部署——等 Oscar 验收三任务（填空叙事/名字编辑/温度文案），验收一过：wrangler 部署 + curl 验证，一轮收工。** git main 本身已全部推送 GitHub。新增于 v10 之后的大件：三任务、动效四件套、14 信物+2 Q 版分身（已进主站）、身份证（Q 版角砖+手写 QR）、分享落地信+角色行、原话复读、第 15 个宇宙「现实宇宙」、彩蛋化反事实、后劲层语料、moment 对话事件锚点、宇宙墙戏分排序。拿奖 backlog 在 `.qa/_backlog_win.md`，CLI loop 的进度账在 `.qa/_loop_progress.md`，方向咨询系列在 `.qa/consultN.md`。
 
 ---
 
