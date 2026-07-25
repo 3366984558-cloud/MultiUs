@@ -244,6 +244,10 @@ body.nerd-on .cf-btn{display:inline-block}
 .cf-res b{color:var(--gold);font-weight:400}
 .cf-res i{font-family:var(--serif);font-size:15px;letter-spacing:.02em;color:var(--dim)}
 .res-actions{display:flex;gap:22px;justify-content:center;margin:10vh 0 4vh;flex-wrap:wrap}
+/* ---------- 结果页「玩第二遍」二维码 ---------- */
+.res-qr{display:none;margin:6vh auto 0;text-align:center}
+.res-qr canvas{border-radius:12px;box-shadow:0 0 0 1px #2a2a36, 0 12px 44px rgba(0,0,0,.5)}
+.res-qr .qr-guide{margin-top:16px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--faint);line-height:1.9}
 .colophon{text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase;margin-bottom:6vh}
 .colophon em{font-family:var(--serif);font-size:13px;letter-spacing:.05em;text-transform:none;color:var(--dim)}
 
@@ -691,6 +695,10 @@ body.nerd-on .cf-btn{display:inline-block}
     <button class="btn" onclick="rerun()">不服，再算一次</button>
     <button class="btn" onclick="go('scene-twins')">回去偷偷改参数</button>
     <button class="btn" onclick="copyLink(this)">复制这个多元宇宙</button>
+  </div>
+  <div class="res-qr" id="res-qr">
+    <canvas id="res-qr-cv" width="140" height="140"></canvas>
+    <div class="qr-guide">手机掏出来。你的一万个宇宙也在排队。</div>
   </div>
   <div class="colophon"><em>在每个你们找到彼此的宇宙里，这样的事迟早都会发生。</em><br><br>MultiUs · 给亲密关系算一万次命</div>
 </section>
@@ -2298,6 +2306,220 @@ function wildestMoment(){
   });
   return best;
 }
+/* ================================================================
+   手写 QR 编码器 — byte mode · EC level M · version 1-18 自动选最小
+   从 qr-proto.html 整体搬入（原型验证过），版本表扩到 18
+   （permalink 带中文名 base64 载荷可达 500+ 字节，v18 容量 562）。
+   零依赖。QR.draw(canvas, text, targetPx) → 成功 true / 太长 false
+   ================================================================ */
+const QR = (() => {
+  /* --- level M 参数表：ec=每块纠错码字数，blocks=各块数据码字数 --- */
+  const VER = [ null,
+    { ec:10, blocks:[16] },
+    { ec:16, blocks:[28] },
+    { ec:26, blocks:[44] },
+    { ec:18, blocks:[32,32] },
+    { ec:24, blocks:[43,43] },
+    { ec:16, blocks:[27,27,27,27] },
+    { ec:18, blocks:[31,31,31,31] },
+    { ec:22, blocks:[38,38,39,39] },
+    { ec:22, blocks:[36,36,36,37,37] },
+    { ec:26, blocks:[43,43,43,43,44] },
+    { ec:30, blocks:[50,51,51,51,51] },
+    { ec:22, blocks:[36,36,36,36,36,36,37,37] },
+    { ec:22, blocks:[37,37,37,37,37,37,37,37,38] },
+    { ec:24, blocks:[40,40,40,40,41,41,41,41,41] },
+    { ec:24, blocks:[41,41,41,41,41,42,42,42,42,42] },
+    { ec:28, blocks:[45,45,45,45,45,45,45,46,46,46] },
+    { ec:28, blocks:[46,46,46,46,46,46,46,46,46,46,47] },
+    { ec:26, blocks:[43,43,43,43,43,43,43,43,43,44,44,44,44] },
+  ];
+  /* 各版本对齐图案中心坐标 */
+  const ALIGN = [ null, [], [6,18], [6,22], [6,26], [6,30], [6,34],
+    [6,22,38], [6,24,42], [6,26,46], [6,28,50], [6,30,54], [6,32,58], [6,34,62],
+    [6,26,46,66], [6,26,48,70], [6,26,50,74], [6,30,54,78], [6,30,56,82] ];
+
+  /* --- GF(256) 对数/指数表，本原多项式 0x11D --- */
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  (() => { let x = 1;
+    for (let i = 0; i < 255; i++){ EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 0x100) x ^= 0x11D; }
+    for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255]; })();
+  const gmul = (a, b) => (a && b) ? EXP[LOG[a] + LOG[b]] : 0;
+
+  /* --- Reed-Solomon：生成多项式（高次在前），余式即纠错码字 --- */
+  function rsGen(deg){
+    let g = [1];
+    for (let i = 0; i < deg; i++){
+      const ng = new Array(g.length + 1).fill(0);
+      for (let j = 0; j < g.length; j++){ ng[j] ^= g[j]; ng[j + 1] ^= gmul(g[j], EXP[i]); }
+      g = ng;
+    }
+    return g;
+  }
+  function rsEC(data, g){
+    const res = new Array(g.length - 1).fill(0);
+    for (const d of data){
+      const f = d ^ res[0];
+      res.shift(); res.push(0);
+      if (f) for (let i = 0; i < res.length; i++) res[i] ^= gmul(g[i + 1], f);
+    }
+    return res;
+  }
+
+  /* --- 位流 --- */
+  function bitBuf(){
+    const b = [];
+    return {
+      push(val, n){ for (let i = n - 1; i >= 0; i--) b.push((val >>> i) & 1); },
+      bytes(){ const r = [];
+        for (let i = 0; i < b.length; i += 8){ let v = 0;
+          for (let j = 0; j < 8; j++) v = (v << 1) | (b[i + j] || 0); r.push(v); }
+        return r; },
+      get len(){ return b.length; }
+    };
+  }
+
+  /* --- 数据编码：byte mode → 码字流（含分块、RS、交错） --- */
+  function encodeBytes(bytes){
+    let v = 0;
+    for (let t = 1; t <= 18; t++){
+      const cap = VER[t].blocks.reduce((a, b) => a + b, 0) * 8;
+      if (4 + (t <= 9 ? 8 : 16) + bytes.length * 8 <= cap){ v = t; break; }
+    }
+    if (!v) return null;
+    const P = VER[v], totalData = P.blocks.reduce((a, b) => a + b, 0);
+    const bb = bitBuf();
+    bb.push(0x4, 4);                              // byte mode 标识
+    bb.push(bytes.length, v <= 9 ? 8 : 16);       // 长度字段（v1-9 八位，v10+ 十六位）
+    for (const d of bytes) bb.push(d, 8);
+    bb.push(0, Math.min(4, totalData * 8 - bb.len)); // 终止符
+    while (bb.len % 8) bb.push(0, 1);             // 对齐字节
+    const cw = bb.bytes();
+    for (let i = 0; cw.length < totalData; i++) cw.push(i % 2 ? 0x11 : 0xEC); // 填充
+    /* 分块 + 纠错 + 交错 */
+    const g = rsGen(P.ec), dBlks = [], eBlks = [];
+    let off = 0;
+    for (const sz of P.blocks){ const blk = cw.slice(off, off + sz); off += sz;
+      dBlks.push(blk); eBlks.push(rsEC(blk, g)); }
+    const out = [];
+    for (let i = 0, mx = Math.max(...P.blocks); i < mx; i++)
+      for (const b of dBlks) if (i < b.length) out.push(b[i]);
+    for (let i = 0; i < P.ec; i++) for (const b of eBlks) out.push(b[i]);
+    return { v, size: 17 + 4 * v, cw: out };
+  }
+
+  /* --- 格式信息：EC M(00) + mask(3 位) → BCH(15,5) → 异或 0x5412 --- */
+  function fmtBits(mask){
+    let rem = mask << 10;
+    for (let i = 14; i >= 10; i--) if ((rem >>> i) & 1) rem ^= 0x537 << (i - 10);
+    return ((mask << 10) | rem) ^ 0x5412;
+  }
+  /* --- 版本信息（v≥7）：BCH(18,6) --- */
+  function verBits(v){
+    let rem = v << 12;
+    for (let i = 17; i >= 12; i--) if ((rem >>> i) & 1) rem ^= 0x1F25 << (i - 12);
+    return (v << 12) | rem;
+  }
+  /* --- 掩码（固定用 0 号；八个都列出，换号即换掩码） --- */
+  const MASKS = [
+    (r, c) => (r + c) % 2 === 0,
+    (r, c) => r % 2 === 0,
+    (r, c) => c % 3 === 0,
+    (r, c) => (r + c) % 3 === 0,
+    (r, c) => (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0,
+    (r, c) => (r * c) % 2 + (r * c) % 3 === 0,
+    (r, c) => ((r * c) % 2 + (r * c) % 3) % 2 === 0,
+    (r, c) => ((r + c) % 2 + (r * c) % 3) % 2 === 0,
+  ];
+
+  function build(text, maskId){
+    maskId = maskId || 0;
+    const e = encodeBytes(new TextEncoder().encode(text));
+    if (!e) return null;
+    const n = e.size, v = e.v;
+    const m = Array.from({ length: n }, () => new Array(n).fill(0));
+    const fn = Array.from({ length: n }, () => new Array(n).fill(false)); // 功能区（不叠数据、不掩码）
+    const set = (r, c, val) => { m[r][c] = val; fn[r][c] = true; };
+
+    /* 定位图案 + 分隔带（8×8 外框含一圈浅分隔） */
+    const finder = (r0, c0) => {
+      for (let dr = -1; dr <= 7; dr++) for (let dc = -1; dc <= 7; dc++){
+        const r = r0 + dr, c = c0 + dc;
+        if (r < 0 || c < 0 || r >= n || c >= n) continue;
+        const inner = dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6 &&
+          (dr === 0 || dr === 6 || dc === 0 || dc === 6 || (dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4));
+        set(r, c, inner ? 1 : 0);
+      }
+    };
+    finder(0, 0); finder(0, n - 7); finder(n - 7, 0);
+
+    /* 对齐图案（先画，跳过与定位重叠的三处） */
+    for (const r of ALIGN[v]) for (const c of ALIGN[v]){
+      if (fn[r][c]) continue;
+      for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++)
+        set(r + dr, c + dc, Math.max(Math.abs(dr), Math.abs(dc)) !== 1 ? 1 : 0);
+    }
+    /* 时序图案 */
+    for (let i = 8; i < n - 8; i++){ set(6, i, i % 2 ? 0 : 1); set(i, 6, i % 2 ? 0 : 1); }
+
+    /* 格式信息 ×2 + 常暗模块 */
+    const fmt = fmtBits(maskId), fb = i => (fmt >>> i) & 1;
+    for (let i = 0; i <= 5; i++) set(i, 8, fb(i));
+    set(7, 8, fb(6)); set(8, 8, fb(7)); set(8, 7, fb(8));
+    for (let i = 9; i < 15; i++) set(8, 14 - i, fb(i));
+    for (let i = 0; i < 8; i++) set(8, n - 1 - i, fb(i));
+    for (let i = 8; i < 15; i++) set(n - 15 + i, 8, fb(i));
+    set(n - 8, 8, 1);
+
+    /* 版本信息（v≥7，两块 3×6） */
+    if (v >= 7){
+      const vb = verBits(v);
+      for (let i = 0; i < 18; i++){
+        const bit = (vb >>> i) & 1, a = n - 11 + (i % 3), b = Math.floor(i / 3);
+        set(b, a, bit); set(a, b, bit);
+      }
+    }
+
+    /* 数据位：右下角起，两列一组蛇形回填 */
+    const bits = [];
+    for (const cw of e.cw) for (let b = 7; b >= 0; b--) bits.push((cw >>> b) & 1);
+    let bi = 0, up = true;
+    for (let col = n - 1; col >= 1; col -= 2){
+      if (col === 6) col = 5;                     // 跳过时序列
+      for (let k = 0; k < n; k++){
+        const r = up ? n - 1 - k : k;
+        for (const c of [col, col - 1])
+          if (!fn[r][c]) m[r][c] = bi < bits.length ? bits[bi++] : 0;
+      }
+      up = !up;
+    }
+
+    /* 掩码：只翻数据区 */
+    const mf = MASKS[maskId];
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+      if (!fn[r][c] && mf(r, c)) m[r][c] ^= 1;
+    return { v, size: n, m, mask: maskId };
+  }
+
+  /* --- 画到 canvas：浅色底板（含 4 模块安静区）+ 深模块，尺寸 ≥ targetPx --- */
+  function draw(canvas, text, targetPx){
+    const q = build(text, 0);
+    if (!q) return false;
+    const scale = Math.max(1, Math.ceil((targetPx || 264) / (q.size + 8)));
+    const px = (q.size + 8) * scale;
+    canvas.width = canvas.height = px;
+    canvas.dataset.size = q.size; canvas.dataset.scale = scale; canvas.dataset.ver = q.v;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#f5f2ec'; ctx.fillRect(0, 0, px, px);
+    ctx.fillStyle = '#141318';
+    for (let r = 0; r < q.size; r++) for (let c = 0; c < q.size; c++)
+      if (q.m[r][c]) ctx.fillRect((c + 4) * scale, (r + 4) * scale, scale, scale);
+    return true;
+  }
+
+  return { build, draw };
+})();
+
 function drawIdCard(){
   const S = SIM, total = N_WORLDS;
   const A = Twins.a.name, B = Twins.b.name;
@@ -2400,6 +2622,18 @@ function drawIdCard(){
   cx.fillText('MultiUs · 一万个宇宙的答案', W/2, H - 92);
   cx.fillStyle = '#3a3a42'; cx.font = `20px ${MONO}`;
   cx.fillText(`${total.toLocaleString()} universes · ${YEARS} years each`, W/2, H - 58);
+
+  /* 右下角：permalink 二维码。离屏自绘再 drawImage——自己画的 canvas 不参与 taint */
+  const qrOff = document.createElement('canvas');
+  if(QR.draw(qrOff, location.href, 185)){
+    const Q = qrOff.width, pw = Q + 40, ph = Q + 66, px0 = W - 48 - pw, py0 = H - 48 - ph;
+    cx.fillStyle = '#0b0b10';
+    cx.strokeStyle = 'rgba(255,255,255,.14)'; cx.lineWidth = 2;
+    cx.beginPath(); cx.roundRect(px0, py0, pw, ph, 14); cx.fill(); cx.stroke();
+    cx.drawImage(qrOff, px0 + 20, py0 + 16);
+    cx.fillStyle = faint; cx.font = `20px ${MONO}`; cx.textAlign = 'center';
+    cx.fillText('扫这个，查你们的宇宙', px0 + pw / 2, py0 + ph - 18);
+  }
   return { top, topPct, uni };
 }
 /* Q 版分身贴图：本地 webp 圆角小砖，放卡面底部两角（水印两侧永远空着）。
@@ -2511,6 +2745,14 @@ function renderResults(){
       .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
     history.replaceState(null, '', '#t=' + payload);
   }catch(e){}
+  drawSecondQR();
+}
+
+/* 结果页「玩第二遍」二维码：内容同 permalink（上面已写 #t=）。纯 JS 编码，file:// 照样出码 */
+function drawSecondQR(){
+  const el = document.getElementById('res-qr');
+  if(QR.draw(document.getElementById('res-qr-cv'), location.href, 132)) el.style.display = 'block';
+  else el.style.display = 'none';
 }
 
 /* mean relationship-health across all worlds, drawn as one quiet line */
