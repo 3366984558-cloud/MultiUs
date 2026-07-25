@@ -268,6 +268,13 @@ body.nerd-on .cf-btn{display:inline-block}
   color:var(--ink);text-transform:uppercase;opacity:0;transition:opacity .4s}
 /* ---------- world overlay (jump into one universe) ---------- */
 #world-ovl{display:none;position:fixed;inset:0;background:var(--bg);z-index:70;overflow-y:auto;overflow-x:hidden}
+/* 第 15 个宇宙：现实 */
+#reality-veil{position:fixed;inset:0;z-index:120;background:#050507;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:24px;text-align:center;opacity:0;pointer-events:none;transition:opacity 2.6s ease}
+#reality-veil.on{opacity:1;pointer-events:auto}
+#reality-veil .rv-line{font-family:var(--serif);font-size:clamp(22px,3.4vw,40px);line-height:1.7;color:var(--ink)}
+#reality-veil .rv-hint{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--faint);opacity:0;transition:opacity 1.2s ease 3s}
+#reality-veil.on .rv-hint{opacity:1}
+@media (prefers-reduced-motion:reduce){#reality-veil,#reality-veil .rv-hint{transition:none}}
 #world-ovl .whero{position:relative;height:52vh;min-height:300px;background-size:cover;background-position:center;
   animation:kenburns 24s ease-in-out infinite alternate}
 @keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.09)}}
@@ -733,6 +740,10 @@ body.nerd-on .cf-btn{display:inline-block}
 </div>
 
 <!-- ============ WORLD OVERLAY · step into one universe ============ -->
+<div id="reality-veil" onclick="realityDismiss()">
+  <div class="rv-line">也许最好的宇宙，<br>是你放下手机的那个。</div>
+  <div class="rv-hint">点任意处，回到这个宇宙</div>
+</div>
 <div id="world-ovl">
   <div class="whero" id="wo-hero"><div class="veil"></div></div>
   <div class="wbody">
@@ -5027,6 +5038,22 @@ function cancel(){
 return { play, cancel, active: () => active, _chars: GAG_CHARS, _bake: bake, _last: () => lastLines, _corpus: GAG_CORPUS };
 })();
 
+/* ---- 第 15 个宇宙：现实。停留 30 秒才出现，不打扰任何人 ---- */
+let realityT = null;
+function realityArm(){
+  realityDisarm();
+  realityT = setTimeout(() => {
+    const v = document.getElementById('reality-veil');
+    if(v) v.classList.add('on');
+  }, 30000);
+}
+function realityDisarm(){
+  if(realityT){ clearTimeout(realityT); realityT = null; }
+  const v = document.getElementById('reality-veil');
+  if(v) v.classList.remove('on');
+}
+function realityDismiss(){ realityArm(); }  /* 放你回去；30 秒后它还在 */
+
 /* ---------- 打开一个宇宙：主题从点击处漾开，内容同时切过去 ---------- */
 function openEntry(e, ev){
   const theme = e.kind === 'gag' ? e.g.theme : (OUTCOME_THEME[e.w.outcome] || null);
@@ -5038,6 +5065,7 @@ function openEntry(e, ev){
     const ovl = document.getElementById('world-ovl');
     ovl.style.display = 'block';
     ovl.scrollTop = 0;
+    realityArm();  // 第 15 个宇宙开始计时
     DUO.play(e); // 开屏双人对话：播完（或跳过）按规格书 §6 让位给时间线
   });
 }
@@ -5210,6 +5238,7 @@ function renderGagOverlay(g){
 function closeWorld(ev){
   woToken++; // 关掉 overlay 即作废在途的流式渲染
   DUO.cancel(); // 开屏对话场景一并收场
+  realityDisarm(); // 离开宇宙，第 15 个宇宙也退场
   const x = ev && ev.clientX != null ? ev.clientX : innerWidth/2;
   const y = ev && ev.clientY != null ? ev.clientY : innerHeight/2;
   transitionTo(null, x, y, () => {
