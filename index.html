@@ -4788,6 +4788,9 @@ function drawScene(now){
     cx.beginPath(); cx.moveTo(320 - w2 / 2, ln.y); cx.lineTo(320 + w2 / 2, ln.y); cx.stroke();
   });
 
+  /* §9 materialize：像素溶解 → 光雾 → 剪影闪现（本阶段完全接管画面） */
+  if(phase === 'mat'){ drawMat(now); return; }
+
   /* 说话状态参数（§4）：hold/exit/skip 阶段仍定格在最后一句 */
   const speakingIdx = phase === 'lines' ? lineIdx
     : (phase === 'hold' || phase === 'exit' || phase === 'skip') ? Math.min(lineIdx, lines.length - 1) : -1;
@@ -4969,6 +4972,123 @@ function drawScene(now){
   }
 }
 
+/* ================================================================
+   §9 MATERIALIZE — 像素小人溶解成粒子 → 聚成两团光雾 → 剪影闪现 → 水波纹
+   四拍：0-0.6s 溶解 / 0.6-1.4s 悬浮聚集 / 1.4-2.2s 剪影三连闪 / 2.2-2.8s 淡出
+   ================================================================ */
+const MAT_MS = 2800;
+let matT = 0, matParts = [];
+function matReduced(){ try{ return matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } }
+
+function buildMat(){
+  matParts = [];
+  /* 预算：屏宽/核数选档（高 800 / 中 400 / 低 150），采样溶解别全量 */
+  const tier = ((navigator.hardwareConcurrency || 4) <= 4 || innerWidth < 700) ? 'low'
+    : ((navigator.hardwareConcurrency || 8) >= 8 ? 'high' : 'medium');
+  const perSide = Math.max(40, Math.floor({ high: 800, medium: 400, low: 150 }[tier] / 2));
+  for(const side of [0, 1]){
+    const sp = charSprite(side);
+    const bx = (side === 0 ? LX : RX) - sp.dw / 2, by = GROUND - sp.dh;
+    let data = null, sw = sp.sw, sh = sp.sh, kx = sp.dw / sp.sw, ky = sp.dh / sp.sh;
+    try{
+      const off = document.createElement('canvas'); off.width = sw; off.height = sh;
+      const oc = off.getContext('2d');
+      oc.drawImage(sp.img, sp.sx, sp.sy, sw, sh, 0, 0, sw, sh);
+      data = oc.getImageData(0, 0, sw, sh).data;
+    }catch(e){ data = null; }   // LPC 贴图在 file:// 会 taint：退回方块小人
+    if(!data){
+      const fb = humanChar(side === 0 ? theme.accent : (theme.accent2 || '#7fd4e8'), side === 1);
+      sw = fb.w; sh = fb.h; kx = ky = 4;
+      const oc = fb.cv.getContext('2d');
+      data = oc.getImageData(0, 0, sw, sh).data;
+    }
+    /* 实心像素采样：步长按预算，块 = 屏幕上 4×4 小方块（保持原色） */
+    const solid = [];
+    for(let py = 0; py < sh; py++) for(let px = 0; px < sw; px++){
+      const i = (py * sw + px) * 4;
+      if(data[i + 3] > 100) solid.push([px, py, data[i], data[i + 1], data[i + 2]]);
+    }
+    const stride = Math.max(1, Math.ceil(solid.length / perSide));
+    const bs = Math.max(3, Math.round(kx * stride));
+    const tx = side === 0 ? LX : RX, ty = GROUND - 72;   // 未来分身头部位置，两团距离 = 面对面距离
+    for(let i = 0; i < solid.length; i += stride){
+      const [px, py, r, g, b] = solid[i];
+      const ef = Math.max(Math.abs(px - sw / 2) / (sw / 2), Math.abs(py - sh / 2) / (sh / 2)); // 从边缘开始散
+      matParts.push({
+        ox: bx + px * kx, oy: by + py * ky, x: 0, y: 0,
+        c: `rgb(${r},${g},${b})`, bs, tx, ty,
+        dly: ef * 120 + Math.random() * 120,                      // 随机延迟 0-240ms，别整齐掉落
+        vx: (Math.random() + Math.random() + Math.random() - 1.5) * 16,  // 近似高斯水平散
+        arc: (10 + Math.random() * 36) * (side === 0 ? 1 : -1)
+      });
+    }
+  }
+}
+
+function drawMat(now){
+  const T = (now - matT) / 1000;
+  const pFade = 1 - clamp01((T - 1.4) / 0.7);                        // 1.4s 起粒子渐隐
+  const fogA = clamp01((T - 0.9) / 0.5) * (1 - clamp01((T - 2.2) / 0.5)); // 光雾 0.9s 进 2.2s 出
+  for(const p of matParts){
+    let x, y;
+    if(T < 0.6){                                   /* 拍 1：边缘先散，加速下落 + 水平微散 */
+      const lt = (now - matT) - p.dly;
+      if(lt < 0){ x = p.ox + (Math.random() - .5) * 4; y = p.oy + (Math.random() - .5) * 4; }
+      else{ const q = lt / 1000; x = p.ox + p.vx * q; y = p.oy + 300 * q * q; p.fx = x; p.fy = y; }
+    }else if(T < 1.35){                            /* 拍 2：急停，贝塞尔弧线聚向头部 */
+      const q = easeOutCubic(clamp01((T - 0.65) / 0.6));
+      const fx = p.fx !== undefined ? p.fx : p.ox, fy = p.fy !== undefined ? p.fy : p.oy;
+      x = fx + (p.tx - fx) * q;
+      y = fy + (p.ty - fy) * q - Math.sin(q * Math.PI) * p.arc;
+    }else{                                          /* 拍 3：聚点周围微沸 */
+      x = p.tx + (Math.random() - .5) * 12; y = p.ty + (Math.random() - .5) * 12;
+    }
+    cx.globalAlpha = pFade;
+    cx.fillStyle = p.c;
+    cx.fillRect(x, y, p.bs, p.bs);
+  }
+  cx.globalAlpha = 1;
+  /* 光雾 ×2（暖 accent / 冷 accent2）：径向渐变出辉光，不给粒子上 shadowBlur */
+  if(fogA > 0){
+    for(const side of [0, 1]){
+      const col = side === 0 ? theme.accent : (theme.accent2 || '#7fd4e8');
+      const tx = side === 0 ? LX : RX, ty = GROUND - 72;
+      const r = 30 + Math.sin(now / 300 + side) * 3;
+      const g = cx.createRadialGradient(tx, ty, 2, tx, ty, r);
+      g.addColorStop(0, col + 'cc'); g.addColorStop(0.55, col + '55'); g.addColorStop(1, col + '00');
+      cx.globalAlpha = fogA;
+      cx.fillStyle = g;
+      cx.beginPath(); cx.arc(tx, ty, r, 0, Math.PI * 2); cx.fill();
+    }
+    cx.globalAlpha = 1;
+  }
+  /* 剪影三连闪（1.5s 20% / 1.8s 50% / 2.1s 80%）：暗色圆 + 肩，从光雾里「显影」出来 */
+  for(const [t0, peak] of [[1.5, .2], [1.8, .5], [2.1, .8]]){
+    const q = (T - t0) / 0.34;
+    if(q <= 0 || q >= 1) continue;
+    const a = Math.sin(q * Math.PI) * peak;
+    for(const side of [0, 1]){
+      const tx = side === 0 ? LX : RX, ty = GROUND - 72;
+      cx.globalAlpha = a;
+      cx.fillStyle = '#0a0a0e';
+      cx.beginPath(); cx.arc(tx, ty - 10, 12, 0, Math.PI * 2); cx.fill();   // 头
+      roundRect(tx - 15, ty + 4, 30, 18, 9); cx.fill();                     // 肩
+    }
+    cx.globalAlpha = 1;
+  }
+  /* 文案：1.0s 淡入，停 1.2s 淡出 */
+  const capA = clamp01((T - 1.0) / 0.25) * (1 - clamp01((T - 2.0) / 0.2));
+  if(capA > 0){
+    cx.globalAlpha = capA;
+    cx.fillStyle = '#9a97a8';
+    cx.font = '13px "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif';
+    cx.textAlign = 'center';
+    cx.fillText('聊得够久了。是时候看看你们长什么样了。', 320, 340);
+    cx.textAlign = 'left';
+    cx.globalAlpha = 1;
+  }
+}
+
 function frame(now){
   if(!active) return;
   const t = now - startT;
@@ -4997,7 +5117,12 @@ function frame(now){
   }else if(phase === 'waitline'){
     if(lineIdx < lines.length){ phase = 'lines'; lineStartT = now; }
   }else if(phase === 'hold'){
-    if(now - exitT > 800){ phase = 'exit'; exitT = now; }
+    if(now - exitT > 800){
+      if(matReduced()){ phase = 'exit'; exitT = now; }   /* reduced-motion：整段跳过直接让位 */
+      else { phase = 'mat'; matT = now; buildMat(); }
+    }
+  }else if(phase === 'mat'){
+    if(now - matT > MAT_MS){ phase = 'exit'; exitT = now; }
   }else if(phase === 'exit'){
     if(now - exitT > 820 && !ovl.classList.contains('exiting')){
       ovl.classList.add('exiting'); /* §6.5 水波纹 clip 收缩，时间线从中心亮出来 */
@@ -5165,7 +5290,7 @@ function cancel(){
   if(ovl){ ovl.style.display = 'none'; ovl.classList.remove('exiting', 'fast-exit', 'fading'); }
 }
 
-return { play, cancel, active: () => active, _chars: GAG_CHARS, _bake: bake, _last: () => lastLines, _corpus: GAG_CORPUS };
+return { play, cancel, active: () => active, _chars: GAG_CHARS, _bake: bake, _last: () => lastLines, _corpus: GAG_CORPUS, _phase: () => phase, _matT: () => phase === 'mat' ? matT : 0 };
 })();
 
 /* ---- 第 15 个宇宙：现实。停留 30 秒才出现，不打扰任何人 ---- */
