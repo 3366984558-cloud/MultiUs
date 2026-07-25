@@ -3712,12 +3712,20 @@ function buildWall(){
     if(band.length && sims.length < 6) take(band[Math.floor(band.length/2)]);
   });
   const simTiles = sims.slice(0,6).map(w => ({ kind:'sim', w }));
-  /* 6 个恶搞宇宙：按 runSalt 轮换，每次跳进来看到的不完全一样 */
-  const gagTiles = [];
-  for(let i = 0; i < 6; i++) gagTiles.push({ kind:'gag', g: GAGS[(runSalt + i) % GAGS.length] });
+  /* 6 个恶搞宇宙：石头固定（招牌），其余按戏分轮换，每次跳进来看到的不完全一样 */
+  const GAG_PRIORITY = ['rock','cats','luosifen','mosquito','vending','matryoshka','earbuds','robotvac','fridge','powerbank','adscreen','streetlamp','slippers','plants'];
+  const ordered = GAG_PRIORITY.map(id => GAGS.find(g => g.id === id)).filter(Boolean);
+  const gagPicks = [ordered[0]];
+  const rest = ordered.slice(1);
+  for(let i = 0; i < 5; i++) gagPicks.push(rest[(runSalt + i) % rest.length]);
+  const gagTiles = gagPicks.map(g => ({ kind:'gag', g }));
+  /* 戏分排序：关键事件（💍⚡✈️💔）多的宇宙往前排——前排永远放最有戏的 */
+  const drama = t =>
+    (t.w.log || []).reduce((n, l) => n + (eventIcon(l.id || l.ev, l.text) ? 1 : 0), 0);
+  const sortedSims = simTiles.sort((x, y) => drama(y) - drama(x));
   /* 混排：真-假-真-假 */
   const tiles = [];
-  for(let i = 0; i < 6; i++){ if(simTiles[i]) tiles.push(simTiles[i]); if(gagTiles[i]) tiles.push(gagTiles[i]); }
+  for(let i = 0; i < 6; i++){ if(sortedSims[i]) tiles.push(sortedSims[i]); if(gagTiles[i]) tiles.push(gagTiles[i]); }
 
   tiles.forEach((e, i) => {
     const t = document.createElement('div');
