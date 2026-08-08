@@ -13,3 +13,6 @@ vendor/
 
 # local LLM default config (contains API key — never commit)
 multius.local.js
+
+# raw vlog/demo footage (9GB, never deploy/commit)
+media/

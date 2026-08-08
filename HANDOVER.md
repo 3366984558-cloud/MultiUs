@@ -1,13 +1,13 @@
 # MultiUs 交接文档
 
 > 给下一位接手的 AI / 开发者。读完这份文档你应该能不等任何人、直接继续干活。
-> 最后更新：2026-07-25 05:40（v15，三任务+信物资产+分享闭环已入库，**线上仍是 v10，等 Oscar 验收后部署**）
+> 最后更新：2026-08-07 18:0x（**线上已是最新**：bc4b7aa3.multius.pages.dev，curl 逐字节验证；新增——生日/星座输入 + **星座进模拟**（Oscar 拍板：MBTI 基座+星座微调写进 adv 控件，四象加权映射，压测 Δ婚 ≤11.5pp）+ 星座合盘 10 组合池/12 同星座专句 + 生日彩蛋 + 身份证星座印；**拆除乱点鸳鸯谱**（Oscar 拍板不好玩）；顺手修了 permalink boot TDZ——分享链接曾进不了落地页。**本地全部改动尚未 git commit**，备份链到 v24）
 
 ---
 
 ## 0. 当前最重要的一句话
 
-**部署在 Cloudflare Pages 的线上版落后 git main 29 个 commit（v10 时代），本地全部验证过但没部署——等 Oscar 验收三任务（填空叙事/名字编辑/温度文案），验收一过：wrangler 部署 + curl 验证，一轮收工。** git main 本身已全部推送 GitHub。新增于 v10 之后的大件：三任务、动效四件套、14 信物+2 Q 版分身（已进主站）、身份证（Q 版角砖+手写 QR）、分享落地信+角色行、原话复读、第 15 个宇宙「现实宇宙」、彩蛋化反事实、后劲层语料、moment 对话事件锚点、宇宙墙戏分排序。拿奖 backlog 在 `.qa/_backlog_win.md`，CLI loop 的进度账在 `.qa/_loop_progress.md`，方向咨询系列在 `.qa/consultN.md`。
+**线上 https://multius.odin-lab.com 已部署到最新（2026-07-26 凌晨，d9944cee.multius.pages.dev），但本地 working tree 的新功能（MBTI 选择器、引擎平衡、3D 分身舞台、捏分身、跳跃 v3 重设计、墙/结局句/分歧点改版）全都还没 commit——第一件事是 `git add -A && git commit` 把这批落袋。** v10 之后的大件：三任务→MBTI 选择器、动效四件套、14 信物+2 Q 版分身、身份证（Q 版角砖+手写 QR）、分享落地信+角色行、原话复读、第 15 个宇宙「现实宇宙」、彩蛋化反事实、后劲层语料、moment 对话事件锚点、宇宙墙戏分排序、3D 分身对话舞台、捏分身系统（12 发型）、materialize 过渡、跳跃 v3（问句池+真蒙特卡洛蒙太奇+离屏收编，fps 14→56）、宇宙墙 10 真 2 恶搞、OUT_ENDLINE 四句池、worldFork 按宇宙分歧点。拿奖 backlog 在 `.qa/_backlog_win.md`，CLI loop 的进度账在 `.qa/_loop_progress.md`，方向咨询系列在 `.qa/consultN.md`。
 
 ---
 
@@ -67,19 +67,20 @@
 ```bash
 DEST="/c/Users/Oscar/Documents/kimi/workspace/_deploy-staging/multius"
 rm -rf "$DEST" && mkdir -p "$DEST" && cp -r ./* "$DEST/"
-rm -rf "$DEST/multius.local.js" "$DEST/vendor" "$DEST/_gen" "$DEST/.qa"
+rm -rf "$DEST/multius.local.js" "$DEST/vendor" "$DEST/_gen" "$DEST/.qa" "$DEST/media"
 rm -f "$DEST"/index-v*-cn.html "$DEST/.gitignore"
 source /c/Users/Oscar/.cloudflare-config
 export CLOUDFLARE_API_TOKEN="$CF_TOKEN" CLOUDFLARE_ACCOUNT_ID="$CF_ACCOUNT"
 export NODE_OPTIONS="--dns-result-order=ipv4first"   # 关键！否则 node fetch 连不上 CF
-NODE_BIN=$(dirname "$(which node)")
-cd "$DEST" && "$NODE_BIN/npx.cmd" wrangler@latest pages deploy . \
+cd "$DEST" && "/c/PROGRA~1/nodejs/npx.cmd" wrangler@latest pages deploy . \
   --project-name=multius --branch=main --commit-message="ASCII only" --commit-dirty=true
 ```
 - 域名绑定已做好，不用重复绑；`--branch=main` 必须带
 - **禁止** `--project-name=odin-lab`（主站封箱）
 - curl 调 CF API 一律加 `--ssl-no-revoke`
 - 缓存坑：重新部署后等 1-2 分钟或加 `?v=N` 验证
+- **`media/`（Oscar 的 9GB 原始素材，2026-08 出现）必须 rm**，否则撞 CF Pages 单文件 25MiB 上限部署失败（2026-08-07 实测踩过）
+- **npx 路径带空格会炸**（'C:\Program' 不是命令）：必须用 8.3 短路径 `/c/PROGRA~1/nodejs/npx.cmd`，别用 `$(dirname $(which node))`
 
 ### Git 推送（github.com 常被 DNS 污染）
 先正常 push；不通就走 REST API 绕道：`printf "protocol=https\nhost=github.com\n\n" | git credential fill` 取 token → blob→tree→commit→ref 逐步 POST。注意 API 提交只存 UTC 时间戳，远端 sha 与本地不同但 tree 一致时，`git fetch && git reset --hard origin/main` 无损对齐。

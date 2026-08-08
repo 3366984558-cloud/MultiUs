@@ -113,6 +113,21 @@ body{font-weight:300;-webkit-font-smoothing:antialiased;font-synthesis:none}
 .mbti-guide{width:min(760px,92vw);margin:8vh auto 0;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--dim);line-height:2.1}
 .mbti-guide-sub{margin-top:12px;color:var(--faint)}
 .mbti-note{margin-top:10px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--faint);line-height:1.9}
+/* ---------- 星座/生日输入（可空；星座会轻微动参数） ---------- */
+.bday-row{display:flex;align-items:center;gap:10px}
+.bday{flex:0 0 auto;width:64px;min-height:44px;background:transparent;border:1px solid var(--faint);color:var(--ink);font-family:var(--mono);font-size:16px;padding:10px 8px;text-align:center;outline:none;transition:border-color .3s}
+.bday:focus{border-color:var(--dim)}
+.bday::-webkit-outer-spin-button,.bday::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.bday[type=number]{-moz-appearance:textfield;appearance:textfield}
+.bday-x{color:var(--faint);font-family:var(--mono);font-size:12px}
+.bday-tag{min-height:26px;margin-top:10px;font-family:var(--serif);font-style:italic;font-size:14px;line-height:1.7;color:var(--gold)}
+.bday-tag.err{color:var(--dim)}
+/* ---------- 结果页：星座合盘 + 生日彩蛋 ---------- */
+.hepan{max-width:560px;margin:36px auto 0;text-align:center}
+.hepan-head{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--dim);text-transform:uppercase}
+.hepan-line{margin-top:12px;font-family:var(--serif);font-style:italic;font-size:clamp(15px,1.9vw,19px);line-height:1.9;color:var(--ink)}
+.hepan-note{margin-top:14px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--faint);line-height:1.9}
+.bday-egg{max-width:560px;margin:28px auto 0;font-family:var(--serif);font-style:italic;font-size:clamp(16px,2vw,20px);line-height:1.9;color:var(--gold);text-align:center}
 .adv-toggle{margin-top:7vh;background:none;border:none;border-bottom:1px dashed var(--faint);color:var(--faint);font-family:var(--mono);font-size:10px;letter-spacing:.3em;text-transform:uppercase;cursor:pointer;padding:10px 4px;min-height:44px;transition:color .3s}
 @media (hover:hover){
   .mbti-btn:hover{border-color:var(--dim);color:var(--ink)}
@@ -136,6 +151,29 @@ body{font-weight:300;-webkit-font-smoothing:antialiased;font-synthesis:none}
 .res-tone.warm{color:var(--gold)}
 .res-tone.neutral{color:var(--dim)}
 .res-tone.dark{color:var(--violet)}
+/* ---------- 娱乐两件套：动作按钮间距 / 宇宙黄历小卡 / 听宣判按钮 ---------- */
+.twins-actions .btn{margin:6px}
+.huangli{max-width:560px;margin:40px auto 0;padding:22px 24px;border:1px solid var(--faint);text-align:left}
+.hl-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--dim);text-transform:uppercase}
+.hl-date{color:var(--faint);letter-spacing:.12em;flex:none}
+.hl-rows{margin-top:14px;display:grid;gap:8px}
+.hl-row{display:flex;gap:12px;font-family:var(--serif);font-size:14px;line-height:1.7;color:var(--dim)}
+.hl-row .tag{flex:none;font-family:var(--mono);font-size:10px;letter-spacing:.3em;padding-top:4px}
+.hl-row.yi{color:var(--ink)}
+.hl-row.yi .tag{color:var(--gold)}
+.hl-row.ji .tag{color:var(--faint)}
+.tts-btn{display:flex;width:max-content;min-height:44px;margin:18px auto 0;padding:10px 18px;align-items:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:.2em;background:transparent;border:1px solid var(--faint);
+  color:var(--dim);cursor:pointer;transition:color .25s,border-color .25s}
+.tts-btn.on{color:var(--cyan);border-color:var(--cyan)}
+.tts-btn:disabled{opacity:.45;cursor:default}
+@media (hover:hover){
+  .tts-btn:hover:not(:disabled){color:var(--ink);border-color:var(--dim)}
+}
+@media (max-width:640px){
+  .huangli{margin-top:32px;padding:18px}
+  .hl-head{font-size:10px;letter-spacing:.2em}
+}
 #toast{position:fixed;left:50%;bottom:9vh;transform:translateX(-50%) translateY(20px);z-index:95;max-width:min(440px,88vw);background:#101018;border:1px solid var(--dim);padding:22px 26px;font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.8;color:var(--ink);opacity:0;pointer-events:none;transition:opacity .5s,transform .5s;text-align:center}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
 #toast .t-x{margin-top:12px;font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--faint);cursor:pointer;display:inline-block;padding:10px 14px;min-height:44px}
@@ -195,7 +233,27 @@ textarea:focus{border-color:var(--dim);color:var(--ink)}
 .jump-legend .li{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
 .jump-legend .dot{width:8px;height:8px;border-radius:50%}
 .jump-legend .cnt{color:var(--ink);min-width:48px;text-align:right}
+#jump-ticker{position:fixed;left:4vw;bottom:5vh;max-width:44vw;opacity:0;transition:opacity .6s;pointer-events:none;z-index:5}
 .skip{position:absolute;bottom:5vh;right:5vw;z-index:6;background:none;border:none;color:var(--faint);font-family:var(--mono);font-size:10px;letter-spacing:.3em;text-transform:uppercase;cursor:pointer;pointer-events:auto;transition:color .3s}
+/* ---------- 跳跃问句节拍：底部双分身小舞台 + 字幕 ---------- */
+#jump-stage{position:absolute;left:50%;bottom:21vh;transform:translateX(-50%);display:flex;align-items:flex-end;gap:20px;width:min(560px,92vw);z-index:5;pointer-events:none}
+.js-side{width:84px;height:108px;flex:none;position:relative}
+.js-frame{width:100%;height:100%}
+.js-frame model-viewer,.js-frame img{width:100%;height:100%;--poster-color:transparent}
+.js-frame img{object-fit:contain}
+.js-name{position:absolute;bottom:-4px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase}
+#js-lines{flex:1;min-width:0;padding-bottom:6px}
+.js-line{opacity:0;transition:opacity .5s;font-family:var(--serif);font-style:italic;font-size:clamp(13px,1.5vw,16px);line-height:1.7;color:var(--ink);margin-top:10px}
+.js-line.on{opacity:1}
+.js-line.right{text-align:right;color:var(--cyan)}
+.js-who{display:block;font-family:var(--mono);font-style:normal;font-size:9px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase}
+@media (max-width:640px){
+  #jump-stage{bottom:24vh;gap:12px}
+  .js-side{width:60px;height:78px}
+  .js-line{font-size:13px;margin-top:8px}
+  #jump-ticker{bottom:15.5vh}
+  #jt-text{font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+}
 /* 结尾震屏：五条光带收齐那一下，幅度小，别晕 */
 @keyframes jShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-3px,2px)}45%{transform:translate(3px,-2px)}70%{transform:translate(-2px,1px)}}
 #scene-jump.shaking{animation:jShake .42s ease-in-out}
@@ -305,7 +363,7 @@ body.nerd-on .cf-btn{display:inline-block}
 
 /* ---------- 宇宙信物槽（恶搞宇宙 overlay，hero 区下方） ---------- */
 #wo-keepsake{display:none;margin-bottom:34px}
-.ks-frame{width:min(300px,68vw);aspect-ratio:1/1;margin:0 auto;border:1px solid #23222b;border-radius:12px;
+.ks-frame{width:min(300px,68vw);aspect-ratio:1/1;min-height:min(300px,68vw);margin:0 auto;border:1px solid #23222b;border-radius:12px;
   overflow:hidden;background:radial-gradient(ellipse at 50% 42%,#17161f 0%,#0a0a0f 72%);
   box-shadow:0 0 60px color-mix(in srgb, var(--ks-accent,#ff3d8a) 16%, transparent)}
 .ks-frame model-viewer{width:100%;height:100%;--poster-color:transparent}
@@ -417,7 +475,7 @@ body.nerd-on .cf-btn{display:inline-block}
 
 /* ---------- wall v2: 图为王 ---------- */
 .wall{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
-.wtile{aspect-ratio:4/3}
+.wtile{aspect-ratio:4/3;min-height:140px}
 .wtile .art{position:absolute;inset:0;background-size:cover;background-position:center;
   display:flex;align-items:center;justify-content:center}
 .wtile .moji{font-size:76px;line-height:1;filter:drop-shadow(0 6px 18px rgba(0,0,0,.55))}
@@ -477,6 +535,8 @@ body.nerd-on .cf-btn{display:inline-block}
   .twin-card{padding:26px 20px}
   .twin-name{font-size:24px}
   select,textarea{font-size:16px}
+  /* 结果页改名框同款：字号 ≥16px 防 iOS 聚焦缩放 */
+  .rname input{font-size:16px}
   /* range：视觉仍是 2px 细轨，但命中区撑到 44px（透明渐变画轨道） */
   input[type=range]{height:44px;background:linear-gradient(var(--faint),var(--faint)) center/100% 2px no-repeat}
   input[type=range]::-webkit-slider-thumb{width:24px;height:24px}
@@ -489,7 +549,7 @@ body.nerd-on .cf-btn{display:inline-block}
   .jump-legend .li{font-size:9px}
   .jump-counter{bottom:4.5vh}
   .skip{padding:14px 12px;right:2vw;min-height:44px;display:inline-flex;align-items:center}
-  #jump-ticker{left:4vw;right:4vw;bottom:17vh;max-width:none}
+  #jump-ticker{left:4vw;right:4vw;bottom:13.5vh;max-width:none}
   /* 结果页：分布条收窄、时间线改单列、按钮全宽 */
   #scene-results{padding-top:7vh}
   .outcomes{gap:14px;margin-top:6vh}
@@ -571,6 +631,12 @@ body.nerd-on .cf-btn{display:inline-block}
       <div class="field"><label>TA 的人格型号</label>
         <div class="mbti-grid" id="mbti-grid-a"></div>
         <div class="mbti-tag" id="mbti-tag-a"></div></div>
+      <div class="field"><label>TA 的生日（可空）</label>
+        <div class="bday-row">
+          <input class="bday" id="bday-m-a" type="number" inputmode="numeric" min="1" max="12" placeholder="月" aria-label="生日月份"><span class="bday-x">月</span>
+          <input class="bday" id="bday-d-a" type="number" inputmode="numeric" min="1" max="31" placeholder="日" aria-label="生日日期"><span class="bday-x">日</span>
+        </div>
+        <div class="bday-tag" id="bday-tag-a"></div></div>
       <div class="field"><label>TA 说过的话（选填）</label>
         <textarea id="chat-a" placeholder="贴几句你们的聊天记录。只影响分身的语气，不影响计算。"></textarea></div>
     </div>
@@ -584,6 +650,12 @@ body.nerd-on .cf-btn{display:inline-block}
       <div class="field"><label>TA 的人格型号</label>
         <div class="mbti-grid" id="mbti-grid-b"></div>
         <div class="mbti-tag" id="mbti-tag-b"></div></div>
+      <div class="field"><label>TA 的生日（可空）</label>
+        <div class="bday-row">
+          <input class="bday" id="bday-m-b" type="number" inputmode="numeric" min="1" max="12" placeholder="月" aria-label="生日月份"><span class="bday-x">月</span>
+          <input class="bday" id="bday-d-b" type="number" inputmode="numeric" min="1" max="31" placeholder="日" aria-label="生日日期"><span class="bday-x">日</span>
+        </div>
+        <div class="bday-tag" id="bday-tag-b"></div></div>
       <div class="field"><label>TA 说过的话（选填）</label>
         <textarea id="chat-b" placeholder=""></textarea></div>
     </div>
@@ -649,6 +721,7 @@ body.nerd-on .cf-btn{display:inline-block}
     <button class="btn primary" id="btn-generate" onclick="generateTwins()">生成数字分身</button><button class="btn" id="btn-dice" onclick="diceHair(this)">🎲 随机一对</button>
     <div class="hint">放心，什么都不上传。他们只在这个浏览器里活这一遭。</div>
     <div class="mbti-note">MBTI 映射基于刻板印象，娱乐向。参数面板里都能手调——MBTI 只是起点，你更懂 TA。</div>
+    <div class="mbti-note">星座会轻微动你的参数，真的只是轻微。别据此结婚，也别据此分手。</div>
   </div>
 </section>
 
@@ -677,7 +750,15 @@ body.nerd-on .cf-btn{display:inline-block}
     </div>
     <div class="jump-legend" id="jump-legend"></div>
   </div>
-  <div id="jump-ticker" style="position:fixed;left:4vw;bottom:5vh;max-width:44vw;opacity:0;transition:opacity .6s;pointer-events:none;z-index:5">
+  <div id="jump-stage">
+    <div class="js-side"><div class="js-frame" id="js-a-frame"></div><div class="js-name" id="js-a-name"></div></div>
+    <div id="js-lines">
+      <div class="js-line" id="js-q"><span class="js-who" id="js-q-who"></span><span id="js-q-text"></span></div>
+      <div class="js-line right" id="js-a2"><span class="js-who" id="js-a2-who"></span><span id="js-a2-text"></span></div>
+    </div>
+    <div class="js-side"><div class="js-frame" id="js-b-frame"></div><div class="js-name" id="js-b-name"></div></div>
+  </div>
+  <div id="jump-ticker">
     <div id="jt-meta" style="font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--faint);margin-bottom:8px"></div>
     <div id="jt-text" style="font-family:var(--serif);font-style:italic;font-size:clamp(15px,1.7vw,21px);color:var(--dim);line-height:1.5"></div>
   </div>
@@ -701,6 +782,16 @@ body.nerd-on .cf-btn{display:inline-block}
   </div>
   <div class="out-headline" id="out-headline"></div>
   <div class="res-tone" id="res-tone"></div>
+  <div class="bday-egg" id="bday-egg" style="display:none"></div>
+  <div class="hepan" id="hepan" style="display:none">
+    <div class="hepan-head" id="hepan-head"></div>
+    <div class="hepan-line" id="hepan-line"></div>
+    <div class="hepan-note">星座会轻微动你的参数，真的只是轻微。别据此结婚，也别据此分手。</div>
+  </div>
+  <div class="huangli" id="huangli">
+    <div class="hl-head"><span>宇宙黄历 · 今日宜忌</span><span class="hl-date" id="hl-date"></span></div>
+    <div class="hl-rows" id="hl-rows"></div>
+  </div>
   <div class="outcomes" id="outcomes"></div>
 
   <div class="decisions" style="margin-top:70px;max-width:none">
@@ -764,6 +855,10 @@ body.nerd-on .cf-btn{display:inline-block}
   <div style="max-width:520px;margin:0 auto;text-align:center">
     <div style="font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--faint);text-transform:uppercase;margin-bottom:18px">宇宙身份证 · UNIVERSE ID</div>
     <canvas id="idcard-cv" width="1080" height="1440" style="width:100%;max-width:440px;height:auto;border:1px solid var(--faint);display:block;margin:0 auto"></canvas>
+    <div id="idcard-longpress" style="display:none;margin-top:18px">
+      <img alt="宇宙身份证" style="width:100%;max-width:440px;border:1px solid var(--faint);display:block;margin:0 auto">
+      <div style="margin-top:12px;font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--dim);line-height:1.8">长按图片，存到相册</div>
+    </div>
     <div style="margin-top:26px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
       <button class="btn primary" id="idcard-save" style="min-height:44px">保存图片</button>
       <button class="btn" onclick="closeIdCard()" style="min-height:44px">关闭</button>
@@ -772,7 +867,7 @@ body.nerd-on .cf-btn{display:inline-block}
 </div>
 
 <!-- ============ MOMENT OVERLAY · the two agents, talking ============ -->
-<div id="moment-ovl" style="display:none;position:fixed;inset:0;background:color-mix(in srgb, var(--bg) 94%, transparent);z-index:80;overflow-y:auto;padding:9vh 6vw">
+<div id="moment-ovl" style="display:none;position:fixed;inset:0;background:var(--bg);background:color-mix(in srgb, var(--bg) 94%, transparent);z-index:80;overflow-y:auto;padding:9vh 6vw">
   <div style="max-width:660px;margin:0 auto">
     <div id="mo-meta" style="font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase"></div>
     <div id="mo-event" style="font-family:var(--serif);font-style:italic;font-size:clamp(20px,2.6vw,27px);line-height:1.45;color:var(--ink);margin-top:16px"></div>
@@ -799,6 +894,7 @@ body.nerd-on .cf-btn{display:inline-block}
   <div class="wbody">
     <div id="wo-keepsake"></div>
     <div id="wo-meta" style="font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--faint);text-transform:uppercase"></div>
+    <div id="wo-fork" style="display:none;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--dim);margin-top:14px;line-height:1.9;max-width:640px"></div>
     <div id="wo-end" style="font-family:var(--serif);font-style:italic;font-size:clamp(26px,3.4vw,40px);line-height:1.3;margin:18px 0 40px"></div>
     <div id="wo-log"></div>
     <div style="margin-top:48px;text-align:center">
@@ -819,7 +915,7 @@ body.nerd-on .cf-btn{display:inline-block}
 
 <!-- ============ LLM SETTINGS ============ -->
 <button id="llm-fab" onclick="openLLM()">LLM · 关</button>
-<div id="llm-ovl" style="display:none;position:fixed;inset:0;background:color-mix(in srgb, var(--bg) 94%, transparent);z-index:90;overflow-y:auto;padding:12vh 6vw">
+<div id="llm-ovl" style="display:none;position:fixed;inset:0;background:var(--bg);background:color-mix(in srgb, var(--bg) 94%, transparent);z-index:90;overflow-y:auto;padding:12vh 6vw">
   <div style="max-width:460px;margin:0 auto">
     <div style="font-family:var(--serif);font-style:italic;font-size:26px;margin-bottom:8px">给分身装一个大脑。</div>
     <div style="font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;line-height:2">
@@ -849,6 +945,20 @@ body.nerd-on .cf-btn{display:inline-block}
    Everything runs client-side. No backend, no storage.
    ================================================================ */
 'use strict';
+
+/* ---------- iOS ≤15 没有原生 ctx.roundRect：缺才补。身份证卡面三处调用（DUO 场景另有一个局部 roundRect() 函数，是独立函数，不相干） ---------- */
+if(typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r){
+    r = Math.max(0, Math.min(typeof r === 'number' ? r : 0, Math.abs(w) / 2, Math.abs(h) / 2));
+    this.moveTo(x + r, y);
+    this.arcTo(x + w, y, x + w, y + h, r);
+    this.arcTo(x + w, y + h, x, y + h, r);
+    this.arcTo(x, y + h, x, y, r);
+    this.arcTo(x, y, x + w, y, r);
+    this.closePath();
+    return this;
+  };
+}
 
 /* ---------- seeded RNG (every world is deterministic) ---------- */
 function mulberry32(seed){
@@ -955,12 +1065,14 @@ function readTwin(s){
     conflict_style: document.getElementById(`conflict-${s}`).value,
     attachment: document.getElementById(`attach-${s}`).value,
     money_value: document.getElementById(`money-${s}`).value,
+    bday: ZOD_SEL[s] ? { m: ZOD_SEL[s].m, d: ZOD_SEL[s].d } : null,
+    zodiac: ZOD_SEL[s] ? ZOD_SEL[s].sign : null,
     chatSignals: chat ? Math.max(3, Math.round(chat.length / 14)) : 0
   };
 }
 
 function twinJSON(t){
-  return {
+  const o = {
     name: t.name,
     openness: +t.openness.toFixed(2),
     agreeableness: +(0.35 + t.openness*0.3 + (t.attachment==='secure'?0.2:0)).toFixed(2),
@@ -970,6 +1082,8 @@ function twinJSON(t){
     family_priority: +t.family_priority.toFixed(2),
     attachment: t.attachment
   };
+  if(t.zodiac) o.zodiac = t.zodiac;   /* 星座进了模拟，分身档案就得写——诚实 */
+  return o;
 }
 
 function generateTwins(){
@@ -1335,7 +1449,8 @@ const EVENTS = [
     apply: (s,T,r) => { s.communication += 3; s.stress += 4; s.commitment += 3; },
     text: (A,B) => pick([
       `房租涨了。要不要搬到一起住，第一次被摆上了桌面。`,
-      `一笔账算下来，分开租比一起住贵出一截。数学替他们开了口。`
+      `一笔账算下来，分开租比一起住贵出一截。数学替他们开了口。`,
+      `中介带看跑了一下午。关于「以后住哪」，达成第一个共识：得有扇朝南的窗。`
     ]) },
   { id:'habit_annoy', w:0.6, min:80,
     cond: () => true,
@@ -1343,7 +1458,8 @@ const EVENTS = [
     text: (A,B) => pick([
       `牙膏从中间挤还是从尾巴挤。这场谈判持续了很久，暂无结果。`,
       `${A} 嫌弃 ${B} 的袜子，${B} 嫌弃 ${A} 的闹钟。扯平。`,
-      `湿毛巾又一次出现在了床上。又一次。`
+      `湿毛巾又一次出现在了床上。又一次。`,
+      `${A} 的手机永远只剩 5% 的电。${B} 在床头多放了一根充电线，什么都没说。`
     ]) },
   { id:'flu_season', w:0.45, min:100, cd:200,
     cond: () => true,
@@ -1378,7 +1494,8 @@ const EVENTS = [
     apply: (s,T,r) => { s.stress += 4; s.commitment -= 2; s.trust -= 2; },
     text: (A,B) => pick([
       `凌晨三点，其中一个人睁着眼睛想：就是这个人了吗。想完，翻了个身，继续过。`,
-      `刷到别人的求婚视频，顺手点了赞，然后盯着天花板看了很久。`
+      `刷到别人的求婚视频，顺手点了赞，然后盯着天花板看了很久。`,
+      `${A} 在阳台站了很久。${B} 没去问。不是不想问，是不知道先问哪句。`
     ]) },
   /* ---- 结局向 ---- */
   { id:'old_photo', w:0.5, min:350,
@@ -1671,12 +1788,16 @@ const EVENTS = [
     ]) },
 ];
 
-function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+/* 文案抽签专用流：每个世界用自己的种子流，数值流 r 一滴不占——
+   permalink 复现同一宇宙时，分歧点/时间线文案逐字一致；引擎平衡不受影响 */
+let _pickRng = Math.random;
+function pick(arr){ return arr[Math.floor(_pickRng()*arr.length)]; }
 function pickR(arr, r){ return arr[Math.floor(r()*arr.length)]; }
 
 /* ---------- one world ---------- */
 function simulateWorld(seed, T, keepLog, ban){
   const r = mulberry32(seed);
+  _pickRng = mulberry32((seed ^ 0x5eed5eed) >>> 0);   /* 文案流独立播种 */
   const s = {
     trust: 52 + r()*22, affection: 58 + r()*26, communication: 48 + r()*22,
     stress: 12 + r()*16, commitment: 38 + r()*22,
@@ -1780,27 +1901,42 @@ function health(s){
 
 /* ---------- run the multiverse ---------- */
 let SIM = null;
-function runSimulation(){
+/* 可切片仿真：数值逻辑、种子公式、SIM 结构与旧同步版完全一致，
+   只是迭代可以拆片跑（跳跃过场边算边画）；同步版留作跳过/降级路径 */
+const simJob = { active:false, i:0, worlds:null, stats:null, eventById:null, onDone:null };
+function simReset(){
+  simJob.i = 0;
+  simJob.worlds = [];
+  simJob.stats = { marriage:0, breakup:0, cold_war:0, long_distance:0, still_dating:0 };
+  simJob.eventById = {};
+  for(const e of EVENTS) simJob.eventById[e.id] = { yes:[], no:[] };
+  simJob.active = true;
+}
+function simChunk(n, batch){
   const T = Twins;
-  const worlds = [];
-  const stats = { marriage:0, breakup:0, cold_war:0, long_distance:0, still_dating:0 };
-  const eventById = {};
-  for(const e of EVENTS) eventById[e.id] = { yes:[], no:[] };
-
-  for(let i = 0; i < N_WORLDS; i++){
+  const end = Math.min(N_WORLDS, simJob.i + n);
+  for(; simJob.i < end; simJob.i++){
+    const i = simJob.i;
     const w = simulateWorld(1000 + runSalt*104729 + i*7919, T, i < N_DRAW);
-    worlds.push(i < N_DRAW ? w : { outcome:w.outcome, endDay:w.endDay, events:w.log });
-    stats[w.outcome]++;
+    simJob.worlds.push(i < N_DRAW ? w : { outcome:w.outcome, endDay:w.endDay, events:w.log });
+    simJob.stats[w.outcome]++;
     /* critical-decision bookkeeping (drawn worlds only — they keep logs) */
     if(i < N_DRAW){
+      if(batch) batch.push(w);
       const seen = new Set(w.log.map(l => l.id));
-      for(const e of EVENTS) if(e.key) (seen.has(e.id) ? eventById[e.id].yes : eventById[e.id].no).push(w.outcome);
+      for(const e of EVENTS) if(e.key) (seen.has(e.id) ? simJob.eventById[e.id].yes : simJob.eventById[e.id].no).push(w.outcome);
     }
   }
+  if(simJob.i >= N_WORLDS){ simFinish(); return true; }
+  return false;
+}
+function simFinish(){
+  if(!simJob.active) return;
+  simJob.active = false;
+  const worlds = simJob.worlds, stats = simJob.stats, eventById = simJob.eventById;
 
   /* representative worlds */
   const drawn = worlds.slice(0, N_DRAW);
-  const score = w => w.outcome === 'marriage' ? 1 : 0;
   const married = drawn.filter(w => w.outcome === 'marriage');
   const broken = drawn.filter(w => w.outcome === 'breakup' || w.outcome === 'cold_war');
   const best = married.length ? married[Math.floor(married.length/2)] : drawn.reduce((a,b)=> b.endDay>a.endDay?b:a);
@@ -1817,7 +1953,15 @@ function runSimulation(){
     if(range > wildRange){ wildRange = range; wild = w; }
   }
 
-  SIM = { worlds: drawn, stats, best, worst, avg: avgWorld, wild, eventById, twins: JSON.parse(JSON.stringify(T)) };
+  SIM = { worlds: drawn, stats, best, worst, avg: avgWorld, wild, eventById, twins: JSON.parse(JSON.stringify(Twins)) };
+  const cb = simJob.onDone; simJob.onDone = null;
+  if(cb) cb();
+}
+function simEnsureDone(){ if(simJob.active) simChunk(N_WORLDS - simJob.i); }
+function runSimulation(){           /* 同步版：降级/跳过路径用，结果与切片版一致 */
+  simJob.onDone = null;
+  simReset();
+  simChunk(N_WORLDS);
 }
 function avg(a){ return a.reduce((x,y)=>x+y,0)/a.length; }
 </script>
@@ -1832,314 +1976,350 @@ let runSalt = ((Date.now() & 0xffffff) ^ Math.floor(Math.random() * 0x7fffffff))
 const jump = { raf:null, done:false };
 
 function startJump(){
+  Snd.init();   /* iOS：AudioContext 必须在点击手势栈里创建/resume，setTimeout 里第一次碰它永远 suspended。init 幂等，重复调用安全 */
   go('scene-jump');
   runSalt++;
-  runSimulation();
+  /* 用户开了减弱动态效果：不演，同步仿真直接落结果 */
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches){
+    runSimulation();
+    finishJump(true);
+    return;
+  }
   playJump();
 }
 
+  /* 问句+回答成对池：h32(名字|runSalt) 抽一对，同一对名字同一场跳跃问答固定。
+     问答按对搭配——随机组合容易接不住，成对写才自然 */
+const JS_QA = [
+  ['你说，平行宇宙里的我们，还会在一起吗？', '去问一万次就知道了。我数着。'],
+  ['如果能偷看一个宇宙的我们，你想看哪个？', '不知道。但我想看看哪个宇宙的我说过实话。'],
+  ['别的宇宙里的我们，会比现在过得容易吗？', '会吧。毕竟连这个宇宙的房租都熬过来了。'],
+  ['你猜一万个宇宙里，我们好的多还是散的多？', '你猜对了就请客。猜错了也请客。'],
+  ['要是大多数宇宙里我们都走散了，怎么办？', '我问过宇宙了。它说先跳了再说。'],
+  ['万一所有宇宙里我们都没在一起呢？', '在不在都行，先把这一万个看完。'],
+  ['你说那些宇宙里的我们，吵架了谁先低头？', '不好说。但我赌大多数宇宙里，先低头的还是我。'],
+  ['如果能搬去任意一个宇宙生活，你选哪个？', '不知道。不过我已经开始想那个宇宙的你了。'],
+];
+const JS_QUESTIONS = JS_QA.map(p => p[0]);
+const JS_ANSWERS = JS_QA.map(p => p[1]);
+
+/* LLM 预热：收编起跑时顺手给「最好的宇宙」生成时间线，写进 _llmLog 缓存；
+   12s 硬超时、不 await、全程静默失败——用户点进 best 宇宙时命中就零等待 */
+function preheatLLM(){
+  try{
+    if(typeof LLM === 'undefined' || !LLM.ready() || !SIM || !SIM.best) return;
+    const w = SIM.best;
+    if(w._llmLog) return;
+    Promise.race([
+      genTimelineLLM(w).then(texts => {
+        try{ w._llmLog = (w._engineLog || w.log).map((l, i) => ({ ...l, text: texts[i] || l.text })); }catch(e){}
+      }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('preheat timeout')), 12000))
+    ]).catch(() => {});
+  }catch(e){}
+}
+
+/* ================================================================
+   THE JUMP v2 — 问句节拍 + 真蒙特卡洛蒙太奇 + 五色收编
+   拍 0：底部双分身小舞台，A 问 B 答；切片仿真并行起跑
+   拍 1：每个世界算完 traj 立刻画上 canvas，计数器 = 真实已算数
+   拍 2：仿真完成 → 曲线按真实结局染五色、向五条光带收编
+   ================================================================ */
 function playJump(){
   const cv = document.getElementById('jumpCanvas');
   const cx = cv.getContext('2d');
   const dpr = Math.min(2, devicePixelRatio || 1);
   const W = cv.width = innerWidth * dpr, H = cv.height = innerHeight * dpr;
   cv.style.width = innerWidth+'px'; cv.style.height = innerHeight+'px';
+  cx.clearRect(0, 0, W, H);
 
   const statusEl = document.getElementById('jump-status');
   const counterEl = document.getElementById('jump-counter');
   const numEl = document.getElementById('jump-num');
   const legendEl = document.getElementById('jump-legend');
+  const tickerEl = document.getElementById('jump-ticker');
   legendEl.classList.remove('on'); legendEl.innerHTML = '';
-  document.getElementById('jump-ticker').style.opacity = 0;
+  tickerEl.style.opacity = 0;
   counterEl.style.opacity = 1;
   numEl.textContent = '0';
   jump.done = false;
 
-  /* 用户开了减弱动态效果：不演，直接落结果 */
-  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches){ finishJump(true); return; }
-
-  /* ================================================================
-     世界线：一条线 = 一个宇宙里那两个人的五年。
-     双层 canvas——
-     · 身体层（jumpCanvas）永不清屏，每帧只叠各条线新长出来的那一小段，
-       一千多条采样线 + 微光叠加 ≈ 一万条的密度，成本却是 O(采样数)
-     · 头部层（jump.heads）每帧清空，只画一千多个发亮的线头
-     ================================================================ */
   const keys = Object.keys(OUTCOMES);
-  const counts = keys.map(k => SIM.stats[k]);
-  const jr = mulberry32(0x1d1f1e + runSalt * 7919);
-
-  if(jump.heads) jump.heads.remove();
-  const hcv = document.createElement('canvas');
-  hcv.width = W; hcv.height = H;
-  hcv.style.cssText = 'position:absolute;inset:0;width:'+innerWidth+'px;height:'+innerHeight+'px;pointer-events:none;z-index:1';
-  cv.parentElement.insertBefore(hcv, cv.nextSibling);
-  jump.heads = hcv;
-  const hx = hcv.getContext('2d');
-
-  /* 五条结局光带：画面右侧竖排，厚度按占比分 */
-  const x0 = -8 * dpr, xEnd = W * 0.84;
-  const boomX = W * 0.5, boomY = H * 0.47;   /* 爆炸原点：一万个宇宙先从一个点炸开 */
-  const NX = 96, stepX = (xEnd - x0) / (NX - 1);
-  const bandSpan = H * 0.52, bandTop0 = H * 0.47 - bandSpan / 2, gap = 12 * dpr;
-  const avail = bandSpan - gap * (keys.length - 1);
-  const bands = {}; let by = bandTop0;
-  keys.forEach((k, j) => {
-    const h = Math.max(6 * dpr, avail * counts[j] / N_WORLDS);
-    bands[k] = { top: by, h, cy: by + h / 2 };
-    by += h + gap;
-  });
-
-  /* 采样线数：桌面一屏约 1200 条，每条抵八九个宇宙；
-     手机（<480px）固定 700 条——密度不减，只是画布小了，每条抵更多宇宙 */
-  const NL = innerWidth < 480 ? 700
-    : Math.max(850, Math.min(1400, Math.round(innerWidth * innerHeight / 3000)));
-  const revealStep = Math.floor(NX * 0.55);
-  const bandStep = Math.floor(NX * 0.80);
-  const WHITE = [236, 231, 222];
   const outRGB = {}; keys.forEach(k => outRGB[k] = hexRGB(OUTCOMES[k].color));
+  const WHITE = [236, 231, 222];
+  const t0 = performance.now();
   const easeOut = t => 1 - Math.pow(1 - t, 3);
   const easeInOut01 = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
 
+  /* ---------- 拍 0：双分身问句节拍（舞台三段式兜底照抄 moStage） ---------- */
+  const av = window.__AV_B64 || {};
+  /* 移动端两个 model-viewer WebGL 实例太吃帧：降级静态 render 图（moStage 同款兜底） */
+  const mvOK = ksWebglOK() && !!customElements.get('model-viewer')
+    && innerWidth >= 768 && !(window.matchMedia && matchMedia('(pointer:coarse)').matches);
+  const put = (frameId, side, orbit) => {
+    const el = document.getElementById(frameId);
+    const hair = HAIR_OK(Twins[side].hair) ? Twins[side].hair : HAIR_DEFAULT(side);
+    const img = `<img src="assets/keepsakes/render/${hair}.webp" alt="">`;
+    el.innerHTML = (av[hair] && mvOK)
+      ? `<model-viewer src="data:model/gltf-binary;base64,${av[hair]}" camera-orbit="${orbit}" interaction-prompt="none" exposure="1.05"></model-viewer>`
+      : img;
+    const mv = el.querySelector('model-viewer');
+    if(mv) mv.addEventListener('error', () => { el.innerHTML = img; });
+  };
+  put('js-a-frame', 'a', '45deg 78deg auto');
+  put('js-b-frame', 'b', '135deg 78deg auto');
+  document.getElementById('js-a-name').textContent = Twins.a.name;
+  document.getElementById('js-b-name').textContent = Twins.b.name;
+  const qEl = document.getElementById('js-q'), aEl = document.getElementById('js-a2');
+  const qTx = document.getElementById('js-q-text'), aTx = document.getElementById('js-a2-text');
+  document.getElementById('js-q-who').textContent = Twins.a.name;
+  document.getElementById('js-a2-who').textContent = Twins.b.name;
+  qEl.classList.remove('on'); aEl.classList.remove('on');
+  qTx.textContent = ''; aTx.textContent = '';
+  const QA = JS_QA[h32(Twins.a.name + '|' + Twins.b.name + '|' + runSalt) % JS_QA.length];
+  const Q = [...QA[0]];   /* 按码点切，不用 split('') */
+  const ANS = QA[1];
+  let qi = 0;
+  statusEl.textContent = '问题在路上，宇宙在算';
+  jump.type = setInterval(() => {
+    qi++;
+    if(qi === 1) qEl.classList.add('on');
+    qTx.textContent = Q.slice(0, qi).join('');
+    if(qi >= Q.length){
+      clearInterval(jump.type); jump.type = null;
+      jump.tAnswer = setTimeout(() => { aTx.textContent = ANS; aEl.classList.add('on'); }, 420);
+    }
+  }, 34);
+
+  /* ---------- 拍 1：蒙太奇 = 真蒙特卡洛（算完一个世界，立刻画上一条真曲线） ---------- */
+  const x0 = W * 0.06, xEnd = W * 0.84;
+  const N_LINE = innerWidth < 480 ? 500 : N_DRAW;   /* 手机线上限 500 */
   const lines = [];
-  for(let i = 0; i < NL; i++){
-    /* 按结局占比发牌 */
-    const x = jr() * N_WORLDS;
-    let k = keys.length - 1, acc = 0;
-    for(let j = 0; j < keys.length; j++){ acc += counts[j]; if(x <= acc){ k = j; break; } }
-    const kk = keys[k];
-
-    /* 走法：随机游走 + 两个拐弯（人生的起伏）；显色后缓缓靠拢，末段才被光带收编 */
-    const ys = new Float32Array(NX);
-    let y = H * (0.12 + jr() * 0.76);
-    let drift = (jr() - .5) * 2.4 * dpr;
-    const bend1 = Math.floor(NX * (0.15 + jr() * 0.3));
-    const bend2 = Math.floor(NX * (0.45 + jr() * 0.3));
-    const targetY = bands[kk].top + jr() * bands[kk].h;
-    for(let s = 0; s < NX; s++){
-      if(s === bend1 || s === bend2) drift = (jr() - .5) * 3.2 * dpr;
-      y += drift + (jr() - .5) * 1.7 * dpr + (H * 0.47 - y) * 0.004;
-      if(s > bandStep){
-        const g = easeInOut01((s - bandStep) / (NX - 1 - bandStep));
-        y = y * (1 - g * .9) + targetY * (g * .9);
-      }else if(s > revealStep){
-        y += (targetY - y) * 0.045;
-      }
-      ys[s] = y;
-    }
-
-    lines.push({
-      k: kk, ys,
-      delay: jr() * 650,
-      dur: 2300 + jr() * 1100,
-      rev: revealStep + Math.floor((jr() - .5) * 8),   /* 显色先后略有差 */
-      end: kk === 'breakup' && jr() < .7               /* 分手：七成中途断掉 */
-        ? Math.floor(NX * (0.58 + jr() * 0.24)) : NX - 1,
-      fork: kk === 'long_distance'                     /* 异地：后段岔成两条 */
-        ? (jr() < .5 ? -1 : 1) * (20 + jr() * 14) * dpr : 0,
-      dim: kk === 'cold_war',                          /* 冷战：越来越淡 */
-      bang: jr() * Math.PI * 2,                        /* 爆炸方向：360° 随机 */
-      blen: (50 + jr() * 190) * dpr,                   /* 爆炸半径 */
-      bd: jr() * 120,                                  /* 起爆先后差一点点 */
-      ex: null, ey: 0,
-      lx: null, ly: 0, fx: null, fy: 0,
-      dead: false, spark: -1
-    });
-  }
-  /* 结婚：两两配对——各走各的五年，最后并到同一个点 */
-  const mar = lines.filter(l => l.k === 'marriage');
-  for(let i = 0; i + 1 < mar.length; i += 2){
-    const a = mar[i], b = mar[i + 1];
-    const ty = (a.ys[NX-1] + b.ys[NX-1]) / 2;
-    a.ys[NX-1] = b.ys[NX-1] = ty;
-    for(let s = Math.min(a.rev, b.rev); s < NX; s++){
-      const g = (s - Math.min(a.rev, b.rev)) / (NX - 1 - Math.min(a.rev, b.rev));
-      const pull = Math.sin(g * Math.PI * .5) * .55;   /* 越到后段靠得越拢 */
-      const mid = (a.ys[s] + b.ys[s]) / 2;
-      a.ys[s] += (mid - a.ys[s]) * pull;
-      b.ys[s] += (mid - b.ys[s]) * pull;
-    }
-  }
-
-  const T_BOOM = 900;                                        /* 爆炸 prelude：先混乱，后秩序 */
-  const T_STATUS2 = 2100, T_GATHER = 2950, T_SND2 = 2500, T_COUNT = 3000;
-  const TOTAL = 4700;
-  const t0 = performance.now();
-  let chimed = false, legendOn = false, shook = false;
-  Snd.jump(); Snd.boom();
-  clearTimeout(jump.safety);
-  jump.safety = setTimeout(() => finishJump(true), T_BOOM + TOTAL + 5000);
-
-  /* 同帧同色的线段并成一条 path，一帧最多几十次 stroke */
-  const buckets = new Map();
-  function seg(col, alpha, x1, y1, x2, y2){
-    const aQ = Math.round(alpha * 10) / 10;
-    if(aQ <= 0.03) return;
-    const key = col + '|' + aQ;
-    let b = buckets.get(key);
-    if(!b){ b = []; buckets.set(key, b); }
-    b.push(x1, y1, x2, y2);
-  }
-
-  function frame(now){
+  const queue = [];   /* 已算完、等待上屏的真曲线 */
+  const tickIcon = [], tickPlain = [];
+  const yOf = h => H * 0.88 - (H * 0.76) * (h / 100);
+  jump.tSnd = setTimeout(() => {
     if(jump.done) return;
-    const t = now - t0;        /* 全程时间轴（含爆炸 prelude） */
-    const tw = t - T_BOOM;     /* 游走时间轴：炸完了才开始走 */
-    if(tw >= T_SND2 && !chimed){ chimed = true; Snd.converge(); }
+    statusEl.textContent = '每条线，都是他们的一种五年';
+    Snd.jump(); Snd.boom();
+  }, 1800);
 
-    statusEl.textContent =
-      tw < 0 ? '所有宇宙同时炸开'
-      : tw < 600 ? '一万个宇宙同时开跑'
-      : tw < T_STATUS2 ? '每条线，都是他们的一种五年'
-      : tw < T_GATHER ? '后半程，结局开始显色'
-      : '向各自的结局归拢';
-    numEl.textContent = Math.round(N_WORLDS * easeOut(Math.min(1, Math.max(0, tw / T_COUNT)))).toLocaleString();
-
-    /* 结尾：五条光带收齐，屏幕轻轻晃一下 */
-    if(!shook && tw >= TOTAL - 700){
-      shook = true;
-      const sc = document.getElementById('scene-jump');
-      sc.classList.remove('shaking'); void sc.offsetWidth; sc.classList.add('shaking');
+  simReset();
+  simJob.onDone = () => { numEl.textContent = N_WORLDS.toLocaleString(); };
+  let boost = false;        /* 慢机 10s 到点：仿真放开预算全速补算，页面不死 */
+  let perWorld = 0.4;       /* ms/世界：先估个值，每帧实测自适应 */
+  let lastNum = -1;
+  const collect = batch => {
+    for(const w of batch){
+      for(const l of w.log){
+        const e = { seed:w.seed, day:l.day, text:l.text, id:l.id };
+        (eventIcon(l.id, l.text) ? tickIcon : tickPlain).push(e);
+      }
+      queue.push(w);
     }
-
+  };
+  /* 真曲线匀速上屏：每帧从队列画几条，一条线就是一个世界真实的五年。
+     alpha 随密度递减——先来的线清晰可辨，后来的把云叠厚，而不是叠成一块白板 */
+  const aBase = innerWidth < 480 ? 0.11 : 0.085;
+  const paintSome = kMax => {
+    if(!queue.length || lines.length >= N_LINE) return;
     cx.globalCompositeOperation = 'lighter';
+    cx.lineWidth = Math.max(1, 0.8 * dpr);
+    let k = 0;
+    while(k < kMax && queue.length && lines.length < N_LINE){
+      const w = queue.shift();
+      /* 每个世界的真实健康度轨迹（183 点，分手的世界短是真的短） */
+      const n = Math.min(w.traj.length, Math.floor(w.endDay / 10) + 1);
+      if(n < 2) continue;
+      const a = aBase * (1 - 0.78 * lines.length / N_LINE);
+      cx.strokeStyle = `rgba(236,231,222,${a.toFixed(3)})`;
+      cx.beginPath();
+      const xs = new Float32Array(n), ys = new Float32Array(n);
+      xs[0] = x0; ys[0] = yOf(w.traj[0]);
+      cx.moveTo(xs[0], ys[0]);
+      for(let s = 1; s < n; s++){
+        xs[s] = x0 + (xEnd - x0) * s / (n - 1);
+        ys[s] = yOf(w.traj[s]);
+        cx.lineTo(xs[s], ys[s]);
+      }
+      cx.stroke();
+      lines.push({ k:w.outcome, n, xs, ys, ty:0, fork:0, forkAt:0, poly:null, fpoly:null });
+      k++;
+    }
+    jump.painted = lines.length;   /* 真曲线上屏数（测试探针/调试可见） */
+  };
+  /* 主驱动：仿真贴在 rAF 上按毫秒预算切片（不挡帧），曲线和计数器随帧更新。
+     片大小按实测单世界耗时自适应——快机不浪费，慢机不卡死 */
+  const driver = now => {
+    if(jump.done) return;
+    if(simJob.active){
+      const budget = boost ? 42 : 10;   /* ms/帧：常态给渲染留足余量，慢机到点全速 */
+      const tS = performance.now();
+      let guard = 0;
+      while(simJob.active && performance.now() - tS < budget && guard++ < 40){
+        const n = Math.max(8, Math.min(320, Math.round(budget / perWorld)));
+        const b0 = performance.now();
+        const batch = [];
+        simChunk(n, batch);
+        collect(batch);
+        const dt = performance.now() - b0;
+        if(dt > 0.5) perWorld = perWorld * 0.7 + (dt / n) * 0.3;
+      }
+    }
+    paintSome(boost ? 8 : 4);
+    if(simJob.i !== lastNum){   /* 真实已算数量 */
+      lastNum = simJob.i;
+      numEl.textContent = simJob.i.toLocaleString();
+    }
+    /* 仿真完成 + 队列画完 + 给问句节拍留够时间 → 拍 2 收编 */
+    if(!simJob.active && (lines.length >= N_LINE || !queue.length) && now - t0 >= 2400){
+      startConverge(); return;
+    }
+    jump.raf = requestAnimationFrame(driver);
+  };
+  jump.simT = setTimeout(() => { jump.raf = requestAnimationFrame(driver); }, 220);   /* 先让舞台和问句上屏 */
 
-    /* 光带微光：收束段一点点积出来，亮度和占比成正比；
-       水平方向做渐变，免得出硬边矩形 */
-    if(tw > T_GATHER - 200){
-      const ramp = Math.min(1, (tw - T_GATHER + 200) / 1500);
+  /* ticker：每 800ms 闪一条真实事件（没挑到就不闪，不编） */
+  const jtMeta = document.getElementById('jt-meta'), jtText = document.getElementById('jt-text');
+  jump.tick = setInterval(() => {
+    const pool = tickIcon.length ? tickIcon : tickPlain;
+    if(!pool.length) return;
+    const e = pool[Math.floor(Math.random() * pool.length)];
+    jtMeta.textContent = `宇宙 #${String(e.seed % 10000).padStart(4, '0')} · 第${e.day}天 ${eventIcon(e.id, e.text)}`;
+    jtText.textContent = e.text;
+    tickerEl.style.opacity = 1;
+  }, 800);
+
+  /* 慢机硬上限：10s 到点仿真放开预算全速补算（页面保持响应；16s 安全网同步兜底不变） */
+  jump.tCap = setTimeout(() => { if(!jump.done && simJob.active) boost = true; }, 10000);
+  clearTimeout(jump.safety);
+  jump.safety = setTimeout(() => finishJump(true), 16000);
+
+  /* ---------- 仿真完成 → 拍 2 收编 + LLM 预热 ---------- */
+  function startConverge(){
+    if(jump.done) return;
+    statusEl.textContent = '向各自的结局归拢';
+    preheatLLM();   /* fire & forget */
+    /* 五条光带：厚度 = 真实占比 */
+    const bandSpan = H * 0.52, bandTop0 = H * 0.47 - bandSpan / 2, gap = 12 * dpr;
+    const avail = bandSpan - gap * (keys.length - 1);
+    const bands = {}; let by = bandTop0;
+    keys.forEach(k => {
+      const h = Math.max(6 * dpr, avail * SIM.stats[k] / N_WORLDS);
+      bands[k] = { top: by, h };
+      by += h + gap;
+    });
+    const jr = mulberry32(0x2c0a1 + runSalt * 7919);
+    for(const p of lines){
+      p.ty = bands[p.k].top + jr() * bands[p.k].h;
+      p.fork = p.k === 'long_distance' ? (jr() < .5 ? -1 : 1) * (20 + jr() * 14) * dpr : 0;
+    }
+    /* 结婚：两两收进同一个点 */
+    const mar = lines.filter(l => l.k === 'marriage');
+    for(let i = 0; i + 1 < mar.length; i += 2){
+      const ty = (mar[i].ty + mar[i + 1].ty) / 2;
+      mar[i].ty = mar[i + 1].ty = ty;
+    }
+    /* 抽稀到 ~61 点 + 每条线预分配折线缓冲：收编每帧全量重画，点数和分配次数就是帧成本 */
+    for(const p of lines){
+      if(p.n > 61){
+        const m = 61, xs = new Float32Array(m), ys = new Float32Array(m);
+        for(let s = 0; s < m; s++){
+          const src = Math.round(s * (p.n - 1) / (m - 1));
+          xs[s] = p.xs[src]; ys[s] = p.ys[src];
+        }
+        p.xs = xs; p.ys = ys; p.n = m;
+      }
+      p.poly = new Float32Array(p.n * 2);
+      if(p.fork){
+        p.forkAt = Math.floor(p.n * 0.7);
+        p.fpoly = new Float32Array((p.n - p.forkAt) * 2);
+      }
+    }
+    legendEl.innerHTML = keys.map(k =>
+      `<div class="li"><span class="dot" style="background:${OUTCOMES[k].color};box-shadow:0 0 10px ${OUTCOMES[k].color}"></span>${OUTCOMES[k].label}<span class="cnt" data-k="${k}">0</span></div>`
+    ).join('');
+    legendEl.classList.add('on');
+    const cntEls = [...legendEl.querySelectorAll('.cnt')];
+    Snd.converge();
+
+    const D = 1700, ct0 = performance.now();
+    let shook = false;
+    const cframe = now => {
+      if(jump.done) return;
+      const t = now - ct0;
+      const g = easeInOut01(Math.min(1, t / D));
+      const cg = easeOut(Math.min(1, t / (D * 0.75)));   /* 显色进度 */
+      if(!shook && t >= D - 500){
+        shook = true;
+        const sc = document.getElementById('scene-jump');
+        sc.classList.remove('shaking'); void sc.offsetWidth; sc.classList.add('shaking');
+      }
+      cx.clearRect(0, 0, W, H);
+      cx.globalCompositeOperation = 'lighter';
+      /* 光带微光：水平渐变免硬边，亮度和占比成正比 */
+      const ramp = Math.min(1, t / 1200);
       keys.forEach(k => {
         const b = bands[k], c = outRGB[k];
         const gx0 = xEnd - W * 0.30, gx1 = xEnd + W * 0.02;
         const grd = cx.createLinearGradient(gx0, 0, gx1, 0);
-        const pk = 0.004 * ramp;
+        const pk = 0.14 * ramp;
         grd.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},0)`);
         grd.addColorStop(0.7, `rgba(${c[0]},${c[1]},${c[2]},${pk})`);
         grd.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},${pk * 1.3})`);
         cx.fillStyle = grd;
         cx.fillRect(gx0, b.top, gx1 - gx0, b.h);
       });
-    }
-
-    /* 身体：只画新长出来的那段 */
-    buckets.clear();
-    cx.lineWidth = Math.max(1, 0.8 * dpr);
-    hx.clearRect(0, 0, W, H);
-    hx.globalCompositeOperation = 'lighter';
-
-    const headByColor = {};
-    for(const p of lines){
-      if(p.dead){
-        /* 断线的线头：一颗很快熄掉的火星 */
-        if(p.spark >= 0 && t - p.spark < 450){
-          const g = (t - p.spark) / 450;
-          const c = outRGB[p.k];
-          hx.globalAlpha = (1 - g) * .9;
-          hx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
-          hx.beginPath(); hx.arc(p.lx, p.ly, (1.2 + g * 2.5) * dpr, 0, 7); hx.fill();
+      /* 真曲线按真实结局染五色、向光带收拢（起点只挪两成，端点全到） */
+      const buckets = new Map();   /* colorKey -> { alpha, polys:[xy...] } */
+      for(const p of lines){
+        const c0 = outRGB[p.k];
+        const cr = Math.round(WHITE[0] + (c0[0] - WHITE[0]) * cg);
+        const cgr = Math.round(WHITE[1] + (c0[1] - WHITE[1]) * cg);
+        const cb2 = Math.round(WHITE[2] + (c0[2] - WHITE[2]) * cg);
+        let alpha = 0.24 + 0.2 * cg;
+        if(p.k === 'cold_war') alpha *= 1 - 0.6 * g;      /* 冷战：越来越淡 */
+        const key = `rgb(${cr},${cgr},${cb2})`;
+        let bkt = buckets.get(key);
+        if(!bkt){ bkt = { alpha, polys: [] }; buckets.set(key, bkt); }
+        bkt.alpha = alpha;
+        const n1 = p.n - 1, poly = p.poly;
+        for(let s = 0; s < p.n; s++){
+          const gw = g * (0.2 + 0.8 * Math.pow(s / n1, 1.6));
+          poly[s*2] = p.xs[s];
+          poly[s*2+1] = p.ys[s] + (p.ty - p.ys[s]) * gw;
         }
-        continue;
+        bkt.polys.push(poly);
+        if(p.fpoly){                                      /* 异地：末段岔成两条，一条去一座城 */
+          const s0 = p.forkAt, fp = p.fpoly;
+          for(let s = s0; s < p.n; s++){
+            const gw = g * (0.2 + 0.8 * Math.pow(s / n1, 1.6));
+            const k2 = (s - s0) / Math.max(1, n1 - s0);
+            fp[(s-s0)*2] = p.xs[s];
+            fp[(s-s0)*2+1] = p.ys[s] + (p.ty - p.ys[s]) * gw + p.fork * g * k2;
+          }
+          bkt.polys.push(fp);
+        }
       }
-      /* prelude：先从原点向四面八方炸开，尾迹留在身体层当星爆背景 */
-      if(t < T_BOOM){
-        const bg = (t - p.bd) / (T_BOOM - 120);
-        if(bg <= 0) continue;
-        const bp = easeOut(Math.min(1, bg));
-        const bx = boomX + Math.cos(p.bang) * p.blen * bp + (Math.random() - .5) * 1.6 * dpr;
-        const by = boomY + Math.sin(p.bang) * p.blen * bp + (Math.random() - .5) * 1.6 * dpr;
-        if(p.ex !== null) seg('rgb(236,231,222)', .34, p.ex, p.ey, bx, by);
-        p.ex = bx; p.ey = by;
-        (headByColor[p.k] || (headByColor[p.k] = [])).push(bx, by, 0);
-        continue;
+      cx.lineWidth = Math.max(1, 0.8 * dpr);
+      for(const [key, bkt] of buckets){
+        cx.strokeStyle = key;
+        cx.globalAlpha = bkt.alpha;
+        cx.beginPath();
+        for(const poly of bkt.polys){
+          cx.moveTo(poly[0], poly[1]);
+          for(let i = 2; i < poly.length; i += 2) cx.lineTo(poly[i], poly[i+1]);
+        }
+        cx.stroke();
       }
-      const g = (tw - p.delay) / p.dur;
-      if(g <= 0) continue;
-      const headF = Math.min(g, 1) * (NX - 1);
-      const si = Math.min(Math.floor(headF), p.end);
-      const xx = x0 + si * stepX;
-      const yy = p.ys[si];
-
-      /* 跑过自己的显色点之后，新长出的线段才染上结局色 */
-      const revealed = si >= p.rev;
-      let a = revealed ? .62 : .34;
-      if(p.dim && revealed)
-        a = .62 - .5 * easeInOut01(Math.min(1, (si - p.rev) / (NX - 1 - p.rev)));
-      const col = revealed ? outRGB[p.k] : WHITE;
-      const colStr = `rgb(${col[0]},${col[1]},${col[2]})`;
-
-      if(p.lx !== null && si > 0) seg(colStr, a, p.lx, p.ly, xx, yy);
-
-      /* 异地：显色后岔出第二条，一条去一座城 */
-      if(p.fork && revealed){
-        const fg = easeInOut01(Math.min(1, (si - p.rev) / (NX - 1 - p.rev)));
-        const fy2 = yy + p.fork * fg;
-        if(p.fx !== null) seg(colStr, a * .8, p.fx, p.fy, xx, fy2);
-        p.fx = xx; p.fy = fy2;
-      }
-      p.lx = xx; p.ly = yy;
-
-      (headByColor[p.k] || (headByColor[p.k] = [])).push(xx, yy, revealed ? 1 : 0);
-
-      const broke = p.end < NX - 1 && headF >= p.end;
-      const arrived = p.end >= NX - 1 && g >= 1;
-      if(broke || arrived){ p.dead = true; p.spark = broke ? t : -1; }
-    }
-
-    for(const [key, arr] of buckets){
-      const ci = key.lastIndexOf('|');
-      cx.strokeStyle = key.slice(0, ci);
-      cx.globalAlpha = parseFloat(key.slice(ci + 1));
-      cx.beginPath();
-      for(let i = 0; i < arr.length; i += 4){
-        cx.moveTo(arr[i], arr[i + 1]); cx.lineTo(arr[i + 2], arr[i + 3]);
-      }
-      cx.stroke();
-    }
-    cx.globalAlpha = 1;
-
-    /* 线头：显色的染结局色，没显色的还是同一粒微光。
-       注意：arc 前必须 moveTo，否则同一 path 里的圆点会被直线两两相连 */
-    const wHeads = [];
-    hx.globalAlpha = .62;
-    for(const k in headByColor){
-      const c = outRGB[k];
-      hx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
-      hx.beginPath();
-      const arr = headByColor[k];
-      for(let i = 0; i < arr.length; i += 3){
-        if(arr[i + 2]){ hx.moveTo(arr[i] + 1.15 * dpr, arr[i + 1]); hx.arc(arr[i], arr[i + 1], 1.15 * dpr, 0, 7); }
-        else wHeads.push(arr[i], arr[i + 1]);
-      }
-      hx.fill();
-    }
-    hx.fillStyle = 'rgb(236,231,222)';
-    hx.beginPath();
-    for(let i = 0; i < wHeads.length; i += 2){
-      hx.moveTo(wHeads[i] + 1.05 * dpr, wHeads[i + 1]);
-      hx.arc(wHeads[i], wHeads[i + 1], 1.05 * dpr, 0, 7);
-    }
-    hx.fill();
-    hx.globalAlpha = 1;
-
-    /* 收尾：图例亮起，五种结局各就各位 */
-    if(tw >= T_GATHER && !legendOn){
-      legendOn = true;
-      legendEl.innerHTML = keys.map(k =>
-        `<div class="li"><span class="dot" style="background:${OUTCOMES[k].color};box-shadow:0 0 10px ${OUTCOMES[k].color}"></span>${OUTCOMES[k].label}<span class="cnt" data-k="${k}">0</span></div>`
-      ).join('');
-      legendEl.classList.add('on');
-    }
-    if(legendOn){
-      const lg = easeOut(Math.min(1, (tw - T_GATHER) / 800));
-      legendEl.querySelectorAll('.cnt').forEach(el => {
-        el.textContent = Math.round(SIM.stats[el.dataset.k] * lg).toLocaleString();
-      });
-    }
-
-    if(tw >= TOTAL){ finishJump(); return; }
-    jump.raf = requestAnimationFrame(frame);
+      cx.globalAlpha = 1;
+      const lg = easeOut(Math.min(1, t / 800));
+      cntEls.forEach(el => { el.textContent = Math.round(SIM.stats[el.dataset.k] * lg).toLocaleString(); });
+      if(t >= D){ finishJump(); return; }
+      jump.raf = requestAnimationFrame(cframe);
+    };
+    jump.raf = requestAnimationFrame(cframe);
   }
-  jump.raf = requestAnimationFrame(frame);
 }
 
 function glitch(cx, W, H, amp, t){
@@ -2164,8 +2344,15 @@ function finishJump(skipped){
   if(jump.done) return;
   jump.done = true;
   clearTimeout(jump.safety);
+  clearTimeout(jump.simT);
+  clearTimeout(jump.tSnd);
+  clearTimeout(jump.tCap);
+  clearTimeout(jump.tConv);
+  clearTimeout(jump.tAnswer);
+  if(jump.type){ clearInterval(jump.type); jump.type = null; }
   clearInterval(jump.tick);
   cancelAnimationFrame(jump.raf);
+  if(simJob.active) simEnsureDone();   /* 跳过/慢机：同步补完剩余宇宙，stats 完整性不妥协 */
   if(jump.heads){ jump.heads.remove(); jump.heads = null; }
   document.getElementById('scene-jump').classList.remove('shaking');
   document.getElementById('jump-ticker').style.opacity = 0;
@@ -2185,13 +2372,46 @@ const OUT_PHRASE = {
   long_distance: '留在了两座城市',
   still_dating: '还在谈着，不上不下',
 };
-const OUT_ENDLINE = {
-  marriage: (A,B) => `第四年往后的某一天，${A} 和 ${B} 不再数日子了。已经没有什么需要数着过的了。`,
-  breakup: (A,B) => `不是崩塌，是磨损。直到某天 ${A} 意识到，上一次好好说话，已经是几个月前。`,
-  cold_war: (A,B) => `没人走。也没人说话。那间屋子，越来越擅长安静。`,
-  long_distance: (A,B) => `两座城市，两个时区。通话越来越短，沉默越来越长。`,
-  still_dating: (A,B) => `五年了，依然很好——只是那个关于以后的问题还坐在屋里，耐心地等。`,
-};
+/* 每结局 4 句池，签名 (A,B,seed)：按宇宙 seed 抽——同一个宇宙永远同一句，换个宇宙换一句。
+   每池第 1 条是元老句；后 3 条只为它所在的结局成立。 */
+const OUT_ENDLINE = (() => {
+  const POOL = {
+    marriage: [
+      (A,B) => `第四年往后的某一天，${A} 和 ${B} 不再数日子了。已经没有什么需要数着过的了。`,
+      (A,B) => `证领完那天，两个人就去楼下吃了碗面。${A} 说以后就这样了啊，${B} 头也不抬：不然呢。`,
+      (A,B) => `有人问 ${B} 看上 ${A} 哪一点。${B} 认真想了半天：懒，重新认识一个人太累了。这话后来成了他们家最浪漫的典故。`,
+      (A,B) => `后来吵架都吵得很熟练，三句以内必有一句「吃饭了」。日子就是这样，骂骂咧咧地过下去了。`
+    ],
+    breakup: [
+      (A,B) => `不是崩塌，是磨损。直到某天 ${A} 意识到，上一次好好说话，已经是几个月前。`,
+      (A,B) => `最后一面见得很平静。${A} 送了 ${B} 一段路，谁都没说再见，但都知道已经说过了。`,
+      (A,B) => `分开以后，${B} 偶尔还会给 ${A} 的朋友圈点赞。不多，一年一两次。像隔着很远，轻轻挥一下手。`,
+      (A,B) => `没什么好后悔的。那几年是真的，这一点哪个宇宙都改不了。`
+    ],
+    cold_war: [
+      (A,B) => `没人走。也没人说话。那间屋子，越来越擅长安静。`,
+      (A,B) => `家里的对话精简到了「嗯」「哦」「睡了」。三个词，过了三年。`,
+      (A,B) => `冰箱上贴着便签，一张写「记得交电费」，一张回了个「嗯」。这就是他们最长的书信往来。`,
+      (A,B) => `他们没吵架——吵架还需要点力气。只是同一张沙发上，各刷各的手机，像两座相邻的岛。`
+    ],
+    long_distance: [
+      (A,B) => `两座城市，两个时区。通话越来越短，沉默越来越长。`,
+      (A,B) => `地图上说，他们隔着一千两百公里。换算下来，是两张车票，和一句总也说不出口的「你回来吧」。`,
+      (A,B) => `晚安越说越早，因为时差；早安越说越晚，因为忙。谁都没错，这才是最难办的。`,
+      (A,B) => `${A} 的手机里存着两座城市的天气。后来删掉了一个。这个动作，谁也没有看见。`
+    ],
+    still_dating: [
+      (A,B) => `五年了，依然很好——只是那个关于以后的问题还坐在屋里，耐心地等。`,
+      (A,B) => `朋友问什么时候结婚。${A} 说快了，${B} 说还早。两个人说的是同一天。`,
+      (A,B) => `礼物越送越实用：去年是保温杯，今年是护腰。浪漫没死，只是腰椎不太好。`,
+      (A,B) => `谁也不提以后，提以后伤感情。就这么一直谈着，像一局谁都不想先起身的牌。`
+    ]
+  };
+  const out = {};
+  for(const k in POOL) out[k] = (A, B, seed) =>
+    POOL[k][h32('endline|' + seed) % POOL[k].length](A, B);
+  return out;
+})();
 function worldId(seed){ return '宇宙 #' + String(seed % 10000).padStart(4,'0'); }
 function fmtDay(d){
   const mo = Math.max(1, Math.round(d/30.4));
@@ -2270,6 +2490,7 @@ const OUT_HEADLINE = {
     `{pct}% 的宇宙，酸奶过期了，谁都没扔。那是最后一次对话。`,
     `{pct}% 的你们，发明了不用说话的同居术。审查员也冷战了。`,
     `{pct}% 的世界线，全靠小爱同学传话：「告诉他饭好了」。`,
+    `{pct}% 的宇宙里，没人提散场，也没人先开口。`,
   ],
   long_distance: [
     `在 {pct}% 的宇宙里，你们败给了一个邮编。`,
@@ -2303,6 +2524,7 @@ const OUT_HEADLINE = {
     `{pct}% 的宇宙，双方父母以为你们早分了。其实连手都没分。`,
     `{pct}% 的宇宙里，输入法换了三茬，打的永远是「再说」。`,
     `{pct}% 的你们，店倒闭了还在续杯。新老板以为你们是遗产。`,
+    `{pct}% 的你们，把「顺其自然」过成了五年一贯制。`,
   ],
 };
 function h32(s){ let h = 5381; for(const c of String(s)) h = ((h << 5) + h + c.codePointAt(0)) >>> 0; return h; }
@@ -2360,6 +2582,8 @@ const TICKER_BITS = [
   '她发现他微博小号关注的全是前任，包括她自己', '他的手机相册自动分类「人物」里有她，删不掉',
   '她把他的游戏账号借给弟弟，弟弟打上了王者', '他们的共同好友分组叫「还没分」，三年了',
   '她在他的外卖App里看到「常点：麻辣烫不加葱」', '他的导航还留着她家地址，备注一直没敢改',
+  '他们把「改天请你吃饭」说了四年，改天至今没来', '两家父母第一次见面就聊成了亲家，他俩还在暧昧期',
+  '他把她的聊天置顶取消了，第三天又偷偷顶了回来', '两个人抢着买单，服务员默默收走了二维码',
 ];
 (function bootTicker(){
   const track = document.getElementById('tick-track');
@@ -2414,10 +2638,27 @@ function wildestMoment(){
   });
   return best;
 }
+/* 命运分歧点（每个宇宙自己的，不是全局聚合）：沿这个宇宙的 log 相邻快照算健康度变化
+   |Δhealth|，取转弯最狠的关键事件（eventIcon 认出来的大件：求婚/搬家/分手/干架……）；
+   整条线没有关键事件就取 |Δ| 最大的普通事件；连两条带快照的记录都没有 → null（调用方用兜底句）。 */
+function worldFork(w){
+  const log = (w && (w._engineLog || w.log)) || [];
+  let key = null, any = null;
+  for(let i = 1; i < log.length; i++){
+    const p = log[i-1].snap, c = log[i].snap;
+    if(!p || !c) continue;
+    const d = Math.abs(health(c) - health(p));
+    const cand = { day: log[i].day, text: log[i].text, d };
+    if(!any || d > any.d) any = cand;
+    if(eventIcon(log[i].id, log[i].text) && (!key || d > key.d)) key = cand;
+  }
+  return key || any;
+}
+
 /* ================================================================
-   手写 QR 编码器 — byte mode · EC level M · version 1-18 自动选最小
-   从 qr-proto.html 整体搬入（原型验证过），版本表扩到 18
-   （permalink 带中文名 base64 载荷可达 500+ 字节，v18 容量 562）。
+   手写 QR 编码器 — byte mode · EC level M · version 1-22 自动选最小
+   从 qr-proto.html 整体搬入（原型验证过），版本表扩到 22（生日字段入载荷后）
+   （permalink 带中文名 base64 载荷可达 500+ 字节，v22 容量 782）。
    零依赖。QR.draw(canvas, text, targetPx) → 成功 true / 太长 false
    ================================================================ */
 const QR = (() => {
@@ -2441,11 +2682,17 @@ const QR = (() => {
     { ec:28, blocks:[45,45,45,45,45,45,45,46,46,46] },
     { ec:28, blocks:[46,46,46,46,46,46,46,46,46,46,47] },
     { ec:26, blocks:[43,43,43,43,43,43,43,43,43,44,44,44,44] },
+    { ec:26, blocks:[44,44,44,45,45,45,45,45,45,45,45,45,45,45] },
+    { ec:26, blocks:[41,41,41,42,42,42,42,42,42,42,42,42,42,42,42,42] },
+    { ec:26, blocks:[42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42,42] },
+    { ec:28, blocks:[46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46,46] },
   ];
   /* 各版本对齐图案中心坐标 */
   const ALIGN = [ null, [], [6,18], [6,22], [6,26], [6,30], [6,34],
     [6,22,38], [6,24,42], [6,26,46], [6,28,50], [6,30,54], [6,32,58], [6,34,62],
-    [6,26,46,66], [6,26,48,70], [6,26,50,74], [6,30,54,78], [6,30,56,82] ];
+    [6,26,46,66], [6,26,48,70], [6,26,50,74], [6,30,54,78], [6,30,56,82],
+    [6,30,58,86], [6,34,62,90],
+    [6,28,50,72,94], [6,26,50,74,98] ];
 
   /* --- GF(256) 对数/指数表，本原多项式 0x11D --- */
   const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
@@ -2490,7 +2737,7 @@ const QR = (() => {
   /* --- 数据编码：byte mode → 码字流（含分块、RS、交错） --- */
   function encodeBytes(bytes){
     let v = 0;
-    for (let t = 1; t <= 18; t++){
+    for (let t = 1; t < VER.length; t++){
       const cap = VER[t].blocks.reduce((a, b) => a + b, 0) * 8;
       if (4 + (t <= 9 ? 8 : 16) + bytes.length * 8 <= cap){ v = t; break; }
     }
@@ -2637,7 +2884,7 @@ function drawIdCard(){
   const headline = document.getElementById('out-headline').dataset.full ||
     OUT_HEADLINE[top][0].replaceAll('{pct}', topPct);
   const wild = wildestMoment();
-  const dec = topDecision();
+  const fork = worldFork(S.best);   /* 分歧点讲这张卡代表的宇宙（S.best）自己的转弯，不再用全局统计 */
   const uni = worldId(S.best ? S.best.seed : 0);
 
   const cv = document.getElementById('idcard-cv');
@@ -2675,7 +2922,8 @@ function drawIdCard(){
   cx.fillText(`UNIVERSE #${uni.replace('宇宙 #','')}  ·  MULTIUS REPORT`, W/2, y);
   y += 96;
   cx.fillStyle = ink; cx.font = `italic 84px ${SERIF}`;
-  cx.fillText(`${A} × ${B}`, W/2, y);
+  const zEmoji = t => (t && t.zodiac && ZODIAC_BY_NAME[t.zodiac]) ? ' ' + ZODIAC_BY_NAME[t.zodiac].emoji : '';
+  cx.fillText(`${A}${zEmoji(Twins.a)} × ${B}${zEmoji(Twins.b)}`, W/2, y);
   y += 66;
   cx.strokeStyle = 'rgba(255,255,255,.18)'; cx.beginPath();
   cx.moveTo(W/2 - 160, y); cx.lineTo(W/2 + 160, y); cx.stroke();
@@ -2720,10 +2968,10 @@ function drawIdCard(){
   cx.fillStyle = faint; cx.font = `24px ${MONO}`;
   cx.fillText('命运分歧点', W/2, y); y += 54;
   cx.fillStyle = ink; cx.font = `italic 38px ${SERIF}`;
-  const decText = dec
-    ? `大约第 ${dec.med} 天 · ${DEC_COPY[dec.id].title}结婚率的 ${Math.round(dec.delta * 100)} 个百分点，押在这上面。`
+  const decText = fork
+    ? `第 ${fork.day} 天 · ${String(fork.text).replace(/。+$/, '')}。从这天起，路分成了两种。`
     : '这一万个宇宙，走得意外地齐心。';
-  wrap(decText, W - 240).slice(0, 3).forEach(l => { cx.fillText(l, W/2, y); y += 56; });
+  wrap(decText, W - 240).slice(0, 4).forEach(l => { cx.fillText(l, W/2, y); y += 56; });
 
   /* 水印 */
   cx.fillStyle = faint; cx.font = `24px ${MONO}`;
@@ -2780,6 +3028,7 @@ function pasteIdCardChars(){
       cx.strokeStyle = 'rgba(255,255,255,.14)'; cx.lineWidth = 2;
       cx.beginPath(); cx.roundRect(x, y0, S, S, 16); cx.stroke();
     });
+    idcardSaveImg();   /* 小砖贴完，长按图跟着更新 */
   };
   if(_charImgs !== undefined && _charImgsKey === key){ finish(_charImgs || null); return; }
   const load = src => new Promise(res => {
@@ -2791,10 +3040,22 @@ function pasteIdCardChars(){
   Promise.all([load(`assets/keepsakes/render/${hairA}.webp`), load(`assets/keepsakes/render/${hairB}.webp`)])
     .then(([a, b]) => { _charImgsKey = key; _charImgs = (a && b) ? { a, b } : false; finish(_charImgs || null); });
 }
+/* 微信/iOS 里 a.download 静默失灵：多渲染一张 <img> 给长按。桌面/非微信不生成，路径原样 */
+function idcardSaveImg(){
+  if(!/MicroMessenger|iPhone|iPad/i.test(navigator.userAgent)) return;
+  const holder = document.getElementById('idcard-longpress');
+  if(!holder || holder.style.display === 'none') return;
+  try{ holder.querySelector('img').src = document.getElementById('idcard-cv').toDataURL('image/png'); }
+  catch(e){ /* canvas 被 taint 的极端情况：静默失败，不污染 console */ }
+}
+
 function openIdCard(){
   if(!SIM) return;
   drawIdCard();
   document.getElementById('idcard-ovl').style.display = 'block';
+  const lp = document.getElementById('idcard-longpress');
+  if(lp) lp.style.display = /MicroMessenger|iPhone|iPad/i.test(navigator.userAgent) ? 'block' : 'none';
+  idcardSaveImg();
   pasteIdCardChars();
 }
 function closeIdCard(){ document.getElementById('idcard-ovl').style.display = 'none'; }
@@ -2822,6 +3083,9 @@ function renderResults(){
   syncNameBar(A, B);
   renderVerdict();
   renderTone(top);
+  renderHuangli();
+  renderHepan();
+  renderBdayEgg();
   maybeNameToast(top);
   document.getElementById('res-headline').innerHTML =
     `在 <span class="hl">${topPct}%</span> 的未来里，<em>你们${OUT_PHRASE[top]}。</em>`;
@@ -2947,7 +3211,7 @@ function renderWorld(which){
       <span>跨度 · <b>${(w.endDay/365).toFixed(1)} 年</b></span>
       <span>见证事件 · <b>${(w.log||[]).length}</b></span>
     </div>
-    <div class="world-end">${OUT_ENDLINE[w.outcome](A,B)}</div>
+    <div class="world-end">${OUT_ENDLINE[w.outcome](A,B,w.seed)}</div>
     <div class="wstats">
       <div class="wstat"><div class="v">${Math.round(f.trust)}</div><div class="l">信任</div></div>
       <div class="wstat"><div class="v">${Math.round(f.affection)}</div><div class="l">心动</div></div>
@@ -3440,7 +3704,7 @@ function watchMoment(which, idx){
      模型读 __AV_B64[Twins.hair]（file:// 也真 3D），无数据/无 WebGL 用渲染图兜底 */
   (function moStage(){
     const av = window.__AV_B64 || {};
-    const mvOK = ksWebglOK() && !!customElements.get('model-viewer');
+    const mvOK = ksMvOK();
     const put = (frameId, side, orbit) => {
       const el = document.getElementById(frameId);
       const hair = HAIR_OK(Twins[side].hair) ? Twins[side].hair : HAIR_DEFAULT(side);
@@ -3496,7 +3760,7 @@ function watchMoment(which, idx){
       }catch(e){
         if(token !== moToken) return;
         const typ = box.querySelector('.mo-typing'); if(typ) typ.remove();
-        document.getElementById('mo-src').textContent = 'LLM 挂了（' + e.message + '）——引擎接手了';
+        document.getElementById('mo-src').textContent = '现场连线断了，换宇宙自己写';
         genDialogueEngine(w, entry).forEach((turn, k) => setTimeout(() => showTurn(turn, k), 400 + k * 1100));
       }
     })();
@@ -3831,7 +4095,7 @@ function worldImg(w){ const a = WORLD_IMG[w.outcome] || []; return a[w.seed % a.
 function buildWall(){
   const wall = document.getElementById('wall');
   wall.innerHTML = '';
-  /* 6 个真实宇宙：四个代表 + 结局带抽样 */
+  /* 10 个真实宇宙：四个代表 + 结局带抽样，剩下的按戏分从 800 个全量世界里补足 */
   const sims = [];
   const seen = new Set();
   const take = w => { if(w && !seen.has(w.seed)){ seen.add(w.seed); sims.push(w); } };
@@ -3840,21 +4104,30 @@ function buildWall(){
     const band = SIM.worlds.filter(w => w.outcome === k && !seen.has(w.seed));
     if(band.length && sims.length < 6) take(band[Math.floor(band.length/2)]);
   });
-  const simTiles = sims.slice(0,6).map(w => ({ kind:'sim', w }));
-  /* 6 个恶搞宇宙：石头固定（招牌），其余按戏分轮换，每次跳进来看到的不完全一样 */
+  /* 戏分：关键事件（💍⚡✈️💔）计数——补足和前排序都用它，前排永远放最有戏的 */
+  const dramaW = w =>
+    ((w && w.log) || []).reduce((n, l) => n + (eventIcon(l.id || l.ev, l.text) ? 1 : 0), 0);
+  SIM.worlds.filter(w => w && !seen.has(w.seed))
+    .sort((x, y) => dramaW(y) - dramaW(x))
+    .forEach(w => { if(sims.length < 10) take(w); });
+  const simTiles = sims.slice(0,10).map(w => ({ kind:'sim', w }));
+  /* 2 个恶搞宇宙：石头固定（招牌，永远第一格），第二个按 runSalt 从招牌队列轮换 */
   const GAG_PRIORITY = ['rock','cats','luosifen','mosquito','vending','matryoshka','earbuds','robotvac','fridge','powerbank','adscreen','streetlamp','slippers','plants'];
   const ordered = GAG_PRIORITY.map(id => GAGS.find(g => g.id === id)).filter(Boolean);
   const gagPicks = [ordered[0]];
   const rest = ordered.slice(1);
-  for(let i = 0; i < 5; i++) gagPicks.push(rest[(runSalt + i) % rest.length]);
+  if(rest.length) gagPicks.push(rest[runSalt % rest.length]);
   const gagTiles = gagPicks.map(g => ({ kind:'gag', g }));
-  /* 戏分排序：关键事件（💍⚡✈️💔）多的宇宙往前排——前排永远放最有戏的 */
-  const drama = t =>
-    (t.w.log || []).reduce((n, l) => n + (eventIcon(l.id || l.ev, l.text) ? 1 : 0), 0);
+  const drama = t => dramaW(t.w);
   const sortedSims = simTiles.sort((x, y) => drama(y) - drama(x));
-  /* 混排：真-假-真-假 */
-  const tiles = [];
-  for(let i = 0; i < 6; i++){ if(sortedSims[i]) tiles.push(sortedSims[i]); if(gagTiles[i]) tiles.push(gagTiles[i]); }
+  /* 混排：石头占第一格，第二个恶搞塞中腰——全墙就俩假的，别挤在一起 */
+  const tiles = [gagTiles[0]];
+  sortedSims.forEach((t, i) => {
+    if(i === 6 && gagTiles[1]) tiles.push(gagTiles[1]);
+    tiles.push(t);
+  });
+  if(gagTiles[1] && !tiles.includes(gagTiles[1])) tiles.push(gagTiles[1]);
+  buildWall._tiles = tiles;   // 可测性标记：本面墙的 12 格（QA 断言之用）
 
   tiles.forEach((e, i) => {
     const t = document.createElement('div');
@@ -5248,7 +5521,7 @@ async function play(e){
     const lastSnap = [...(w.log || [])].reverse().find(l => l.snap);
     const entry = { day: lastSnap ? lastSnap.day : w.endDay,
                     snap: lastSnap ? lastSnap.snap : w.final,
-                    text: OUT_ENDLINE[w.outcome](A, B) };
+                    text: OUT_ENDLINE[w.outcome](A, B, w.seed) };
     const salt = (Date.now() & 0xffffff) ^ ((++duoDrawNo) * 2654435761) ^ hashStr(A + '|' + B);
     fallback = genDialogueEngine(w, entry, salt).map(t => ({ who: t.who === A ? 0 : 1, text: t.text }));
     totalExpected = 4;
@@ -5363,6 +5636,18 @@ async function genTimelineLLM(w){
   return days.map(d=>byDay[d]||null);
 }
 
+/* 宇宙 overlay 的分歧点小字：判定用引擎原版 log（LLM 重写不换 id/snap，分歧点稳定），
+   展示文本按 day 对齐当前在播的时间线版本；找不到分歧点就整行收起来。 */
+function paintFork(w){
+  const el = document.getElementById('wo-fork');
+  if(!el) return;
+  const fork = worldFork(w);
+  if(!fork){ el.style.display = 'none'; el.textContent = ''; return; }
+  const cur = (w.log || []).find(l => l.day === fork.day);
+  el.textContent = `命运在这天拐的弯：第 ${fork.day} 天 · ${(cur && cur.text) || fork.text}`;
+  el.style.display = '';
+}
+
 function renderSimOverlay(w){
   const token = ++woToken; // 任何一次重渲染都作废旧的在途生成
   renderSimOverlay._w = w;
@@ -5379,7 +5664,8 @@ function renderSimOverlay(w){
   if(ksSlot){ ksSlot.style.display = 'none'; ksSlot.innerHTML = ''; }
   document.getElementById('wo-meta').textContent =
     `${worldId(w.seed)} · 结局：${oc.label} · ${(w.endDay/365).toFixed(1)} 年`;
-  document.getElementById('wo-end').textContent = OUT_ENDLINE[w.outcome](A,B);
+  document.getElementById('wo-end').textContent = OUT_ENDLINE[w.outcome](A,B,w.seed);
+  paintFork(w);
   const statsRow = `<div class="world-meta" style="margin-bottom:10px">
        <span>信任 <b>${Math.round(f.trust)}</b></span>
        <span>心动 <b>${Math.round(f.affection)}</b></span>
@@ -5420,6 +5706,7 @@ function renderSimOverlay(w){
       w._llmLog = w._engineLog.map((l,i)=>({...l, text: texts[i] || l.text}));
       w.log = w._llmLog; // 人走了也照缓存，下次进来直接用
       if(token !== woToken) return;
+      paintFork(w);
       const wt = document.getElementById('wo-writing');
       if(wt) wt.remove();
       const src = document.getElementById('wo-src');
@@ -5432,6 +5719,7 @@ function renderSimOverlay(w){
     }catch(e){
       if(token !== woToken) return;
       w.log = w._engineLog;
+      paintFork(w);
       logEl.innerHTML = statsRow + srcRow('LLM 走神 · 引擎事件库') + rowsFor(w.log);
     }
   })();
@@ -5454,6 +5742,12 @@ const KEEPSAKE = {
   earbuds:   ['earphones',  '中间隔个脑袋，放同一首歌。'],
   luosifen:  ['luosifen',   '在滚烫里互相成全。'],
 };
+/* model-viewer 门：WebGL + 自定义元素就绪，且非窄屏非粗指针才上 3D；否则静态 render 图。条件与跳跃舞台（playJump 拍 0）同款 */
+function ksMvOK(){
+  return ksWebglOK() && !!customElements.get('model-viewer')
+    && innerWidth >= 768 && !(window.matchMedia && matchMedia('(pointer:coarse)').matches);
+}
+
 function ksWebglOK(){
   try{ const c = document.createElement('canvas');
     return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); }
@@ -5475,7 +5769,7 @@ function renderGagOverlay(g){
   else{
     const imgHtml = `<img src="assets/keepsakes/render/${ks[0]}.webp" alt="${g.name}信物" loading="lazy">`;
     const b64 = window.__KS_B64 && window.__KS_B64[ks[0]];
-    const mvOK = ksWebglOK() && !!customElements.get('model-viewer');
+    const mvOK = ksMvOK();
     const mvHtml = src => `<model-viewer src="${src}" camera-controls auto-rotate interaction-prompt="none" loading="lazy" camera-orbit="30deg 68deg auto" exposure="1.05"></model-viewer>`;
     const inner = b64 && mvOK ? mvHtml(`data:model/gltf-binary;base64,${b64}`)
       : location.protocol !== 'file:' && mvOK ? mvHtml(`assets/keepsakes/${ks[0]}-web.glb`)
@@ -5486,6 +5780,8 @@ function renderGagOverlay(g){
     if(mv) mv.addEventListener('error', () => { mv.parentElement.innerHTML = imgHtml; });
   }
   document.getElementById('wo-meta').textContent = `${g.name} · ${g.tagline}`;
+  const forkEl = document.getElementById('wo-fork');
+  if(forkEl){ forkEl.style.display = 'none'; forkEl.textContent = ''; }
   document.getElementById('wo-end').textContent = g.endline;
   /* 专属结局统计：每个恶搞宇宙有自己的结局口径和配色，数字按 10,000 次模拟报 */
   const bars = g.stats.map(s => `
@@ -5537,6 +5833,14 @@ function fillTwinForm(s, t){
   /* 老链接没有 hair 字段 → 用默认；非法 key 也回默认 */
   document.getElementById(`hair-${s}`).value = HAIR_OK(t.hair) ? t.hair : HAIR_DEFAULT(s);
   syncHairSel(s);
+  /* 老链接没有生日字段 → 留空隐藏；有就回显。只回显不重算——载荷里的参数已是叠完成品 */
+  const bz = t.bday && t.zodiac && ZODIAC_BY_NAME[t.zodiac] ? t.bday : null;
+  document.getElementById(`bday-m-${s}`).value = bz ? bz.m : '';
+  document.getElementById(`bday-d-${s}`).value = bz ? bz.d : '';
+  ZOD_SEL[s] = bz ? { m: bz.m, d: bz.d, sign: t.zodiac } : null;
+  const btag = document.getElementById(`bday-tag-${s}`);
+  btag.textContent = bz ? `${t.zodiac} ${ZODIAC_BY_NAME[t.zodiac].emoji}` : '';
+  btag.classList.remove('err');
 }
 /* 双向好奇：同一个链接，所有人看到同一个角色（hash 定） */
 const SHARE_ROLES = [
@@ -5555,7 +5859,9 @@ const SHARE_ROLES = [
   '你是耳机上那个结。缠上了，就没打算解。',
   '你是那勺酸笋。这不叫臭，叫人格。',
 ];
-(function(){
+/* boot 推迟到 DOMContentLoaded：本块后面的 const（ZOD_SEL 等）那时已就位，
+     解析期同步跑会 TDZ——分享链接的 fillTwinForm 全靠它们。 */
+window.addEventListener('DOMContentLoaded', function(){
   const m = location.hash.match(/#t=([A-Za-z0-9\-_]+)/);
   if(!m) return;
   try{
@@ -5566,7 +5872,7 @@ const SHARE_ROLES = [
     runSalt = (d.r|0) - 1;
     shareLanding();
   }catch(e){}
-})();
+});
 /* 收到链接的人先看到的是一封信，不是直接跳线 */
 function shareLanding(){
   const el = document.createElement('div');
@@ -5587,7 +5893,7 @@ function shareLanding(){
   const own = document.createElement('button'); own.className = 'btn'; own.textContent = '也算算我们的 →';
   own.style.cssText = 'border-color:transparent;color:var(--faint);min-height:44px';
   open.onclick = () => { el.remove(); startJump(); };
-  own.onclick = () => { history.replaceState(null, '', location.pathname + location.search); el.remove(); go('scene-twins'); };
+  own.onclick = () => { try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){} el.remove(); go('scene-twins'); };
   el.append(kick, names, sub, role, open, own);
   document.body.appendChild(el);
 }
@@ -5681,6 +5987,8 @@ function applyMBTI(s, t, prefix){
   setCtl(`conflict-${s}`, m.conflict);
   setCtl(`attach-${s}`, mbtiPick(m.attach));
   setCtl(`money-${s}`, mbtiPick(m.money));
+  if(ZOD_BASE[s]) ZOD_BASE[s] = null;   /* MBTI 变了：旧底作废，新 MBTI 值当底 */
+  applyZodiac(s);                        /* 有星座就以新底重叠（没星座则无事发生） */
   MBTI_SEL[s] = t;
   document.querySelectorAll(`#mbti-grid-${s} .mbti-btn[data-t]`).forEach(b =>
     b.classList.toggle('sel', b.dataset.t === t));
@@ -5702,11 +6010,330 @@ function mbtiPreview(s, t){
   tag.textContent = t ? MBTI_TAGS[t] : (tag.dataset.tag || '');
 }
 buildMBTI();
+/* ================================================================
+   星座 → 参数微调 — 四象加权映射，娱乐向
+   与 MBTI 同一机制：生日或 MBTI 任一变化都重算并写回 adv 控件，
+   控件仍是唯一事实源（手调后再选 MBTI/改生日才会被重算覆盖，和 MBTI 同款脾气）。
+   幅度克制：只是微调。引擎真正读的是 conflict/attach/family/money/career；
+   openness 不进引擎——沟通没有独立旋钮，它只在面板和分身简介里诚实可见。
+   ================================================================ */
+const ZODIAC = [
+  /* [名, emoji, 象, 起, 止]（起止为 月*100+日；摩羯跨年） */
+  ['白羊座','♈','fire', 321, 419],
+  ['金牛座','♉','earth', 420, 520],
+  ['双子座','♊','air', 521, 621],
+  ['巨蟹座','♋','water', 622, 722],
+  ['狮子座','♌','fire', 723, 822],
+  ['处女座','♍','earth', 823, 922],
+  ['天秤座','♎','air', 923, 1023],
+  ['天蝎座','♏','water', 1024, 1122],
+  ['射手座','♐','fire', 1123, 1221],
+  ['摩羯座','♑','earth', 1222, 119],
+  ['水瓶座','♒','air', 120, 218],
+  ['双鱼座','♓','water', 219, 320],
+];
+const ZODIAC_BY_NAME = {};
+ZODIAC.forEach(z => { ZODIAC_BY_NAME[z[0]] = { emoji: z[1], el: z[2] }; });
+function zodiacOf(m, d){
+  const md = m * 100 + d;
+  for(const z of ZODIAC){
+    if(z[3] > z[4]){ if(md >= z[3] || md <= z[4]) return z; }   /* 跨年（摩羯） */
+    else if(md >= z[3] && md <= z[4]) return z;
+  }
+  return null;
+}
+const ZOD_MAP = {
+  /* 火象：偏当场爆发。f=翻转概率——先掷 f 决定动不动吵架风格，动了才按象内分布选；
+     克制的原因：引擎里 avoid↔confront 是冷战大坝，整闸门掀翻就不是微调了（压力测试上过税）。
+     引擎里 confront 自带压力尖峰——压力反应大由它一并表达。 */
+  '白羊座': { conflict:{ f:.5, to:{confront:.75,repair:.25} } },
+  '狮子座': { conflict:{ f:.45, to:{confront:.6,repair:.4} } },
+  '射手座': { conflict:{ f:.4, to:{confront:.5,repair:.5} } },
+  /* 水象：依恋偏焦虑 + 情感浓度（family 权重）。天蝎比双鱼更激烈 */
+  '巨蟹座': { attach:{anxious:.6,secure:.3,avoidant:.1}, family:8 },
+  '天蝎座': { attach:{anxious:.7,secure:.2,avoidant:.1}, family:5 },
+  '双鱼座': { attach:{anxious:.55,secure:.35,avoidant:.1}, family:8 },
+  /* 风象：回避一点 + 沟通高（openness 不进引擎，只负责诚实可见） */
+  '双子座': { attach:{avoidant:.45,secure:.35,anxious:.2}, openness:10 },
+  '天秤座': { attach:{avoidant:.35,secure:.45,anxious:.2}, openness:8 },
+  '水瓶座': { attach:{avoidant:.55,secure:.3,anxious:.15}, openness:10 },
+  /* 土象：偏安全 + 承诺/储蓄（承诺没有独立旋钮，family 代劳）+ 金钱偏储蓄 */
+  '金牛座': { attach:{secure:.6,anxious:.2,avoidant:.2}, money:{save:.85,spend:.15}, family:6 },
+  '处女座': { attach:{secure:.55,anxious:.3,avoidant:.15}, money:{save:.8,spend:.2}, family:5 },
+  '摩羯座': { attach:{secure:.6,anxious:.15,avoidant:.25}, money:{save:.9,spend:.1}, family:4, career:6 },
+};
+const ZOD_SEL = { a:null, b:null };    /* { m, d, sign } 或 null */
+const ZOD_BASE = { a:null, b:null };   /* 叠星座前的控件快照：重算永远从底出发，幂等 */
+function zodSnap(s){ return {
+  openness:+document.getElementById(`openness-${s}`).value,
+  career:+document.getElementById(`career-${s}`).value,
+  family:+document.getElementById(`family-${s}`).value,
+  conflict:document.getElementById(`conflict-${s}`).value,
+  attach:document.getElementById(`attach-${s}`).value,
+  money:document.getElementById(`money-${s}`).value }; }
+function zodTweak(sign, base){
+  const m = ZOD_MAP[sign];
+  if(!m) return { ...base };
+  const v = { ...base };
+  const jit = x => x - 3 + Math.floor(Math.random() * 7);   /* ±3 抖动：同星座也不重样 */
+  const clamp = x => Math.max(0, Math.min(100, x));
+  if(m.openness) v.openness = clamp(base.openness + jit(m.openness));
+  if(m.family) v.family = clamp(base.family + jit(m.family));
+  if(m.career) v.career = clamp(base.career + jit(m.career));
+  if(m.conflict && Math.random() < m.conflict.f) v.conflict = mbtiPick(m.conflict.to);
+  if(m.attach) v.attach = mbtiPick(m.attach);
+  if(m.money) v.money = mbtiPick(m.money);
+  return v;
+}
+function applyZodiac(s){
+  const z = ZOD_SEL[s];
+  if(z && !ZOD_BASE[s]) ZOD_BASE[s] = zodSnap(s);   /* 第一次叠：记底 */
+  const base = ZOD_BASE[s];
+  if(!base) return;                                 /* 没生日也没叠过：无事发生 */
+  const v = z ? zodTweak(z.sign, base) : base;
+  if(!z) ZOD_BASE[s] = null;                        /* 清空生日：还底，不再记 */
+  setCtl(`openness-${s}`, v.openness);
+  setCtl(`career-${s}`, v.career);
+  setCtl(`family-${s}`, v.family);
+  setCtl(`conflict-${s}`, v.conflict);
+  setCtl(`attach-${s}`, v.attach);
+  setCtl(`money-${s}`, v.money);
+}
+const ZOD_MDAYS = [31,29,31,30,31,30,31,31,30,31,30,31];   /* 2.29 放行：闰年生的也是人 */
+function onBday(s){
+  const mRaw = document.getElementById(`bday-m-${s}`).value.trim();
+  const dRaw = document.getElementById(`bday-d-${s}`).value.trim();
+  const tag = document.getElementById(`bday-tag-${s}`);
+  const set = (txt, err) => { tag.textContent = txt; tag.classList.toggle('err', !!err); };
+  if(!mRaw && !dRaw){ ZOD_SEL[s] = null; set('', false); applyZodiac(s); return; }
+  const m = +mRaw, d = +dRaw;
+  if(mRaw && (!Number.isInteger(m) || m < 1 || m > 12)){
+    set('月份只有 1 到 12。这个数字，宇宙排不进去。', true); return;   /* 非法：只提示，不动参数 */
+  }
+  if(dRaw && (!Number.isInteger(d) || d < 1 || d > 31 || (mRaw && d > ZOD_MDAYS[m - 1]))){
+    set('这一天不存在，宇宙查过了。', true); return;
+  }
+  if(!mRaw || !dRaw){ set('', false); return; }   /* 填了一半：等另一个 */
+  const z = zodiacOf(m, d);
+  ZOD_SEL[s] = { m, d, sign: z[0] };
+  set(`${z[0]} ${z[1]}`, false);
+  applyZodiac(s);
+}
+['a','b'].forEach(s => {
+  document.getElementById(`bday-m-${s}`).addEventListener('input', () => onBday(s));
+  document.getElementById(`bday-d-${s}`).addEventListener('input', () => onBday(s));
+});
 function toggleAdv(){
   const p = document.getElementById('adv-panel');
   const on = p.classList.toggle('on');
   document.getElementById('adv-toggle').textContent =
     on ? '收起参数' : '我懂心理学，直接调参数';
+}
+
+/* ================================================================
+   娱乐两件套：宇宙黄历 / 听宣判
+   ================================================================ */
+
+/* ---------- 星座合盘：两人都填了才开口；同星座专句优先于四象通用池 ---------- */
+const HEPAN_SAME = {
+  '白羊座': '两个都要赢。建议吵架改打分制，不然没个头。',
+  '金牛座': '谁也不想先变。连吵架都按老规矩来，稳定得可怕。',
+  '双子座': '四个人的恋爱。哪四个，你们自己数数。',
+  '巨蟹座': '都想被照顾。今天谁照顾谁，看谁先累。',
+  '狮子座': '家里只能有一个主角，剧组天天抢番位。',
+  '处女座': '互相挑刺，挑着挑着，把日子挑得挺干净。',
+  '天秤座': '「你定吧」「还是你定吧」。一顿饭从中午定到晚上。',
+  '天蝎座': '都在试探，都在设防。这场恋爱，情报量超标。',
+  '射手座': '都想往远处跑。好在跑的方向，偶尔一致。',
+  '摩羯座': '恋爱谈成了项目制。进度居然还行。',
+  '水瓶座': '都需要空间。空间大到，见面要预约。',
+  '双鱼座': '轮流做梦，轮流叫醒对方。谁都不忍心真叫醒。',
+};
+const HEPAN_POOL = {
+  'fire|fire': [
+    '两团火凑一块儿。吵起来像点炮仗，响完就完了，谁也别想当赢家。',
+    '热得快，凉得也快。好在下一次热起来，也不远。',
+    '家里没有冷战，只有热战。邻居的耳朵，需要轮班休息。',
+  ],
+  'water|water': [
+    '都不直说，全靠对方悟。悟对了是浪漫，悟错了是连续剧。',
+    '情绪都满，杯子都浅。纸巾建议成箱买。',
+    '两个读心术爱好者，谁也不肯先给答案。',
+  ],
+  'air|air': [
+    '什么都聊，就是不聊正事。正事在角落里，等你们想起它。',
+    '两个人加起来八百个话题，和一句说不出口的「我需要你」。',
+    '约会像播客录制现场。内容很好，就是没人按下停止键。',
+  ],
+  'earth|earth': [
+    '稳定是罪名，也是答案。无聊得令人放心。',
+    '不浪漫，但靠谱。纪念日可能忘，答应的事一定到。',
+    '爱情长跑的配速员。慢是慢，不到终点不下场。',
+  ],
+  'air|fire': [
+    '风助火势，越聊越旺。分贝仪建议轮流保管。',
+    '一个点火，一个扇风。热闹是真热闹，就是费屋顶。',
+  ],
+  'air|earth': [
+    '一个飘，一个沉。飘的出主意，沉的让主意落地。分工明确。',
+    '风想聊聊人生，土想先把碗洗了。都行，碗反正得洗。',
+  ],
+  'air|water': [
+    '水在等情绪被看见，风在分析情绪是什么。看得见，摸不着。',
+    '一个用感觉说话，一个用逻辑回话。翻译软件至今没做出来。',
+  ],
+  'earth|fire': [
+    '火想现在就出发，土想先看看天气预报。最后一般听土的。',
+    '一个烧，一个压。土不是灭火，是怕火把自己烧着。',
+  ],
+  'earth|water': [
+    '水的情绪，土接得住。就是接的时候话不多，像在签收快递。',
+    '一个多想，一个多做。土不安慰人，土直接把事办了。',
+  ],
+  'fire|water': [
+    '一个上火，一个上心。凑好了是温泉，凑不好是蒸汽，烫。',
+    '火嫌水黏，水嫌火冲。吵完各自复盘，都觉得自己赢了。',
+  ],
+};
+function renderHepan(){
+  const el = document.getElementById('hepan');
+  const za = Twins.a && Twins.a.zodiac, zb = Twins.b && Twins.b.zodiac;
+  if(!za || !zb || !ZODIAC_BY_NAME[za] || !ZODIAC_BY_NAME[zb]){
+    el.style.display = 'none'; return;
+  }
+  const h = h32(Twins.a.name + '|' + Twins.b.name + '|hepan|' + runSalt);
+  let line;
+  if(za === zb) line = HEPAN_SAME[za] || '';
+  else{
+    const key = [ZODIAC_BY_NAME[za].el, ZODIAC_BY_NAME[zb].el].sort().join('|');
+    const pool = HEPAN_POOL[key] || [];
+    line = pool[h % pool.length] || '';
+  }
+  document.getElementById('hepan-head').textContent = `星座合盘 · ${za} × ${zb}`;
+  document.getElementById('hepan-line').textContent = line;
+  el.style.display = line ? '' : 'none';
+}
+
+/* ---------- 生日彩蛋：月日匹配今天，出一句金字。纯函数判定，方便打桩 ---------- */
+function birthdayToday(T, now){
+  const hit = [];
+  for(const s of ['a','b']){
+    const t = T[s], z = t && t.bday;
+    if(z && z.m === now.getMonth() + 1 && z.d === now.getDate()) hit.push(t.name);
+  }
+  return hit;
+}
+function renderBdayEgg(now){
+  const el = document.getElementById('bday-egg');
+  const hit = birthdayToday(Twins, now || new Date());
+  if(!hit.length){ el.style.display = 'none'; el.textContent = ''; return; }
+  el.textContent = hit.length === 2
+    ? `今天是你们俩的生日。同一天来到世界，这种巧合，一万个宇宙也只演一次。`
+    : `今天是 ${hit[0]} 的生日。一万个宇宙里，总有一个记得说声生日快乐。`;
+  el.style.display = '';
+}
+
+/* ---------- 宇宙黄历 · 今日宜忌：纯文案小卡，不跑引擎、不装神秘。
+     种子 = h32(名字a|名字b|日期)：同一对名字同一天看到的一样，明天自动换。 ---------- */
+const HUANGLI_YI = [
+  '一起点外卖',
+  '先说对不起，反正早晚要说',
+  '把「随便」换成具体店名',
+  '抢买单，抢不过就 AA',
+  '夸 TA 今天好看，具体到哪好看',
+  '把游戏暂停，是真的暂停那种',
+  '顺手带杯奶茶回家',
+  '散步半小时，谁也别带手机',
+  '旧事重提，但只提好笑的那几件',
+  '主动汇报行程，省得对方推理',
+  '听 TA 把槽吐完，先别急着给方案',
+  '想起垃圾今天该谁倒',
+  '约法三章，不如约顿好的',
+  '睡前把手机扣在桌上',
+  '发合照之前先问一句「这张行吗」',
+  '承认自己想被哄，不丢人',
+];
+const HUANGLI_JI = [
+  '已读不回',
+  '问「你想吃什么」再否定所有答案',
+  '翻旧账，今天宇宙看着呢',
+  '说「你变了」，谁都接不住',
+  '把「嗯」当一整段话用',
+  '用「随便」考对方读心术',
+  '当着朋友的面纠正 TA 的小事',
+  '说「你要这么想我也没办法」',
+  '游戏里那句「马上」，马上了一个小时',
+  '把晚安说成一个「哦」',
+  '在饭桌上回工作消息',
+  '拿 TA 跟别人的对象比',
+  '假装睡着，演技还不行',
+  '「多喝水」三连',
+  '抢被子，抢完装无辜',
+  '让对方猜，猜错了还生气',
+];
+function renderHuangli(){
+  if(!Twins.a || !Twins.b) return;
+  const d = new Date();
+  const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const r = mulberry32(h32(Twins.a.name + '|' + Twins.b.name + '|' + ds));
+  const pick2 = pool => {
+    const got = new Set();
+    while(got.size < 2) got.add(Math.floor(r() * pool.length));
+    return [...got].map(i => pool[i]);
+  };
+  document.getElementById('hl-date').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日';
+  document.getElementById('hl-rows').innerHTML =
+    pick2(HUANGLI_YI).map(t => `<div class="hl-row yi"><span class="tag">宜</span><span>${t}</span></div>`).join('') +
+    pick2(HUANGLI_JI).map(t => `<div class="hl-row ji"><span class="tag">忌</span><span>${t}</span></div>`).join('');
+}
+
+/* ---------- 听宣判：Web Speech 念 verdict + 温度文案，算命摊死板腔。
+     按钮只在支持 speechSynthesis 时渲染；voices 点击时现取；任何异常静默置灰。 ---------- */
+const verdictTts = { speaking:false };
+function ensureTtsBtn(){
+  if(!('speechSynthesis' in window)) return;
+  if(document.getElementById('btn-verdict-tts')){ ttsBtnReset(); return; }
+  const b = document.createElement('button');
+  b.id = 'btn-verdict-tts';
+  b.className = 'tts-btn';
+  b.type = 'button';
+  b.textContent = '🔊 听宣判';
+  b.addEventListener('click', toggleVerdictTts);
+  const v = document.getElementById('res-verdict');
+  if(v) v.insertAdjacentElement('afterend', b);
+}
+function ttsBtnReset(){
+  verdictTts.speaking = false;
+  const b = document.getElementById('btn-verdict-tts');
+  if(b && !b.disabled){ b.textContent = '🔊 听宣判'; b.classList.remove('on'); }
+}
+function toggleVerdictTts(){
+  const b = document.getElementById('btn-verdict-tts');
+  try{
+    if(verdictTts.speaking){
+      speechSynthesis.cancel();
+      ttsBtnReset();
+      return;
+    }
+    const vEl = document.getElementById('res-verdict'), tEl = document.getElementById('res-tone');
+    const text = [(vEl ? vEl.textContent : '').trim(), (tEl ? tEl.textContent : '').trim()]
+      .filter(Boolean).join('。');
+    if(!text) return;
+    const u = new SpeechSynthesisUtterance(text);
+    const zh = speechSynthesis.getVoices().find(x => /^zh([-_]|$)/i.test(x.lang || ''));
+    if(zh){ u.voice = zh; u.lang = zh.lang; } else { u.lang = 'zh-CN'; }
+    u.rate = 0.85;
+    u.pitch = 0.9;
+    u.onend = u.onerror = () => ttsBtnReset();
+    speechSynthesis.cancel();   /* 清掉上一轮残留 */
+    speechSynthesis.speak(u);
+    verdictTts.speaking = true;
+    if(b){ b.textContent = '⏹ 别念了'; b.classList.add('on'); }
+  }catch(e){
+    try{ speechSynthesis.cancel(); }catch(_){}
+    verdictTts.speaking = false;
+    if(b){ b.disabled = true; b.textContent = '🔇 念不了'; b.classList.remove('on'); }
+  }
 }
 
 /* ---------- 揭盅：宇宙批注（按吵架风格 a×b 组合说人话，星座运势语气，不是诊断书） ---------- */
@@ -5745,6 +6372,8 @@ function renderVerdict(){
   const apunch = VERDICT_ATTACH[Twins.a.attachment + '|' + Twins.b.attachment] || '';
   document.getElementById('res-verdict').innerHTML =
     `宇宙批注 · 你们吵架的模式：<b>${la} × ${lb}</b>。${punch}${apunch ? ' ' + apunch : ''}`;
+  try{ if('speechSynthesis' in window) speechSynthesis.cancel(); }catch(e){}
+  ensureTtsBtn();
 }
 
 /* ---------- 温度文案：幽默的对象是宇宙，不是用户；坏结果只给温柔 ---------- */
@@ -5857,6 +6486,12 @@ addEventListener('keydown', e => {
   if(CURRENT_SCENE === 'scene-results'){ rerun(); return; }
   generateTwins();
   startJump();
+});
+
+/* ---------- ESC = 跳过跳跃（和「跳过跳跃」按钮等价） ---------- */
+addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  if(CURRENT_SCENE === 'scene-jump' && !jump.done) finishJump(true);
 });
 
 /* ---------- autopilot: press A, watch the whole thing run itself ---------- */
